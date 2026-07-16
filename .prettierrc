@@ -10,13 +10,12 @@
   "importOrder": [
     "^react",
     "<THIRD_PARTY_MODULES>",
+    "^@/app/assets",
     "^@/app",
-    "^@/api",
-    "^@/constants",
+    "^@/lib",
     "^@/hooks",
     "^@/utils",
     "^@/components",
-    "^@/assets",
     "^[./]"
   ],
   "importOrderSeparation": true,
