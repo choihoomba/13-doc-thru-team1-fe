@@ -25,32 +25,10 @@
   --color-brand: #FFC117;
   --color-brand-light: #F1F2F5;
 
-  --color-red: #EB3E3E;
-  --color-error: #EB3E3E;
-
-  /* -------- Chip (카테고리 태그) --------
-     Next.js / API / Career / Modern JS / Web 같은 카테고리 태그용 색상.
-     용도가 정해지면 이름은 자유롭게 바꿔도 됨 */
-  --color-chip-red: #F66E6B;
-  --color-chip-yellow: #F7EA5D;
-  --color-chip-green: #79E16A;
-  --color-chip-orange: #FF905E;
-  --color-chip-blue: #7EB2EE;
-
-  /* -------- Status (상태 뱃지: bg/text 쌍) --------
-     일단 info/warning/error로 이름 붙임. 실제 상태(대기/승인/거절 등)에
-     맞춰서 이름 바꿔도 됨 — 값 자체는 그대로 두고 별칭만 추가하면 됨 */
-  --color-status-info-bg: #DFF0FF;
-  --color-status-info-text: #4095DE;
-
-  --color-status-error-bg: #FFF0F0;
-  --color-status-error-text: #E54946;
-
-  --color-status-warning-bg: #FFFDE7;
-  --color-status-warning-text: #F2BC00;
+  --color-red-error: #EB3E3E;
 
   /* -------- Font family -------- */
-  --font-pretendard: "Pretendard", sans-serif;
+  --font-pretendard: var(--font-pretendard-variable), 'Pretendard', sans-serif;
 
   /* -------- Font system (Pretendard) --------
      className="text-24-bold" 처럼 크기+굵기가 한 클래스에 같이 적용됨 */
@@ -114,24 +92,27 @@
   --text-12-regular: 12px;
   --text-12-regular--font-weight: 400;
 
-  /* 본문(paragraph)용: line-height를 명시적으로 지정 */
-  --text-body-16-relaxed: 16px;
-  --text-body-16-relaxed--line-height: 160%;
-  --text-body-16-relaxed--font-weight: 400;
-
-  --text-body-16-normal: 16px;
-  --text-body-16-normal--line-height: 130%;
-  --text-body-16-normal--font-weight: 400;
-
-  --text-body-14-relaxed: 14px;
-  --text-body-14-relaxed--line-height: 160%;
-  --text-body-14-relaxed--font-weight: 400;
-
-  --text-body-14-normal: 14px;
-  --text-body-14-normal--line-height: 130%;
-  --text-body-14-normal--font-weight: 400;
+  /* 본문(paragraph)용 */
+    --text-body-16-160: 16px;
+  --text-body-16-160--line-height: 1.6; /* 160% */
+  --text-body-16-160--font-weight: 400;
+ 
+  --text-body-16-130: 16px;
+  --text-body-16-130--line-height: 1.3; /* 130% */
+  --text-body-16-130--font-weight: 400;
+ 
+  --text-body-14-160: 14px;
+  --text-body-14-160--line-height: 1.6; /* 160% */
+  --text-body-14-160--font-weight: 400;
+ 
+  --text-body-14-130: 14px;
+  --text-body-14-130--line-height: 1.3; /* 130% */
+  --text-body-14-130--font-weight: 400;
 }
 
-body {
-  font-family: var(--font-pretendard);
+@layer base {
+  body {
+    font-family: var(--font-pretendard);
+    @apply text-gray-800 bg-white;
+  }
 }
