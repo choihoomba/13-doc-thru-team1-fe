@@ -2,8 +2,8 @@
 
 import Image from 'next/image';
 
-import Ellipse from '@/app/assets/icons/Ellipse 15.svg';
 import CheckIcon from '@/app/assets/icons/icon_check.svg';
+import Ellipse from '@/app/assets/icons/icon_check_bg.svg';
 
 import { useModal } from '@/hooks/modal/useModal';
 
@@ -14,13 +14,13 @@ import ModalBase, { getModalButtonClassName } from './ModalBase';
 /** ModalConfirm 상단 기본 아이콘 (검정 원 + 흰색 체크) */
 function CheckCircleIcon() {
   return (
-    <span className={cn('relative flex h-10 w-10 items-center justify-center')}>
-      <Image src={Ellipse} alt="" fill sizes="40px" />
+    <span className={cn('relative flex h-6 w-6 items-center justify-center')}>
+      <Image src={Ellipse} alt="" fill sizes="24px" />
       <Image
         src={CheckIcon}
         alt=""
-        width={14}
-        height={11}
+        width={8.643}
+        height={7.143}
         className="relative z-10"
       />
     </span>
@@ -28,10 +28,6 @@ function CheckCircleIcon() {
 }
 
 /**
- * 확인/취소형 모달 "내용" 컴포넌트. openModal(<ModalConfirm .../>)로 호출해서 사용.
- * cancelText를 넘기지 않으면 버튼 1개(단일 액션, 예: "로그인하러 가기")로 렌더링됨.
- * icon은 기본으로 체크 아이콘이 뜨고, icon={null}을 넘기면 아이콘 없이 렌더링됨.
- *
  * @example
  * const { openModal, closeModal } = useModal();
  * openModal(
@@ -86,7 +82,7 @@ export default function ModalConfirm({
           </button>
         </div>
       ) : (
-        <div className={cn('flex gap-2 px-6 pb-6')}>
+        <div className={cn('flex gap-2 px-15 pb-6')}>
           <button
             type="button"
             className={getModalButtonClassName('secondary', 'h-10 flex-1')}

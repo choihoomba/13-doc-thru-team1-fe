@@ -7,15 +7,6 @@ import { useModal } from '@/hooks/modal/useModal';
 
 import { cn } from '@/utils/cn';
 
-/**
- * 모달 "내용물"을 감싸는 흰색 박스 뼈대 + backdrop/ESC 닫기/딤드 클릭 닫기/portal 렌더링까지 함께 담당하는 컴포넌트.
- *
- * ModalConfirm/ModalRejectReason/Popup처럼 openModal(<X />)로 호출되는 컴포넌트들이
- * 내부에서 감싸 쓰는 컴포넌트. 이 컴포넌트가 마운트되어 있는 것 자체가 "모달이 열려있음"을
- * 의미하므로(ModalProvider가 content가 있을 때만 렌더링) 별도 isOpen prop은 받지 않음.
- * ESC/딤드 클릭 닫기는 useModal()의 closeModal을 직접 사용하고, 우측 상단 ✕ 아이콘은
- * onCloseIconClick prop으로 개별 제어함.
- */
 export default function ModalBase({
   title,
   onCloseIconClick,
@@ -106,8 +97,7 @@ export function ModalActions({ children, className }) {
 }
 
 /**
- * 공용 버튼 클래스. variant별 색상만 공통으로 관리하고, height/width는 모달마다
- * 디자인이 달라서 호출부에서 className으로 직접 넘김.
+ * 공용 버튼 클래스. variant별 색상만 공통으로 관리
  */
 export function getModalButtonClassName(variant = 'primary', className) {
   return cn(
