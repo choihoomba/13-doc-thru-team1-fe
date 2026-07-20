@@ -1,1 +1,174 @@
 @import 'tailwindcss';
+
+@theme {
+  /* -------- Breakpoints (mobile-first, min-width) --------
+     기본 상태 = 375px 미만 초소형. mobile: / tablet: / desktop: 접두사로 그 이상 화면에 적용.
+     예) className="text-14-regular tablet:text-16-regular" */
+  --breakpoint-*: initial;
+  --breakpoint-mobile: 375px;
+  --breakpoint-tablet: 744px;
+  --breakpoint-desktop: 1024px;
+
+  /* -------- Color -------- */
+  --color-gray-900: #171717;
+  --color-gray-800: #262626;
+  --color-gray-700: #404040;
+  --color-gray-600: #525252;
+  --color-gray-500: #737373;
+  --color-gray-400: #a3a3a3;
+  --color-gray-300: #d4d4d4;
+  --color-gray-200: #e5e5e5;
+  --color-gray-100: #e8ebed;
+  --color-gray-50: #fafafa;
+
+  --color-brand-dark: #262626;
+  --color-brand: #ffc117;
+  --color-brand-light: #f1f2f5;
+
+  --color-red-error: #eb3e3e;
+
+  /* -------- Font family -------- */
+  --font-pretendard: var(--font-pretendard-variable), 'Pretendard', sans-serif;
+
+  /* -------- Font system (Pretendard) --------
+     className="text-24-bold" 처럼 크기+굵기가 한 클래스에 같이 적용됨 */
+  --text-24-bold: 24px;
+  --text-24-bold--font-weight: 700;
+  --text-24-bold--line-height: calc(29/24);
+  --text-24-bold--letter-spacing: 0em;
+  --text-24-semibold: 24px;
+  --text-24-semibold--font-weight: 600;
+  --text-24-semibold--line-height: calc(29/24);
+  --text-24-semibold--letter-spacing: 0em;
+
+  --text-22-bold: 22px;
+  --text-22-bold--font-weight: 700;
+  --text-22-bold--line-height: calc(26/22);
+  --text-22-bold--letter-spacing: 0em;
+  --text-22-semibold: 22px;
+  --text-22-semibold--font-weight: 600;
+  --text-22-semibold--line-height: calc(26/22);
+  --text-22-semibold--letter-spacing: 0em;
+
+  --text-20-bold: 20px;
+  --text-20-bold--font-weight: 700;
+  --text-20-bold--line-height: calc(24/20);
+  --text-20-bold--letter-spacing: 0em;
+  --text-20-semibold: 20px;
+  --text-20-semibold--font-weight: 600;
+  --text-20-semibold--line-height: calc(24/20);
+  --text-20-semibold--letter-spacing: 0em;
+  --text-20-medium: 20px;
+  --text-20-medium--font-weight: 500;
+  --text-20-medium--line-height: calc(24/20);
+  --text-20-medium--letter-spacing: 0em;
+
+  --text-18-bold: 18px;
+  --text-18-bold--font-weight: 700;
+  --text-18-bold--line-height: calc(21/18);
+  --text-18-bold--letter-spacing: 0em;
+  --text-18-semibold: 18px;
+  --text-18-semibold--font-weight: 600;
+  --text-18-semibold--line-height: calc(21/18);
+  --text-18-semibold--letter-spacing: 0em;
+  --text-18-medium: 18px;
+  --text-18-medium--font-weight: 500;
+  --text-18-medium--line-height: calc(21/18);
+  --text-18-medium--letter-spacing: 0em;
+  --text-18-regular: 18px;
+  --text-18-regular--font-weight: 400;
+  --text-18-regular--line-height: calc(21/18);
+  --text-18-regular--letter-spacing: 0em;
+
+  --text-16-bold: 16px;
+  --text-16-bold--font-weight: 700;
+  --text-16-bold--line-height: calc(19/16);
+  --text-16-bold--letter-spacing: 0em;
+  --text-16-semibold: 16px;
+  --text-16-semibold--font-weight: 600;
+  --text-16-semibold--line-height: calc(19/16);
+  --text-16-semibold--letter-spacing: 0em;
+  --text-16-medium: 16px;
+  --text-16-medium--font-weight: 500;
+  --text-16-medium--line-height: calc(19/16);
+  --text-16-medium--letter-spacing: 0em;
+  --text-16-regular: 16px;
+  --text-16-regular--font-weight: 400;
+  --text-16-regular--line-height: calc(19/16);
+  --text-16-regular--letter-spacing: 0em;
+
+  --text-14-bold: 14px;
+  --text-14-bold--font-weight: 700;
+  --text-14-bold--line-height: calc(17/14);
+  --text-14-bold--letter-spacing: 0em;
+  --text-14-semibold: 14px;
+  --text-14-semibold--font-weight: 600;
+  --text-14-semibold--line-height: calc(17/14);
+  --text-14-semibold--letter-spacing: 0em;
+  --text-14-medium: 14px;
+  --text-14-medium--font-weight: 500;
+  --text-14-medium--line-height: calc(17/14);
+  --text-14-medium--letter-spacing: 0em;
+  --text-14-regular: 14px;
+  --text-14-regular--font-weight: 400;
+  --text-14-regular--line-height: calc(17/14);
+  --text-14-regular--letter-spacing: 0em;
+
+  --text-13-bold: 13px;
+  --text-13-bold--font-weight: 700;
+  --text-13-bold--line-height: calc(16/13);
+  --text-13-bold--letter-spacing: 0em;
+  --text-13-semibold: 13px;
+  --text-13-semibold--font-weight: 600;
+  --text-13-semibold--line-height: calc(16/13);
+  --text-13-semibold--letter-spacing: 0em;
+  --text-13-medium: 13px;
+  --text-13-medium--font-weight: 500;
+  --text-13-medium--line-height: calc(16/13);
+  --text-13-medium--letter-spacing: 0em;
+  --text-13-regular: 13px;
+  --text-13-regular--font-weight: 400;
+  --text-13-regular--line-height: calc(16/13);
+  --text-13-regular--letter-spacing: 0em;
+
+  --text-12-bold: 12px;
+  --text-12-bold--font-weight: 700;
+  --text-12-bold--line-height: calc(14/12);
+  --text-12-bold--letter-spacing: 0em;
+  --text-12-medium: 12px;
+  --text-12-medium--font-weight: 500;
+  --text-12-medium--line-height: calc(14/12);
+  --text-12-medium--letter-spacing: 0em;
+  --text-12-regular: 12px;
+  --text-12-regular--font-weight: 400;
+  --text-12-regular--line-height: calc(14/12);
+  --text-12-regular--letter-spacing: 0em;
+
+  /* 본문(paragraph)용 */
+  --text-body-16-160: 16px;
+  --text-body-16-160--line-height: calc(25.6/16); /* 160% */
+  --text-body-16-160--font-weight: 400;
+  --text-body-16-160--letter-spacing: 0em;
+
+  --text-body-16-130: 16px;
+  --text-body-16-130--line-height: calc(22.4/16); /* 130% */
+  --text-body-16-130--font-weight: 400;
+  --text-body-16-130--letter-spacing: 0em;
+
+  --text-body-14-160: 14px;
+  --text-body-14-160--line-height: calc(20.8/14); /* 160% */
+  --text-body-14-160--font-weight: 400;
+  --text-body-14-160--letter-spacing: 0em;
+
+  --text-body-14-130: 14px;
+  --text-body-14-130--line-height: calc(18.2/14); /* 130% */
+  --text-body-14-130--font-weight: 400;
+  --text-body-14-130--letter-spacing: 0em;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-pretendard);
+    @apply text-gray-800 bg-white;
+  }
+}
