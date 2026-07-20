@@ -2,7 +2,7 @@
 
 @theme {
   /* -------- Breakpoints (mobile-first, min-width) --------
-     기본 상태 = 375px 미만 초소형. mobile: / tablet: / desktop: 접두사로 그 이상 화면에 적용.
+    기본 상태 = 375px 미만 초소형. mobile: / tablet: / desktop: 접두사로 그 이상 화면에 적용.
      예) className="text-14-regular tablet:text-16-regular" */
   --breakpoint-*: initial;
   --breakpoint-mobile: 375px;
