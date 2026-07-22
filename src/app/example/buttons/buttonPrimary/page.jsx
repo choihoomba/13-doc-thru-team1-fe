@@ -191,6 +191,7 @@ export default function ButtonPrimaryExPage() {
               alt=""
               width={28}
               height={28}
+              unoptimized //자동 최적화 과정 건너뛰고, 원본 파일 그대로 브라우저에 빠르게 보내주는 속성
             />
             Google로 시작하기
           </ButtonPrimary>
