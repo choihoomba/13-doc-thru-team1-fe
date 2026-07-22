@@ -11,6 +11,7 @@ import HighlightedText from '@/app/example/_components/HighlightedText';
 import { cn } from '@/utils/cn';
 
 import ButtonPrimary from '@/components/ui/Button/ButtonPrimary';
+import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 
 export default function ButtonPrimaryExPage() {
   return (
@@ -20,7 +21,7 @@ export default function ButtonPrimaryExPage() {
           'w-fit mb-[12px] py-[10px] px-[24px] text-24-bold bg-brand-black text-brand-yellow border-1 border-brand-black rounded-[12px]',
         )}
       >
-        공통 Button 컴포넌트
+        공통 ButtonPrimary 컴포넌트
       </h1>
       <h2 className={cn('mb-[24px] text-18-medium')}>
         - <HighlightedText text={`primary`} /> : 배경 O, border 없음
@@ -195,6 +196,17 @@ export default function ButtonPrimaryExPage() {
             />
             Google로 시작하기
           </ButtonPrimary>
+          <div className={cn('flex gap-[12px]')}>
+            <ButtonSecondary
+              variant="tertiary"
+              color="white"
+              size="sm"
+              width={64}
+            >
+              취소
+            </ButtonSecondary>
+            <ButtonPrimary size="sm">수정 완료</ButtonPrimary>
+          </div>
         </ExContainer>
       </ExLayout>
     </section>

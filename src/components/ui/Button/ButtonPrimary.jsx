@@ -4,6 +4,8 @@ import Link from 'next/link';
 
 import { cn } from '@/utils/cn';
 
+import { BUTTON_BASE_STYLE, BUTTON_DISABLED_STYLE } from './buttonStyles';
+
 /**
  * variant + color 조합별 스타일
  * - primary: 배경 채움, 보더 없음
@@ -38,6 +40,7 @@ const SIZE_STYLES = {
   xxxl: 'h-[48px] min-w-[90px] px-[24px] rounded-[12px] text-16-regular',
 };
 
+/** 기본 스타일 버튼 */
 export default function ButtonPrimary({
   className = '',
   as, // button, Link
@@ -79,14 +82,14 @@ export default function ButtonPrimary({
           })}
       onClick={handleClick}
       className={cn(
-        'flex justify-center items-center cursor-pointer text-nowrap',
+        BUTTON_BASE_STYLE,
 
         // variant + color 조합 스타일
         // 활성화 상태일 때만 컬러 스타일 적용 (클래스 충돌 방지)
         !disabled && VARIANT_COLOR_STYLES[variant]?.[color],
 
         // 공통 disabled 스타일 적용
-        disabled && 'bg-gray-200 text-gray-500 cursor-default',
+        disabled && BUTTON_DISABLED_STYLE,
 
         // size 스타일
         SIZE_STYLES[size],

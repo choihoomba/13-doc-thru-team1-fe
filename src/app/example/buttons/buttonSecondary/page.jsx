@@ -6,6 +6,7 @@ import HighlightedText from '@/app/example/_components/HighlightedText';
 
 import { cn } from '@/utils/cn';
 
+import ButtonPrimary from '@/components/ui/Button/ButtonPrimary';
 import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 
 export default function ButtonSecondaryExPage() {
@@ -23,9 +24,9 @@ export default function ButtonSecondaryExPage() {
         <br />
         - <HighlightedText text={`secondary`} /> : 배경 X, border 1px
         <br />
-        - <HighlightedText text={`size`} /> : sm, md
+        - <HighlightedText text={`size`} /> : sm(tertiary만 사용), md, lg
         <br />
-        - <HighlightedText text={`color`} /> : black, red
+        - <HighlightedText text={`color`} /> : black, red, white
         <br />
         <br />
         - 모든 버튼의 <HighlightedText text={`width`} />
@@ -56,32 +57,44 @@ export default function ButtonSecondaryExPage() {
         {/* Primary size 별 */}
         <ExContainer
           flex="row"
-          description={`🥕 기본(brand) 컬러 - variant="primary", color="black" 기본값, size="sm, md"`}
+          description={`🥕 variant="primary", color="black" 기본값, size="md, lg"`}
         >
-          <ButtonSecondary size="sm">승인하기</ButtonSecondary>
-          <ButtonSecondary size="md">번역 시작하기</ButtonSecondary>
-        </ExContainer>
-
-        {/* Secondary size 별 */}
-        <ExContainer
-          flex="row"
-          description={`🥕 기본(brand) 컬러 - variant="secondary", color="black" 기본값, size="sm, md"`}
-        >
-          <ButtonSecondary variant="secondary" size="sm">
-            임시저장
-          </ButtonSecondary>
-          <ButtonSecondary variant="secondary" size="md">
-            거절하기
-          </ButtonSecondary>
+          <ButtonSecondary>승인하기</ButtonSecondary>
+          <ButtonSecondary size="lg">번역 시작하기</ButtonSecondary>
         </ExContainer>
 
         {/* Red Color */}
         <ExContainer
           flex="row"
-          description={`🥕 red 컬러 - variant="primary", color="red" 지정, size="md"`}
+          description={`🥕 variant="primary", color="red" 지정, size="lg"`}
         >
-          <ButtonSecondary color="red" size="md">
+          <ButtonSecondary color="red" size="lg">
             삭제하기
+          </ButtonSecondary>
+        </ExContainer>
+
+        {/* Secondary size 별 */}
+        <ExContainer
+          flex="row"
+          description={`🥕 variant="secondary", color="black" 기본값, size="md, lg"`}
+        >
+          <ButtonSecondary variant="secondary">임시저장</ButtonSecondary>
+          <ButtonSecondary variant="secondary" size="lg">
+            거절하기
+          </ButtonSecondary>
+        </ExContainer>
+
+        {/* tertiary */}
+        <ExContainer
+          description={`🥕 variant="tertiary", color="white", size="sm"`}
+        >
+          <ButtonSecondary
+            variant="tertiary"
+            color="white"
+            size="sm"
+            width={64}
+          >
+            취소
           </ButtonSecondary>
         </ExContainer>
 
@@ -89,7 +102,7 @@ export default function ButtonSecondaryExPage() {
         <ExContainer
           description={`🥕 disabled - 클릭 불가 + disabled 스타일 적용`}
         >
-          <ButtonSecondary size="md" disabled={true}>
+          <ButtonSecondary size="lg" disabled={true}>
             승인하기
           </ButtonSecondary>
         </ExContainer>
@@ -119,35 +132,44 @@ export default function ButtonSecondaryExPage() {
         <ExContainer description={`✅ 사용 예시 ✅`}>
           <div className={cn('flex justify-center')}>
             <ButtonSecondary
-              size="md"
+              size="lg"
               className={cn('w-[120px] tablet:w-[153px]')}
             >
               번역 시작하기
             </ButtonSecondary>
           </div>
           <div className={cn('flex gap-[12px]')}>
-            <ButtonSecondary variant="secondary" size="sm">
-              임시저장
-            </ButtonSecondary>
-            <ButtonSecondary size="sm">제출하기</ButtonSecondary>
+            <ButtonSecondary variant="secondary">임시저장</ButtonSecondary>
+            <ButtonSecondary>제출하기</ButtonSecondary>
           </div>
           <div className={cn('flex gap-[12px]')}>
             <ButtonSecondary
               className="flex-1 tablet:flex-none tablet:w-[153px]"
               color="red"
-              size="md"
+              size="lg"
             >
               거절하기
             </ButtonSecondary>
             <ButtonSecondary
               className="flex-1 tablet:flex-none tablet:w-[153px]"
-              size="md"
+              size="lg"
               onClick={() => {
                 alert('승인이 완료되었습니다.');
               }}
             >
               승인하기
             </ButtonSecondary>
+          </div>
+          <div className={cn('flex gap-[12px]')}>
+            <ButtonSecondary
+              variant="tertiary"
+              color="white"
+              size="sm"
+              width={64}
+            >
+              취소
+            </ButtonSecondary>
+            <ButtonPrimary size="sm">수정 완료</ButtonPrimary>
           </div>
         </ExContainer>
       </ExLayout>
