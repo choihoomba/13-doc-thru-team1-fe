@@ -30,6 +30,7 @@ function CheckCircleIcon() {
 }
 
 /**
+ * 체크표시가 들어간 모달들 (단일버튼/2개버튼)
  * @example
  * const { openModal, closeModal } = useModal();
  * openModal(
@@ -50,7 +51,6 @@ export default function ModalConfirm({
   onConfirm,
 }) {
   const { closeModal } = useModal();
-  const isSingleAction = !cancelText;
 
   return (
     <ModalBase className={cn('flex flex-col gap-11')}>
@@ -60,17 +60,13 @@ export default function ModalConfirm({
           icon ? 'pt-6' : 'pt-20.25',
         )}
       >
-        {icon && <div className={cn('flex justify-center')}>{icon}</div>}
-        <p
-          className={cn(
-            'whitespace-pre-line text-center text-16-medium text-gray-800',
-          )}
-        >
+        <div className={cn('flex justify-center')}>{icon}</div>
+        <p className={cn('whitespace-pre-line text-center text-16-medium')}>
           {message}
         </p>
       </div>
 
-      {isSingleAction ? (
+      {!cancelText ? (
         <div className={cn('flex justify-center px-6', icon ? 'pb-6' : 'pb-7')}>
           <ButtonPrimary size="lg" onClick={onConfirm}>
             {confirmText}

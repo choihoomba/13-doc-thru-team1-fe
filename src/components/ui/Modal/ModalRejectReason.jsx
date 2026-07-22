@@ -18,10 +18,10 @@ import ModalBase from './ModalBase';
  * openModal(<ModalRejectReason onSubmit={(reason) => handleReject(reason)} />);
  */
 export default function ModalRejectReason({
-  title = '거절 사유',
-  label = '내용',
-  placeholder = '거절사유를 입력해주세요',
-  submitText = '전송',
+  title = '거절 사유', // '임시저장'
+  label = '내용', // 작업물 도전하기 페이지: 임시저장시 모달띄울때  '제목' 쓸예정
+  placeholder = '거절사유를 입력해주세요', // '임시저장 제목을 입력해주세요'
+  submitText = '전송', // '저장'
   onSubmit,
 }) {
   const { closeModal } = useModal();
@@ -41,6 +41,7 @@ export default function ModalRejectReason({
         <label className={cn('mb-4 block text-16-regular text-gray-900')}>
           {label}
         </label>
+        {/* TODO: Form/Label 만들어지면 넣어야함 */}
         <textarea
           className={cn(
             'box-border min-h-[219px] w-full resize-y rounded-md border border-gray-300 px-5 py-4',
@@ -52,6 +53,7 @@ export default function ModalRejectReason({
           onChange={(e) => setReason(e.target.value)}
           rows={6}
         />
+        {/* TODO: Form/Textarea 만들어지면 넣어야함 */}
       </div>
       <div className={cn('flex gap-2 px-6 pb-6')}>
         <ButtonSecondary

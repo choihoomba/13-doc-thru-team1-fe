@@ -9,11 +9,11 @@ import ButtonPrimary from '@/components/ui/Button/ButtonPrimary';
 import ModalBase, { ModalContent } from './ModalBase';
 
 /**
- * 단순 안내 팝업 "내용" 컴포넌트. openModal(<ModalNotice .../>)로 호출해서 사용.
- *
+ * 피그마상 Popup 컴포넌트
  * @example
  * const { openModal } = useModal();
  * openModal(<ModalNotice message={"가입이 완료되었습니다!"} />);
+ * TODO: 버튼 컴포넌트 rebase후 반응형으로 버튼이 한쪽으로 치우쳐지는지 확인 필요
  */
 export default function ModalNotice({
   message,
@@ -30,16 +30,9 @@ export default function ModalNotice({
   return (
     <ModalBase>
       <ModalContent className={cn('flex flex-col items-center pt-20 pb-11')}>
-        {/* {icon && <div className={cn('mb-3 flex justify-center')}>{icon}</div>} */}
-        <p
-          className={cn(
-            'whitespace-pre-line text-center text-16-semibold text-gray-900',
-          )}
-        >
-          {message}
-        </p>
+        <p className={cn('text-center text-16-semibold')}>{message}</p>
       </ModalContent>
-      <div className={cn('flex justify-center bd:justify-end px-25 pb-7')}>
+      <div className={cn('flex justify-center desktop:justify-end px-25 pb-7')}>
         <ButtonPrimary size="xxl" onClick={handleConfirm}>
           {confirmText}
         </ButtonPrimary>
