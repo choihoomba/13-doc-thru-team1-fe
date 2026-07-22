@@ -21,10 +21,12 @@
   --color-gray-100: #e8ebed;
   --color-gray-50: #fafafa;
 
-  --color-brand-dark: #262626;
-  --color-brand: #ffc117;
+  --color-brand-black: #262626;
+  --color-brand-yellow: #ffc117;
   --color-brand-light: #f1f2f5;
 
+  --color-black: #0f0f0f;
+  --color-white: #ffffff;
   --color-red-error: #eb3e3e;
 
   /* -------- Font family -------- */
