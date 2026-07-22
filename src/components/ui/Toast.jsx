@@ -34,7 +34,6 @@ export default function Toast({
   isOpen,
   onClose,
   message = `임시 저장된 작업물이 있어요.\n저장된 작업물을 불러오시겠어요?`,
-  // loadText = '불러오기',
 }) {
   const cardRef = useRef(null);
 
@@ -74,7 +73,7 @@ export default function Toast({
         ref={cardRef}
         role="status" // 스크린리더가 읽을수있게함
         className={cn(
-          'flex w-full min-w-[343px] max-w-[890px] justify-between gap-2.5 rounded-lg border-2 border-brand-dark bg-[#F6F8FACC] p-2',
+          'flex w-full min-w-[343px] max-w-[890px] justify-between gap-2.5 rounded-lg border-2 border-brand-black bg-[#F6F8FACC] p-2',
         )}
       >
         <div className="flex items-center justify-center gap-2">
