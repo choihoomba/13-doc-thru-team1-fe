@@ -43,14 +43,14 @@ export default function ButtonSecondary({
   ...props
 }) {
   /** as를 명시하지 않았다면: href가 있으면 Link, 없으면 button */
-  const Component = as || (href ? Link : 'button');
+  const Component = as || (href && !disabled ? Link : href ? 'a' : 'button');
   const isNativeButton = Component === 'button';
 
   /** 버튼 클릭 이벤트 핸들러
    * - Link/a 태그일 때 disabled 처리: 클릭 막고 aria-disabled로 접근성 표시
    */
   const handleClick = (e) => {
-    if (disabled && !isNativeButton) {
+    if (disabled) {
       e.preventDefault();
       return;
     }
@@ -59,24 +59,24 @@ export default function ButtonSecondary({
 
   return (
     <Component
-      {...(href ? { href } : {})}
+      {...(href && !disabled ? { href } : {})}
       {...(isNativeButton
         ? { type, disabled }
-        : { 'aria-disabled': disabled, tabIndex: disabled ? -1 : undefined })}
+        : {
+            role: 'link', // href 없는 커스텀 as 컴포넌트에도 link 역할 명시
+            'aria-disabled': disabled, // 스크린 리더에 비활성 상태 전달
+            tabIndex: disabled ? -1 : undefined, // disabled면 Tab 포커스 제외
+          })}
       onClick={handleClick}
       className={cn(
-        'flex justify-center items-center cursor-pointer disabled:cursor-default disabled:bg-gray-200 disabled:text-gray-500 text-nowrap',
+        'flex justify-center items-center cursor-pointer text-nowrap',
 
         // variant + color 조합 스타일
-        VARIANT_COLOR_STYLES[variant]?.[color],
+        // 활성화 상태일 때만 컬러 스타일 적용 (클래스 충돌 방지)
+        !disabled && VARIANT_COLOR_STYLES[variant]?.[color],
 
-        /**
-         * - Link/a는 disabled 속성이 없어서 CSS의 disabled를 조건부 클래스로 직접 처리
-         * - variant/color 클래스 뒤에 와야 twMerge에서 우선 적용됨
-         */
-        !isNativeButton &&
-          disabled &&
-          'bg-gray-200 text-gray-500 cursor-default pointer-events-none',
+        // 공통 disabled 스타일 적용
+        disabled && 'bg-gray-200 text-gray-500 cursor-default',
 
         // size 스타일 (반응형 포함)
         SIZE_STYLES[size],
