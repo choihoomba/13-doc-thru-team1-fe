@@ -9,7 +9,9 @@ import { useModal } from '@/hooks/modal/useModal';
 
 import { cn } from '@/utils/cn';
 
-import ModalBase, { getModalButtonClassName } from './ModalBase';
+import ButtonPrimary from '@/components/ui/Button/ButtonPrimary';
+
+import ModalBase from './ModalBase';
 
 /** ModalConfirm 상단 기본 아이콘 (검정 원 + 흰색 체크) */
 function CheckCircleIcon() {
@@ -70,33 +72,23 @@ export default function ModalConfirm({
 
       {isSingleAction ? (
         <div className={cn('flex justify-center px-6', icon ? 'pb-6' : 'pb-7')}>
-          <button
-            type="button"
-            className={getModalButtonClassName(
-              'primary',
-              icon ? 'h-10 w-38.25' : 'h-12 w-30',
-            )}
-            onClick={onConfirm}
-          >
+          <ButtonPrimary size="lg" onClick={onConfirm}>
             {confirmText}
-          </button>
+          </ButtonPrimary>
         </div>
       ) : (
         <div className={cn('flex gap-2 px-15 pb-6')}>
-          <button
-            type="button"
-            className={getModalButtonClassName('secondary', 'h-10 flex-1')}
+          <ButtonPrimary
+            variant="secondary"
+            size="lg"
+            className="flex-1"
             onClick={onCancel ?? closeModal}
           >
             {cancelText}
-          </button>
-          <button
-            type="button"
-            className={getModalButtonClassName('primary', 'h-10 flex-1')}
-            onClick={onConfirm}
-          >
+          </ButtonPrimary>
+          <ButtonPrimary size="lg" className="flex-1" onClick={onConfirm}>
             {confirmText}
-          </button>
+          </ButtonPrimary>
         </div>
       )}
     </ModalBase>

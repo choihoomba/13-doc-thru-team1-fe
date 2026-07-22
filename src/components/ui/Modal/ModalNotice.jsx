@@ -4,7 +4,9 @@ import { useModal } from '@/hooks/modal/useModal';
 
 import { cn } from '@/utils/cn';
 
-import ModalBase, { ModalContent, getModalButtonClassName } from './ModalBase';
+import ButtonPrimary from '@/components/ui/Button/ButtonPrimary';
+
+import ModalBase, { ModalContent } from './ModalBase';
 
 /**
  * 단순 안내 팝업 "내용" 컴포넌트. openModal(<ModalNotice .../>)로 호출해서 사용.
@@ -38,13 +40,9 @@ export default function ModalNotice({
         </p>
       </ModalContent>
       <div className={cn('flex justify-center bd:justify-end px-25 pb-7')}>
-        <button
-          type="button"
-          className={getModalButtonClassName('primary', 'h-10 px-5')}
-          onClick={handleConfirm}
-        >
+        <ButtonPrimary size="xxl" onClick={handleConfirm}>
           {confirmText}
-        </button>
+        </ButtonPrimary>
       </div>
     </ModalBase>
   );

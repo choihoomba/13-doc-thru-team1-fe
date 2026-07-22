@@ -6,7 +6,9 @@ import { useModal } from '@/hooks/modal/useModal';
 
 import { cn } from '@/utils/cn';
 
-import ModalBase, { getModalButtonClassName } from './ModalBase';
+import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
+
+import ModalBase from './ModalBase';
 
 /**
  * 거절 사유 입력 모달
@@ -52,14 +54,14 @@ export default function ModalRejectReason({
         />
       </div>
       <div className={cn('flex gap-2 px-6 pb-6')}>
-        <button
-          type="button"
-          className={getModalButtonClassName('primary', 'h-10 flex-1')}
+        <ButtonSecondary
+          size="md"
+          className="flex-1"
           onClick={handleSubmit}
           disabled={isEmpty}
         >
           {submitText}
-        </button>
+        </ButtonSecondary>
       </div>
     </ModalBase>
   );

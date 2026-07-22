@@ -88,22 +88,10 @@ export function ModalContent({ children, className }) {
 }
 
 /** 버튼이 1개일때, 2개일때 */
-export function ModalActions({ children, className }) {
-  return (
-    <div className={cn('flex gap-2 px-6 pb-6 [&>button]:flex-1', className)}>
-      {children}
-    </div>
-  );
-}
-
-/**
- * 공용 버튼 클래스. variant별 색상만 공통으로 관리
- */
-export function getModalButtonClassName(variant = 'primary', className) {
-  return cn(
-    'rounded-xl text-14-semibold transition-colors disabled:cursor-not-allowed',
-    variant === 'primary' && 'bg-brand-dark text-white',
-    variant === 'secondary' && 'border border-gray-800 bg-white text-gray-800',
-    className,
-  );
-}
+// export function ModalActions({ children, className }) {
+//   return (
+//     <div className={cn('flex gap-2 px-6 pb-6 [&>button]:flex-1', className)}>
+//       {children}
+//     </div>
+//   );
+// }
