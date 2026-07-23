@@ -6,14 +6,14 @@ import { cn } from '@/utils/cn';
 
 import ButtonPrimary from '@/components/ui/Button/ButtonPrimary';
 
-import ModalBase, { ModalContent } from './ModalBase';
+import ModalBase from './ModalBase';
 
 /**
  * 피그마상 Popup 컴포넌트
  * @example
  * const { openModal } = useModal();
  * openModal(<ModalNotice message={"가입이 완료되었습니다!"} />);
- * TODO: 버튼 컴포넌트 rebase후 반응형으로 버튼이 한쪽으로 치우쳐지는지 확인 필요
+ *
  */
 export default function ModalNotice({
   message,
@@ -28,12 +28,26 @@ export default function ModalNotice({
   };
 
   return (
-    <ModalBase>
-      <ModalContent className={cn('flex flex-col items-center pt-20 pb-11')}>
-        <p className={cn('text-center text-16-semibold')}>{message}</p>
-      </ModalContent>
-      <div className={cn('flex justify-center desktop:justify-end px-25 pb-7')}>
-        <ButtonPrimary size="xxl" onClick={handleConfirm}>
+    <ModalBase
+      className={cn(
+        'w-[min(90vw,327px)] min-h-[220px] desktop:w-[540px] desktop:min-h-[250px]',
+      )}
+    >
+      <div
+        className={cn(
+          'flex flex-col items-center px-6 pt-[81px] desktop:pt-[108px] pb-[45px]',
+        )}
+      >
+        <p className={cn('text-center text-16-medium desktop:text-18-medium')}>
+          {message}
+        </p>
+      </div>
+      <div
+        className={cn(
+          'flex justify-center desktop:justify-end desktop:mr-[28px]  pb-7',
+        )}
+      >
+        <ButtonPrimary width="120px" size="xxl" onClick={handleConfirm}>
           {confirmText}
         </ButtonPrimary>
       </div>

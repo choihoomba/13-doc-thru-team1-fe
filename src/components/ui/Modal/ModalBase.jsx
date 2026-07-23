@@ -7,13 +7,7 @@ import { useModal } from '@/hooks/modal/useModal';
 
 import { cn } from '@/utils/cn';
 
-export default function ModalBase({
-  title,
-  onCloseIconClick,
-  showCloseIcon = Boolean(title),
-  children,
-  className,
-}) {
+export default function ModalBase({ children, className }) {
   const { closeModal } = useModal();
 
   const handleKeyDown = useCallback(
@@ -34,7 +28,7 @@ export default function ModalBase({
     };
   }, [handleKeyDown]);
 
-  if (typeof document === 'undefined') return null; // SSR 가드
+  if (typeof document === 'undefined') return null; // SSR 가드 undefined는 서버에서 쓰는거 아니면 처리할 필요가 없음
 
   const handleBackdropMouseDown = (e) => {
     if (e.target === e.currentTarget) closeModal();
@@ -54,44 +48,10 @@ export default function ModalBase({
         )}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
       >
-        {(title || showCloseIcon) && (
-          <div
-            className={cn('flex items-center justify-between px-6 pt-4 pb-6')}
-          >
-            {title && (
-              <h2 className={cn('text-16-bold text-gray-800')}>{title}</h2>
-            )}
-            {showCloseIcon && (
-              <button
-                type="button"
-                onClick={onCloseIconClick}
-                aria-label="닫기"
-                className={cn('text-gray-600')}
-              >
-                ✕
-              </button>
-            )}
-          </div>
-        )}
         {children}
       </div>
     </div>,
     document.body,
   );
 }
-
-/** 모달의 인풋/텍스트 영역 */
-export function ModalContent({ children, className }) {
-  return <div className={cn('px-6', className)}>{children}</div>;
-}
-
-/** 버튼이 1개일때, 2개일때 */
-// export function ModalActions({ children, className }) {
-//   return (
-//     <div className={cn('flex gap-2 px-6 pb-6 [&>button]:flex-1', className)}>
-//       {children}
-//     </div>
-//   );
-// }

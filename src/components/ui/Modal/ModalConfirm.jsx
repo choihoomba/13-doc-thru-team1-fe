@@ -54,12 +54,7 @@ export default function ModalConfirm({
 
   return (
     <ModalBase className={cn('flex flex-col gap-11')}>
-      <div
-        className={cn(
-          'flex flex-col items-center gap-6 px-6',
-          icon ? 'pt-6' : 'pt-20.25',
-        )}
-      >
+      <div className={cn('flex flex-col items-center gap-8  pt-6')}>
         <div className={cn('flex justify-center')}>{icon}</div>
         <p className={cn('whitespace-pre-line text-center text-16-medium')}>
           {message}
@@ -67,7 +62,7 @@ export default function ModalConfirm({
       </div>
 
       {!cancelText ? (
-        <div className={cn('flex justify-center px-6', icon ? 'pb-6' : 'pb-7')}>
+        <div className={cn('flex justify-center px-6 pb-6')}>
           <ButtonPrimary size="lg" onClick={onConfirm}>
             {confirmText}
           </ButtonPrimary>
