@@ -2,10 +2,11 @@
 
 import Image from 'next/image';
 
-import iconClick from '@/app/assets/icons/icon_click.svg';
 import iconOutCircle from '@/app/assets/icons/icon_out_circle.svg';
 
 import { cn } from '@/utils/cn';
+
+import ButtonExternalLink from '../../components/ui/Button/ButtonExternalLink';
 
 export default function OriginalUrlPanel({
   isOpen,
@@ -36,20 +37,14 @@ export default function OriginalUrlPanel({
       >
         <Image src={iconOutCircle} alt="" width={32} height={32} />
       </button>
-      {/* TODO: 링크열기 버튼  */}
-      <a
-        href={url}
-        target="_blank"
-        rel="noreferrer"
+      <ButtonExternalLink
+        href="/"
         className={cn(
           'absolute top-2 right-4 z-20 flex items-center gap-0.5 rounded-xl bg-[rgba(246,248,250,0.5)] px-3 py-[6.5px]',
           'desktop:top-3',
           'text-16-bold text-gray-700',
         )}
-      >
-        링크 열기
-        <Image src={iconClick} alt="" width={24} height={24} />
-      </a>
+      />
       <iframe
         src={url}
         title="원문"
