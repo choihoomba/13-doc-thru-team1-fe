@@ -14,7 +14,7 @@ import FeedbackTextarea from './FeedbackTextarea';
  * API 호출은 이 컴포넌트를 사용하는 페이지/도메인 컴포넌트에서 처리한다.
  *
  * @param feedbacks     피드백 배열
- * @param currentUser   로그인 사용자 { userId, role }. 권한 계산에 사용
+ * @param currentUser   로그인 사용자 { id, role }. 권한 계산에 사용
  * @param hasNext       다음 페이지 존재 여부 (백엔드 응답의 hasNext)
  * @param isSubmitting  전송 중 여부. 입력창 비활성화에 사용
  * @param onSubmit      피드백 작성 시 실행
@@ -38,9 +38,7 @@ export default function FeedbackList({
   // 프론트는 버튼을 숨기고, 실제 차단은 백엔드가 담당 (이중 방어)
   const canManageFeedback = (feedback) => {
     if (!currentUser) return false;
-    return (
-      currentUser.userId === feedback.user.id || currentUser.role === 'ADMIN'
-    );
+    return currentUser.id === feedback.user.id || currentUser.role === 'ADMIN';
   };
 
   return (
