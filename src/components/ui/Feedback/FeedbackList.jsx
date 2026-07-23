@@ -15,6 +15,7 @@ import FeedbackTextarea from './FeedbackTextarea';
  *
  * @param feedbacks     피드백 배열
  * @param currentUser   로그인 사용자 { id, role }. 권한 계산에 사용
+ * @param isClosed      챌린지 마감 여부. true면 수정/삭제 버튼을 노출하지 않는다
  * @param hasNext       다음 페이지 존재 여부 (백엔드 응답의 hasNext)
  * @param isSubmitting  전송 중 여부. 입력창 비활성화에 사용
  * @param onSubmit      피드백 작성 시 실행
@@ -25,6 +26,7 @@ import FeedbackTextarea from './FeedbackTextarea';
 export default function FeedbackList({
   feedbacks = [],
   currentUser,
+  isClosed = false,
   hasNext = false,
   isSubmitting = false,
   onSubmit,
@@ -34,17 +36,21 @@ export default function FeedbackList({
   className,
 }) {
   // 피드백별 수정/삭제 권한 판단
-  // 백엔드 서비스의 권한 로직(isOwner || isAdmin)과 동일한 기준을 사용한다.
+  // 백엔드 서비스의 권한 로직(마감 여부 → isOwner || isAdmin)과 동일한 기준을 사용한다.
   // 프론트는 버튼을 숨기고, 실제 차단은 백엔드가 담당 (이중 방어)
   const canManageFeedback = (feedback) => {
     if (!currentUser) return false;
+    // 마감된 챌린지의 피드백은 어드민도 수정/삭제할 수 없다 (요구사항)
+    if (isClosed) return false;
     return currentUser.id === feedback.user.id || currentUser.role === 'ADMIN';
   };
 
   return (
     <div className={cn('flex flex-col gap-4', className)}>
-      {/* 입력창은 목록 상단에 고정 */}
-      <FeedbackTextarea onSubmit={onSubmit} disabled={isSubmitting} />
+      {/* 입력창은 목록 상단에 고정. 마감된 챌린지에는 작성 자체가 불가하므로 숨긴다 */}
+      {!isClosed && (
+        <FeedbackTextarea onSubmit={onSubmit} disabled={isSubmitting} />
+      )}
 
       {feedbacks.length === 0 ? (
         <p className="py-8 text-center text-14-regular text-gray-400">
