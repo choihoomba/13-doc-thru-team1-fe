@@ -97,8 +97,6 @@ export default function Toast({
         <ButtonPrimary variant="primary" size="sm">
           불러오기
         </ButtonPrimary>
-
-        {/*   width="90px" F6F8FACC */}
       </div>
     </div>,
     document.body,
