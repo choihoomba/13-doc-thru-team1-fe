@@ -2,11 +2,13 @@
 
 import { cn } from '@/utils/cn';
 
+import ButtonLoadMore from '@/components/ui/Button/ButtonLoadMore';
+
 import Feedback from './Feedback';
 import FeedbackTextarea from './FeedbackTextarea';
 
 /**
- * 피드백 목록 (입력창 + 목록 + 더 보기)
+ * 피드백 목록 (입력창 + 목록 + 더보기)
  *
  * 데이터와 동작을 모두 prop으로 받아, 화면 구성만 담당한다.
  * API 호출은 이 컴포넌트를 사용하는 페이지/도메인 컴포넌트에서 처리한다.
@@ -16,7 +18,7 @@ import FeedbackTextarea from './FeedbackTextarea';
  * @param hasNext       다음 페이지 존재 여부 (백엔드 응답의 hasNext)
  * @param isSubmitting  전송 중 여부. 입력창 비활성화에 사용
  * @param onSubmit      피드백 작성 시 실행
- * @param onLoadMore    더 보기 클릭 시 실행
+ * @param onLoadMore    더보기 클릭 시 실행
  * @param onEdit        수정하기 클릭 시 실행
  * @param onDelete      삭제하기 클릭 시 실행
  */
@@ -65,16 +67,7 @@ export default function FeedbackList({
       )}
 
       {/* 커서 페이지네이션: 백엔드가 hasNext를 true로 줄 때만 노출 */}
-      {/* TODO: ui/Button/ButtonMore 구현되면 교체 */}
-      {hasNext && (
-        <button
-          type="button"
-          onClick={onLoadMore}
-          className="mx-auto rounded-full border border-gray-200 px-6 py-2 text-14-medium text-gray-600 hover:bg-gray-50"
-        >
-          더 보기
-        </button>
-      )}
+      {hasNext && <ButtonLoadMore onClick={onLoadMore} className="mx-auto" />}
     </div>
   );
 }

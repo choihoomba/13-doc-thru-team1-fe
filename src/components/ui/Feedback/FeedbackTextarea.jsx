@@ -4,6 +4,8 @@ import { useState } from 'react';
 
 import { cn } from '@/utils/cn';
 
+import ButtonCircle from '@/components/ui/Button/ButtonCircle';
+
 /**
  * 피드백 입력창
  *
@@ -34,7 +36,7 @@ export default function FeedbackTextarea({
   // Enter = 전송, Shift+Enter = 줄바꿈
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault(); // 기본 줄바꿈 방지
+      e.preventDefault();
       handleSubmit();
     }
   };
@@ -42,10 +44,9 @@ export default function FeedbackTextarea({
   return (
     <div
       className={cn(
-        // relative: 전송 버튼(absolute)의 기준점
-        'relative w-full rounded-lg border border-gray-200 bg-gray-50',
-        // 입력창 내부에 포커스가 있으면 테두리 강조
-        'focus-within:border-brand',
+        // relative: 전송 버튼(absolute)의 위치 기준점. 없으면 버튼이 박스를 벗어난다
+        'relative w-full min-h-[89px] rounded-[12px] border border-gray-200 bg-gray-50 p-4',
+        'focus-within:border-brand-yellow',
         className,
       )}
     >
@@ -55,41 +56,24 @@ export default function FeedbackTextarea({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         disabled={disabled}
-        rows={1}
+        rows={2}
         className={cn(
-          // pr-12: 전송 버튼과 텍스트가 겹치지 않도록 오른쪽 여백 확보
-          'w-full resize-none bg-transparent px-4 py-3 pr-12',
+          // pr-14: 전송 버튼(40px)과 텍스트가 겹치지 않도록 오른쪽 여백 확보
+          'w-full h-full resize-none bg-transparent pr-14',
           'text-14-regular text-gray-800 placeholder:text-gray-400',
           'outline-none disabled:cursor-not-allowed',
         )}
       />
 
-      {/* 전송 버튼: 우측 하단 고정 */}
-      <button
-        type="button"
+      {/* 공통 원형 버튼. 활성/비활성 아이콘 전환은 ButtonCircle이 처리 */}
+      {/* 세로 중앙 정렬, 오른쪽 여백은 컨테이너 padding(16px)과 동일 */}
+      <ButtonCircle
+        variant="primary"
         onClick={handleSubmit}
         disabled={isEmpty || disabled}
         aria-label="피드백 등록"
-        className={cn(
-          'absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full transition-colors',
-          'bg-brand text-white',
-        )}
-      >
-        {/* 전송 아이콘. assets/icons에 전송 아이콘 추가되면 교체 */}
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <polyline points="19 12 12 19 5 12" />
-        </svg>
-      </button>
+        className="absolute right-4 top-1/2 -translate-y-1/2"
+      />
     </div>
   );
 }

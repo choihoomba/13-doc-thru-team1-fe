@@ -43,8 +43,12 @@ export default function Feedback({
   const { user, content, createdAt } = feedback;
 
   return (
-    <div className={cn('flex gap-3 rounded-lg bg-gray-50 p-4', className)}>
-      {/* 아바타 자리. assets/icons에 프로필 아이콘 추가되면 교체 */}
+    <div
+      className={cn(
+        'flex min-h-[117px] gap-[10px] rounded-[12px] bg-gray-50 p-4',
+        className,
+      )}
+    >
       {/* 기본 프로필 아이콘. User 모델에 이미지 필드가 없어 모든 사용자 공통 */}
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-yellow">
         <svg
@@ -83,15 +87,16 @@ export default function Feedback({
                 ⋮
               </button>
 
+              {/* 드롭다운 크기는 피그마 기준 139×86 (항목당 43px) */}
               {isMenuOpen && (
-                <div className="absolute right-0 top-full z-10 mt-1 w-28 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
+                <div className="absolute right-0 top-full z-10 mt-1 w-[139px] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
                   <button
                     type="button"
                     onClick={() => {
                       setIsMenuOpen(false);
                       onEdit?.(feedback); // 실제 수정 동작은 부모가 정의
                     }}
-                    className="block w-full px-4 py-2 text-left text-14-regular text-gray-700 hover:bg-gray-50"
+                    className="flex h-[43px] w-full items-center justify-center text-14-regular text-gray-700 hover:bg-gray-50"
                   >
                     수정하기
                   </button>
@@ -101,7 +106,7 @@ export default function Feedback({
                       setIsMenuOpen(false);
                       onDelete?.(feedback);
                     }}
-                    className="block w-full px-4 py-2 text-left text-14-regular text-gray-700 hover:bg-gray-50"
+                    className="flex h-[43px] w-full items-center justify-center text-14-regular text-gray-700 hover:bg-gray-50"
                   >
                     삭제하기
                   </button>
