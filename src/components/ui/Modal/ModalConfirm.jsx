@@ -32,6 +32,16 @@ function CheckCircleIcon() {
 /**
  * 체크표시가 들어간 모달들 (단일버튼/2개버튼)
  * @example
+ * - 단일 버튼
+ * openModal(
+      <ModalConfirm
+        message={'로그인이 필요한 기능이에요\n로그인 하시겠어요?'}
+        confirmText="로그인하러 가기"
+        onConfirm={closeModal}
+      />,
+    );
+ * 
+    - 버튼 2개
  * const { openModal, closeModal } = useModal();
  * openModal(
  *   <ModalConfirm
