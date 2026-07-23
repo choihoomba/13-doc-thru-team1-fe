@@ -28,7 +28,7 @@ export default function ModalBase({ children, className }) {
     };
   }, [handleKeyDown]);
 
-  if (typeof document === 'undefined') return null; // SSR 가드 undefined는 서버에서 쓰는거 아니면 처리할 필요가 없음
+  if (typeof document === 'undefined') return null;
 
   const handleBackdropMouseDown = (e) => {
     if (e.target === e.currentTarget) closeModal();
