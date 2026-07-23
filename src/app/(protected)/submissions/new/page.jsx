@@ -24,12 +24,12 @@ import iconOutCircle from '@/app/assets/icons/icon_out_circle.svg';
 
 import { cn } from '@/utils/cn';
 
-import OriginalDocPanel from '@/components/submissions/OriginalDocPanel';
+import OriginalUrlPanel from '@/components/submissions/OriginalUrlPanel';
 
-const title = '나중에 api 연결';
+const title = '나중에 api 연결할 에정입니다 길게길게 제목을 써보자 ';
 
 // TODO: 챌린지 원문 URL API
-const ORIGINAL_DOC_URL =
+const ORIGINAL_URL =
   'https://ko.wikipedia.org/wiki/%EC%9C%84%ED%82%A4%EB%B0%B1%EA%B3%BC:%EB%8C%80%EB%AC%B8';
 
 const MIN_PANEL_WIDTH = 320; // 원문 최소 폭(px)
@@ -48,13 +48,13 @@ const TOOLBAR_BUTTON_CLASS = cn(
 );
 
 /** 툴바 버튼 하나 (아이콘 + 활성 상태 표시) */
-function ToolbarButton({ label, icon, isActive, onClick }) {
+function ToolbarButton({ label, icon, isActive, onClick, className }) {
   return (
     <button
       type="button"
       aria-label={label}
       onClick={onClick}
-      className={cn(TOOLBAR_BUTTON_CLASS, isActive && 'bg-gray-100')}
+      className={cn(TOOLBAR_BUTTON_CLASS, isActive && 'bg-gray-100', className)}
     >
       <Image src={icon} alt={label} width={20} height={20} />
     </button>
@@ -74,7 +74,14 @@ export default function NewSubmissionPage() {
     onUpdate: ({ editor }) => setIsEmpty(editor.isEmpty),
     editorProps: {
       attributes: {
-        class: cn('min-h-[200px] outline-none'),
+        class: cn(
+          'min-h-[200px] outline-none break-words',
+          'text-body-16-160 text-gray-800',
+          // Tailwind preflight가 ul/ol의 list-style을 지워버려서 직접 복원
+          '[&_ul]:list-disc [&_ul]:pl-5',
+          '[&_ol]:list-decimal [&_ol]:pl-5',
+          '[&_li]:my-1',
+        ),
       },
     },
     // Next.js SSR과 클라이언트 첫 렌더 결과가 달라 생기는 hydration mismatch 방지
@@ -145,13 +152,7 @@ export default function NewSubmissionPage() {
   }
 
   return (
-    <div
-      className={cn(
-        'mt-6 flex h-screen w-full flex-col gap-6 px-4',
-        'tablet:px-6',
-        'desktop:mx-auto desktop:max-w-300',
-      )}
-    >
+    <div className={cn('mt-6 flex h-screen w-full flex-col', 'tablet:px-6')}>
       {isResizing && (
         <div className={cn('fixed inset-0 z-100 cursor-col-resize')} />
       )}
@@ -166,8 +167,8 @@ export default function NewSubmissionPage() {
         <div
           className={cn(
             // 'flex items-center justify-between',
-            'flex flex-col flex-1 ',
-            isOriginalOpen && 'mr-[calc(var(--panel-width)+16px)]',
+            'flex min-w-0 flex-1 flex-col',
+            isOriginalOpen && 'mr-[calc(var(--panel-width)+24px)]',
           )}
         >
           <h1 className={cn('text-20-semibold')}>{title}</h1>
@@ -188,18 +189,8 @@ export default function NewSubmissionPage() {
           <div className={cn('my-6 h-px w-full bg-gray-200')} />
 
           {editor && (
-            <div
-              className={cn(
-                'flex min-h-0 flex-1 flex-col',
-                // PANEL_GAP(16px)과 값 맞춰서 하드코딩 — Tailwind는 동적 보간 클래스명을 못 읽음
-                isOriginalOpen && 'mr-[calc(var(--panel-width)+16px)]',
-              )}
-            >
-              <div
-                className={cn(
-                  'flex items-center gap-1 border-b border-gray-200 pb-2',
-                )}
-              >
+            <div className={cn('flex min-h-0 flex-1 flex-col')}>
+              <div className={cn('flex flex-wrap items-center gap-0.5')}>
                 <ToolbarButton
                   label="Bold"
                   icon={iconBold}
@@ -222,6 +213,7 @@ export default function NewSubmissionPage() {
                   label="Align left"
                   icon={iconAlignLeft}
                   isActive={editor.isActive({ textAlign: 'left' })}
+                  className="ml-3.25"
                   onClick={() =>
                     editor.chain().focus().setTextAlign('left').run()
                   }
@@ -246,6 +238,7 @@ export default function NewSubmissionPage() {
                   label="Bullet list"
                   icon={iconBullet}
                   isActive={editor.isActive('bulletList')}
+                  className="ml-3.25"
                   onClick={() =>
                     editor.chain().focus().toggleBulletList().run()
                   }
@@ -258,44 +251,23 @@ export default function NewSubmissionPage() {
                     editor.chain().focus().toggleOrderedList().run()
                   }
                 />
-
-                {/* 커스텀 글자 색상 버튼: 아이콘 위에 네이티브 select를 투명하게 겹쳐서 클릭 시 드롭다운이 열리게 함 */}
-                <div
-                  className={cn(
-                    'relative inline-flex h-[2em] w-[2em] items-center justify-center',
-                  )}
+                <Image src={iconColor} alt="글자 색상" width={20} height={20} />
+                <select
+                  onChange={(e) => changeTextColor(e.target.value)}
+                  className={cn('absolute inset-0 cursor-pointer opacity-0')}
                 >
-                  <Image
-                    src={iconColor}
-                    alt="글자 색상"
-                    width={20}
-                    height={20}
-                  />
-                  <select
-                    onChange={(e) => changeTextColor(e.target.value)}
-                    className={cn('absolute inset-0 cursor-pointer opacity-0')}
-                  >
-                    {/* TODO: 밤티나는 dropdown 수정 필요  */}
-                    <option value="">색상 선택</option>
-                    <option value="red">빨간색</option>
-                    <option value="blue">파란색</option>
-                    <option value="green">초록색</option>
-                    <option value="black">검은색</option>
-                  </select>
-                </div>
+                  {/* TODO: 밤티나는 dropdown 수정 필요  */}
+                  <option value="">색상 선택</option>
+                  <option value="red">빨간색</option>
+                  <option value="blue">파란색</option>
+                  <option value="green">초록색</option>
+                  <option value="black">검은색</option>
+                </select>
               </div>
 
-              <div
-                className={cn(
-                  'relative min-h-0 flex-1 overflow-y-auto px-2 py-3',
-                )}
-              >
+              <div className={cn('min-h-0 flex-1 overflow-y-auto')}>
                 {isEmpty && (
-                  <p
-                    className={cn(
-                      'pointer-events-none absolute top-3 left-2 text-gray-400',
-                    )}
-                  >
+                  <p className={cn('text-body-16-160 text-gray-400 ')}>
                     번역 내용을 적어주세요.
                   </p>
                 )}
@@ -304,14 +276,14 @@ export default function NewSubmissionPage() {
             </div>
           )}
         </div>
-        <OriginalDocPanel
+        <OriginalUrlPanel
           isOpen={isOriginalOpen}
-          url={ORIGINAL_DOC_URL}
+          url={ORIGINAL_URL}
           onClose={() => setIsOriginalOpen(false)}
           onResizeStart={handleResizeStart}
         />
       </div>
-
+      {/* TODO: toast 공용컴포넌트로 바꿔야함  */}
       {showDraftBanner && (
         <div
           className={cn('fixed inset-x-4 bottom-4 z-30 flex justify-center')}

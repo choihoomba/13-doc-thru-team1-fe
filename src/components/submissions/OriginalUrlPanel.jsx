@@ -7,7 +7,7 @@ import iconOutCircle from '@/app/assets/icons/icon_out_circle.svg';
 
 import { cn } from '@/utils/cn';
 
-export default function OriginalDocPanel({
+export default function OriginalUrlPanel({
   isOpen,
   url,
   onClose,
@@ -18,8 +18,7 @@ export default function OriginalDocPanel({
   return (
     <div
       className={cn(
-        'fixed inset-0 z-40 flex w-full flex-col bg-white right-0',
-        'tablet:inset-y-0 tablet:left-auto tablet: tablet:w-(--panel-width)',
+        'fixed inset-0 z-40 flex w-(--panel-width) flex-col bg-white right-0 left-auto',
       )}
     >
       <div
@@ -28,7 +27,7 @@ export default function OriginalDocPanel({
           'absolute inset-y-0 left-0 z-10 w-2 -translate-x-1/2 cursor-col-resize block',
         )}
       />
-      {/* TODO: 이건 따로 버튼이 없는듯 ?  */}
+      {/* TODO: 이건 따로 버튼이 없는것같은데 찾아보기  */}
       <button
         type="button"
         onClick={onClose}
