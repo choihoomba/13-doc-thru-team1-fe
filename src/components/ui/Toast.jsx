@@ -9,9 +9,9 @@ import iconOutCircle from '@/app/assets/icons/icon_out_circle.svg';
 
 import { cn } from '@/utils/cn';
 
-// import ButtonPrimary from '@/components/ui/Button/ButtonPrimary';
+import ButtonPrimary from '@/components/ui/Button/ButtonPrimary';
 
-/**
+/**.
  * @example
  * const [isToastOpen, setIsToastOpen] = useState(false);
  *
@@ -94,7 +94,11 @@ export default function Toast({
             {message}
           </p>
         </div>
-        {/* <ButtonPrimary size="sm">불러오기</ButtonPrimary> */}
+        <ButtonPrimary variant="primary" size="sm">
+          불러오기
+        </ButtonPrimary>
+
+        {/*   width="90px" F6F8FACC */}
       </div>
     </div>,
     document.body,
