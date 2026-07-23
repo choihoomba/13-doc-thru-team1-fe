@@ -13,7 +13,7 @@ export default function ButtonExternalLink({ className = '', href, ...props }) {
       className={cn(
         BUTTON_BASE_STYLE,
         'gap-[2px] w-[96px] h-[32px] rounded-[10px] bg-[rgba(246,248,250,0.80)] text-14-bold tracking-[0.28px] text-gray-700',
-        'tablet:w-[110px] tablet:text-16-bold tracking-[0.32px]',
+        'tablet:w-[110px] tablet:text-16-bold tablet:tracking-[0.32px]',
         'desktop:w-[96px] desktop:text-14-bold desktop:tracking-[0.28px]',
         className,
       )}

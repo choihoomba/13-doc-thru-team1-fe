@@ -35,7 +35,7 @@ export default function ButtonCircle({
       {variant === 'primary' ? (
         <Image
           className="w-[32px] tablet:w-[40px]"
-          src={disabled ? IcArrowDownBlack : IcArrowDown}
+          src={disabled ? IcArrowDown : IcArrowDownBlack}
           alt=""
           width={32}
           height={32}
