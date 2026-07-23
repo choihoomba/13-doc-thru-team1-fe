@@ -27,14 +27,15 @@ export default function GlobalError({ error, reset }) {
         <Image
           src={Logo}
           alt="로고 이미지"
-          width={320}
-          height={72}
-          sizes="(max-width: 744px) 196px, 396px"
-          className="mx-auto w-[196px] h-[66px] md:w-[396px] md:h-[132px] mb-[24px] md:mb-[40px]"
+          width={300}
+          height={100}
+          sizes="(max-width: 1024px) 190px, 300px"
+          className="mx-auto w-[190px] h-[64px] desktop:w-[300px] desktop:h-[100px]"
         />
         <h2 className="mb-[24px] text-20-medium text-gray-800">
           일시적인 오류가 발생했습니다.
         </h2>
+        {/* TODO: 버튼 컴포넌트로 수정하기 */}
         <button type="button" onClick={() => reset()}>
           다시 시도하기
         </button>

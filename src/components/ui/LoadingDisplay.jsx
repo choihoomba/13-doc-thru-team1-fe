@@ -27,7 +27,7 @@ export default function LoadingDisplay({
         visible={true}
         height={size}
         width={size}
-        color="var(--Primary-200)"
+        color="var(--color-brand-black)"
         ariaLabel="tail-spin-loading"
         radius="1"
       />
