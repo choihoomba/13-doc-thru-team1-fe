@@ -26,6 +26,7 @@ export default function ButtonKebab({
   useOutsideClick(containerRef, () => setIsOpen(false), {
     enabled: isOpen,
     detectFocus: true,
+    closeOnEscape: true,
   });
 
   const handleEdit = () => {
@@ -54,7 +55,7 @@ export default function ButtonKebab({
       {isOpen && (
         <ul
           className={cn(
-            'absolute right-0 top-[calc(100%+8px)] z-20 w-[139px] h-[86px]',
+            'absolute right-0 top-[calc(100%+8px)] z-dropdown w-[139px] h-[86px]',
           )}
         >
           <li className={cn('h-1/2')}>
