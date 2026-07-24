@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from 'react';
 
 import Color from '@tiptap/extension-color';
+import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { EditorContent, useEditor } from '@tiptap/react';
@@ -54,7 +55,7 @@ function ToolbarButton({ label, icon, isActive, onClick, className }) {
       type="button"
       aria-label={label}
       onClick={onClick}
-      className={cn(TOOLBAR_BUTTON_CLASS, isActive && 'bg-gray-100', className)}
+      className={cn(TOOLBAR_BUTTON_CLASS, isActive && 'bg-gray-50', className)}
     >
       <Image src={icon} alt={label} width={20} height={20} />
     </button>
@@ -62,16 +63,15 @@ function ToolbarButton({ label, icon, isActive, onClick, className }) {
 }
 
 export default function NewSubmissionPage() {
-  const [isEmpty, setIsEmpty] = useState(true);
   const editor = useEditor({
     extensions: [
       StarterKit,
       TextStyle,
       Color,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      Placeholder.configure({ placeholder: '번역 내용을 적어주세요.' }),
     ],
     content: '',
-    onUpdate: ({ editor }) => setIsEmpty(editor.isEmpty),
     editorProps: {
       attributes: {
         class: cn(
@@ -81,6 +81,13 @@ export default function NewSubmissionPage() {
           '[&_ul]:list-disc [&_ul]:pl-5',
           '[&_ol]:list-decimal [&_ol]:pl-5',
           '[&_li]:my-1',
+          // Placeholder 확장이 빈 문단에 붙이는 data-placeholder를 ::before로 렌더링
+          // (내용을 입력하는 순간 is-editor-empty 클래스가 빠지면서 자동으로 사라짐)
+          '[&_p.is-editor-empty:first-child]:before:content-[attr(data-placeholder)]',
+          '[&_p.is-editor-empty:first-child]:before:pointer-events-none',
+          '[&_p.is-editor-empty:first-child]:before:float-left',
+          '[&_p.is-editor-empty:first-child]:before:h-0',
+          '[&_p.is-editor-empty:first-child]:before:text-gray-400',
         ),
       },
     },
@@ -251,26 +258,31 @@ export default function NewSubmissionPage() {
                     editor.chain().focus().toggleOrderedList().run()
                   }
                 />
-                <Image src={iconColor} alt="글자 색상" width={20} height={20} />
-                <select
-                  onChange={(e) => changeTextColor(e.target.value)}
-                  className={cn('absolute inset-0 cursor-pointer opacity-0')}
+                <div
+                  className={cn(
+                    'relative inline-flex h-[2em] w-[2em] items-center justify-center',
+                  )}
                 >
-                  {/* TODO: 밤티나는 dropdown 수정 필요  */}
-                  <option value="">색상 선택</option>
-                  <option value="red">빨간색</option>
-                  <option value="blue">파란색</option>
-                  <option value="green">초록색</option>
-                  <option value="black">검은색</option>
-                </select>
+                  <Image
+                    src={iconColor}
+                    alt="글자 색상"
+                    width={20}
+                    height={20}
+                  />
+                  <select
+                    onChange={(e) => changeTextColor(e.target.value)}
+                    className={cn('absolute inset-0 cursor-pointer opacity-0')}
+                  >
+                    <option value="">색상 선택</option>
+                    <option value="red">빨간색</option>
+                    <option value="blue">파란색</option>
+                    <option value="green">초록색</option>
+                    <option value="black">검은색</option>
+                  </select>
+                </div>
               </div>
 
               <div className={cn('min-h-0 flex-1 overflow-y-auto')}>
-                {isEmpty && (
-                  <p className={cn('text-body-16-160 text-gray-400 ')}>
-                    번역 내용을 적어주세요.
-                  </p>
-                )}
                 <EditorContent editor={editor} />
               </div>
             </div>
