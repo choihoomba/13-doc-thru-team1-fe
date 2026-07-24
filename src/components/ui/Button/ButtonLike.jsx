@@ -11,13 +11,11 @@ import { cn } from '@/utils/cn';
 
 const MAX_COUNT = 9999;
 
-/** count가 9,999를 초과하면 '9,999...'로 표시 */
 function formatCount(count) {
   if (count > MAX_COUNT) return `${MAX_COUNT.toLocaleString()}...`;
   return count.toLocaleString();
 }
 
-/** size, status 조합별 아이콘 매핑 */
 const LIKE_ICONS = {
   sm: {
     active: IcLikeActiveSm,
@@ -29,11 +27,6 @@ const LIKE_ICONS = {
   },
 };
 
-/**
- * 좋아요(하트) 버튼
- * - status, count는 부모가 관리 (controlled)
- * - 클릭 시 onClick만 호출, active/inactive 전환은 부모 책임
- */
 export default function ButtonLike({
   size = 'sm',
   count = 0,
@@ -48,28 +41,27 @@ export default function ButtonLike({
   const ariaLabel = status === 'active' ? '좋아요 취소' : '좋아요';
 
   return (
-    <div className={cn('flex items-center gap-1', className)}>
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={disabled}
-        aria-label={ariaLabel}
-        className={cn(
-          'flex items-center justify-center cursor-pointer',
-          disabled && 'cursor-default',
-        )}
-      >
-        <Image
-          src={imageSrc}
-          alt=""
-          width={imageSize}
-          height={imageSize}
-          unoptimized
-        />
-      </button>
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      className={cn(
+        'flex items-center justify-center cursor-pointer gap-1 hover:brightness-90 transition-[filter]',
+        disabled && 'cursor-default',
+        className,
+      )}
+    >
+      <Image
+        src={imageSrc}
+        alt=""
+        width={imageSize}
+        height={imageSize}
+        unoptimized
+      />
       <span className={cn('text-14-medium', countColorClass)}>
         {formatCount(count)}
       </span>
-    </div>
+    </button>
   );
 }
