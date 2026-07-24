@@ -28,6 +28,7 @@ import OriginalUrlPanel from '@/components/submissions/OriginalUrlPanel';
 import Toast from '@/components/ui/Toast';
 
 // TODO: 챌린지 원문 URL API
+// TODO: iframe 에러 분기 처리
 const ORIGINAL_URL =
   'https://ko.wikipedia.org/wiki/%EC%9C%84%ED%82%A4%EB%B0%B1%EA%B3%BC:%EB%8C%80%EB%AC%B8';
 
@@ -84,7 +85,7 @@ export default function NewSubmissionPage() {
   const [panelWidth, setPanelWidth] = useState(null);
   const [isResizing, setIsResizing] = useState(false);
   // TODO: 실제로는 저장된 임시글이 있을 때만 true -> toast 띄우기
-  const [showDraftBanner, setShowDraftBanner] = useState(true);
+  const [isToastOpen, setIsToastOpen] = useState(true);
 
   const handleResizeStart = (e) => {
     e.preventDefault();
@@ -125,11 +126,11 @@ export default function NewSubmissionPage() {
     editor?.chain().focus().setColor(color).run();
   }
 
-  // TODO: 임시저장 불러오기 API 연동
-  // 1) 임시저장 상세 조회 API 필요: const { title, content } = await getDraft();
-  // 2) 받아온 값을 title/에디터에 그대로 반영: setTitle(title); editor?.commands.setContent(content);
   function handleLoadDraft() {
-    setShowDraftBanner(false);
+    // TODO: 임시저장 내용 불러와서 title과 content 채우기:
+    // const { title, content } = await getDraft();
+    // setTitle(title); editor?.commands.setContent(content);
+    setIsToastOpen(false);
   }
 
   return (
@@ -274,10 +275,9 @@ export default function NewSubmissionPage() {
           )}
         </div>
       </div>
-      {/* TODO: 토스트 연동 아직 머지 안됨 -> ㄱㄱㄱㄱ*/}
       <Toast
-        isOpen={showDraftBanner}
-        onClose={() => setShowDraftBanner(false)}
+        isOpen={isToastOpen}
+        onClose={() => setIsToastOpen(false)}
         onLoad={handleLoadDraft}
       />
     </div>
