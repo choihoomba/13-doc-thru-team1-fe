@@ -35,6 +35,7 @@ import ButtonPrimary from '@/components/ui/Button/ButtonPrimary';
 export default function Toast({
   isOpen,
   onClose,
+  onLoad,
   message = `임시 저장된 작업물이 있어요.\n저장된 작업물을 불러오시겠어요?`,
 }) {
   const cardRef = useRef(null);
@@ -80,7 +81,7 @@ export default function Toast({
             {message}
           </p>
         </div>
-        <ButtonPrimary variant="primary" size="sm">
+        <ButtonPrimary variant="primary" size="sm" onClick={onLoad}>
           불러오기
         </ButtonPrimary>
       </div>
