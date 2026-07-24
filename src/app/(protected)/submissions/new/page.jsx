@@ -36,20 +36,16 @@ const MIN_EDITOR_WIDTH = 320; // 에디터 최소 폭(px)
 // 드래그로 조절하기 전 기본 폭: 화면의 절반, vw 기반이라 창 크기 바뀌어도 JS 계산 없이 자동으로 따라감
 const DEFAULT_PANEL_WIDTH_CSS = `clamp(${MIN_PANEL_WIDTH}px, 50vw, calc(100vw - ${MIN_EDITOR_WIDTH}px))`;
 
-const TOOLBAR_BUTTON_CLASS = cn(
-  'flex h-[2em] w-[2em] items-center justify-center rounded',
-);
-
-/** 툴바 버튼 하나 (아이콘 + 활성 상태 표시) */
-function ToolbarButton({ label, icon, isActive, onClick, className }) {
+/** 툴바 버튼 하나 */
+function ToolbarButton({ label, icon, onClick, className }) {
   return (
     <button
       type="button"
       aria-label={label}
       onClick={onClick}
-      className={cn(TOOLBAR_BUTTON_CLASS, isActive && 'bg-gray-50', className)}
+      className={cn(className)}
     >
-      <Image src={icon} alt={label} width={20} height={20} />
+      <Image src={icon} alt={label} width={24} height={24} />
     </button>
   );
 }
@@ -80,7 +76,6 @@ export default function NewSubmissionPage() {
         ),
       },
     },
-    // Next.js SSR과 클라이언트 첫 렌더 결과가 달라 생기는 hydration mismatch 방지
     immediatelyRender: false,
   });
   const [title, setTitle] = useState('');
@@ -88,7 +83,7 @@ export default function NewSubmissionPage() {
   // null이면 CSS 기본값(화면 절반, 반응형) 사용 중, 드래그 시작하면 px로 고정됨
   const [panelWidth, setPanelWidth] = useState(null);
   const [isResizing, setIsResizing] = useState(false);
-  // TODO: 실제로는 저장된 임시글이 있을 때만 true
+  // TODO: 실제로는 저장된 임시글이 있을 때만 true -> toast 띄우기
   const [showDraftBanner, setShowDraftBanner] = useState(true);
 
   const handleResizeStart = (e) => {
@@ -96,6 +91,7 @@ export default function NewSubmissionPage() {
     setIsResizing(true);
   };
 
+  // 화면 리사이징
   useEffect(() => {
     if (!isResizing) return;
 
@@ -154,7 +150,7 @@ export default function NewSubmissionPage() {
           onClose={() => setIsOriginalOpen(false)}
           onResizeStart={handleResizeStart}
         />
-        {/* TODO: <Header /> */}
+        {/* TODO: <Header /> 버튼도 내가 만들어야하나... */}
         <div
           className={cn(
             'flex w-full flex-col p-[16px]',
@@ -194,30 +190,31 @@ export default function NewSubmissionPage() {
 
           {editor && (
             <div className={cn('flex flex-1 flex-col')}>
-              <div className={cn('flex flex-wrap items-center gap-0.5')}>
+              <div
+                className={cn(
+                  'flex flex-wrap items-center gap-[2px] mb-[16px]',
+                  'tablet:mb-[24px]',
+                )}
+              >
                 <ToolbarButton
                   label="Bold"
                   icon={iconBold}
-                  isActive={editor.isActive('bold')}
                   onClick={() => editor.chain().focus().toggleBold().run()}
                 />
                 <ToolbarButton
                   label="Italic"
                   icon={iconItalic}
-                  isActive={editor.isActive('italic')}
                   onClick={() => editor.chain().focus().toggleItalic().run()}
                 />
                 <ToolbarButton
                   label="Underline"
                   icon={iconUnderline}
-                  isActive={editor.isActive('underline')}
+                  className={cn('mr-[13px]')}
                   onClick={() => editor.chain().focus().toggleUnderline().run()}
                 />
                 <ToolbarButton
                   label="Align left"
                   icon={iconAlignLeft}
-                  isActive={editor.isActive({ textAlign: 'left' })}
-                  className={cn('ml-3.25')}
                   onClick={() =>
                     editor.chain().focus().setTextAlign('left').run()
                   }
@@ -225,7 +222,6 @@ export default function NewSubmissionPage() {
                 <ToolbarButton
                   label="Align center"
                   icon={iconAlignCenter}
-                  isActive={editor.isActive({ textAlign: 'center' })}
                   onClick={() =>
                     editor.chain().focus().setTextAlign('center').run()
                   }
@@ -233,7 +229,7 @@ export default function NewSubmissionPage() {
                 <ToolbarButton
                   label="Align right"
                   icon={iconAlignRight}
-                  isActive={editor.isActive({ textAlign: 'right' })}
+                  className={cn('mr-[13px]')}
                   onClick={() =>
                     editor.chain().focus().setTextAlign('right').run()
                   }
@@ -241,8 +237,6 @@ export default function NewSubmissionPage() {
                 <ToolbarButton
                   label="Bullet list"
                   icon={iconBullet}
-                  isActive={editor.isActive('bulletList')}
-                  className={cn('ml-3.25')}
                   onClick={() =>
                     editor.chain().focus().toggleBulletList().run()
                   }
@@ -250,22 +244,19 @@ export default function NewSubmissionPage() {
                 <ToolbarButton
                   label="Numbered list"
                   icon={iconNumbering}
-                  isActive={editor.isActive('orderedList')}
+                  className={cn('mr-[13px]')}
                   onClick={() =>
                     editor.chain().focus().toggleOrderedList().run()
                   }
                 />
-                <div
-                  className={cn(
-                    'relative inline-flex h-[2em] w-[2em] items-center justify-center',
-                  )}
-                >
+                <div className={cn('relative items-center justify-center ')}>
                   <Image
                     src={iconColor}
                     alt="글자 색상"
-                    width={20}
-                    height={20}
+                    width={24}
+                    height={24}
                   />
+                  {/* TODO: 밤티나는 디자인 수정 고려 or 컬러팔레트?  */}
                   <select
                     onChange={(e) => changeTextColor(e.target.value)}
                     className={cn('absolute inset-0 cursor-pointer opacity-0')}
@@ -278,12 +269,12 @@ export default function NewSubmissionPage() {
                   </select>
                 </div>
               </div>
-
               <EditorContent editor={editor} />
             </div>
           )}
         </div>
       </div>
+      {/* TODO: 토스트 연동 아직 머지 안됨 -> ㄱㄱㄱㄱ*/}
       <Toast
         isOpen={showDraftBanner}
         onClose={() => setShowDraftBanner(false)}
