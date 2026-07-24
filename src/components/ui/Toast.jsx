@@ -75,7 +75,6 @@ export default function Toast({
             className={cn(
               'whitespace-pre-line text-14-medium',
               'tablet:whitespace-normal',
-              'desktop:whitespace-normal',
             )}
           >
             {message}
