@@ -1,47 +1,38 @@
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
+import { useOutsideClick } from '@/hooks/common/useOutsideClick';
 import { useModal } from '@/hooks/modal/useModal';
 
 import { cn } from '@/utils/cn';
 
 export default function ModalBase({ children, className }) {
   const { closeModal } = useModal();
+  const boxRef = useRef(null);
 
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (e.key === 'Escape') closeModal();
-    },
-    [closeModal],
-  );
+  useOutsideClick(boxRef, closeModal, { closeOnEscape: true });
 
   useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = prevOverflow;
     };
-  }, [handleKeyDown]);
+  }, []);
 
   if (typeof document === 'undefined') return null; // SSR 가드 undefined는 서버에서 쓰는거 아니면 처리할 필요가 없음
-
-  const handleBackdropMouseDown = (e) => {
-    if (e.target === e.currentTarget) closeModal();
-  };
 
   return createPortal(
     <div
       className={cn(
         'fixed inset-0 z-50 flex items-center justify-center bg-black/50',
       )}
-      onMouseDown={handleBackdropMouseDown}
     >
       <div
+        ref={boxRef}
         className={cn(
           'w-[min(90vw,327px)] max-h-[85vh,220px] overflow-y-auto rounded-lg border-2 border-gray-800 bg-white',
           className,
