@@ -48,7 +48,12 @@ export default function ModalRejectReason({
       >
         <div className={cn('flex items-center justify-between')}>
           <h2 className={cn('text-18-bold')}>{title}</h2>
-          <button type="button" onClick={closeModal} aria-label="닫기">
+          <button
+            type="button"
+            onClick={closeModal}
+            aria-label="닫기"
+            className={cn('cursor-pointer')}
+          >
             <Image src={OutIcon} alt="" width={24} height={24} />
           </button>
         </div>

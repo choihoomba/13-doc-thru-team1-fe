@@ -25,7 +25,7 @@ export default function DevPlayground() {
     openModal(
       <ModalConfirm
         message={'정말 삭제하시겠어요?'}
-        cancelText="아니오"
+        cancelButtonText="아니오"
         confirmButtonText="네"
         onConfirm={closeModal}
       />,

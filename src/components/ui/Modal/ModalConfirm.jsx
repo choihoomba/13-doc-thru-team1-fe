@@ -29,7 +29,7 @@ import ModalBase from './ModalBase';
  * openModal(
  *   <ModalConfirm
  *     message={"정말 삭제하시겠어요?"}
- *     cancelText="아니오"
+ *     cancelButtonText="아니오"
  *     confirmButtonText="네"
  *     onConfirm={() => { handleDelete(); closeModal(); }}
  *   />
@@ -38,7 +38,7 @@ import ModalBase from './ModalBase';
 export default function ModalConfirm({
   icon = <Image src={CheckIcon} alt="" width={24} height={24} />,
   message,
-  cancelText,
+  cancelButtonText,
   confirmButtonText = '확인',
   onCancel,
   onConfirm,
@@ -58,7 +58,7 @@ export default function ModalConfirm({
         </p>
       </div>
 
-      {!cancelText ? (
+      {!cancelButtonText ? (
         <div className={cn('flex justify-center items-center')}>
           <ButtonPrimary size="lg" onClick={onConfirm}>
             {confirmButtonText}
@@ -71,7 +71,7 @@ export default function ModalConfirm({
             size="lg"
             onClick={onCancel ?? closeModal}
           >
-            {cancelText}
+            {cancelButtonText}
           </ButtonPrimary>
           <ButtonPrimary size="lg" onClick={onConfirm}>
             {confirmButtonText}

@@ -36,8 +36,8 @@ export default function ModalBase({ children, className }) {
       <div
         ref={boxRef}
         className={cn(
-          'w-[min(90vw,327px)] max-h-[85vh,220px]',
-          'overflow-y-auto rounded-lg border-2 border-gray-800 bg-white',
+          'w-[min(90vw,327px)]',
+          'rounded-lg border-2 border-gray-800 bg-white',
           className,
         )}
         role="dialog"
