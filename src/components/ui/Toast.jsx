@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 import Image from 'next/image';
 
 import iconOutCircle from '@/app/assets/icons/icon_out_circle.svg';
+
+import { useOutsideClick } from '@/hooks/common/useOutsideClick';
 
 import { cn } from '@/utils/cn';
 
@@ -37,38 +39,21 @@ export default function Toast({
 }) {
   const cardRef = useRef(null);
 
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (e.key === 'Escape') onClose?.();
-    },
-    [onClose],
-  );
-
-  const handleOutsideClick = useCallback(
-    (e) => {
-      if (cardRef.current && !cardRef.current.contains(e.target)) {
-        onClose?.();
-      }
-    },
-    [onClose],
-  );
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('mousedown', handleOutsideClick);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('mousedown', handleOutsideClick);
-    };
-  }, [isOpen, handleKeyDown, handleOutsideClick]);
+  useOutsideClick(cardRef, () => onClose?.(), {
+    enabled: isOpen,
+    closeOnEscape: true,
+  });
 
   if (!isOpen || typeof document === 'undefined') return null;
 
   return createPortal(
-    <div className="fixed inset-x-4 bottom-4 z-50 flex justify-center">
+    <div
+      className={cn(
+        'fixed z-toast inset-x-4 bottom-4 flex justify-center p-[8px]',
+        'tablet:bottom-6 tablet:inset-x-6',
+        'desktop:bottom-8',
+      )}
+    >
       <div
         ref={cardRef}
         role="status" // 스크린리더가 읽을수있게함
@@ -76,19 +61,20 @@ export default function Toast({
           'flex w-full min-w-[343px] max-w-[890px] justify-between gap-2.5 rounded-lg border-2 border-brand-black bg-[#F6F8FACC] p-2',
         )}
       >
-        <div className="flex items-center justify-center gap-2">
+        <div className={cn('flex items-center justify-center gap-2')}>
           <button
             type="button"
             onClick={onClose}
             aria-label="닫기"
-            className="shrink-0"
+            className={cn('shrink-0 cursor-pointer')}
           >
             <Image src={iconOutCircle} alt="" width={24} height={24} />
           </button>
           <p
             className={cn(
               'whitespace-pre-line text-14-medium',
-              'mobile:whitespace-normal',
+              'tablet:whitespace-normal',
+              'desktop:whitespace-normal',
             )}
           >
             {message}
