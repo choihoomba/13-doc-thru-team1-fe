@@ -16,7 +16,7 @@ export default function DevPlayground() {
     openModal(
       <ModalConfirm
         message={'로그인이 필요한 기능이에요\n로그인 하시겠어요?'}
-        confirmText="로그인하러 가기"
+        confirmButtonText="로그인하러 가기"
         onConfirm={closeModal}
       />,
     );
@@ -26,7 +26,7 @@ export default function DevPlayground() {
       <ModalConfirm
         message={'정말 삭제하시겠어요?'}
         cancelText="아니오"
-        confirmText="네"
+        confirmButtonText="네"
         onConfirm={closeModal}
       />,
     );
@@ -36,7 +36,7 @@ export default function DevPlayground() {
       <ModalNotice
         icon={null}
         message={'가입이 완료되었습니다!'}
-        confirmText="확인"
+        confirmButtonText="확인"
         onConfirm={closeModal}
       />,
     );

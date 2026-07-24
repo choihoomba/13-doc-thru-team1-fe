@@ -2,6 +2,10 @@
 
 import { useState } from 'react';
 
+import Image from 'next/image';
+
+import OutIcon from '@/app/assets/icons/icon_out.svg';
+
 import { useModal } from '@/hooks/modal/useModal';
 
 import { cn } from '@/utils/cn';
@@ -36,29 +40,19 @@ export default function ModalRejectReason({
 
   return (
     <ModalBase className={cn('w-[min(90vw,343px)]', 'desktop:w-[496px]')}>
-      <div className={cn('flex h-[407px] flex-col', 'desktop:h-[423px]')}>
-        <div
-          className={cn(
-            'flex items-center justify-between px-4 pt-4',
-            'desktop:px-[24px]',
-          )}
-        >
+      <div
+        className={cn(
+          'flex h-[407px] flex-col px-[16px] pt-[16px] pb-[24px]',
+          'tablet:h-[423px] tablet:p-[24px]',
+        )}
+      >
+        <div className={cn('flex items-center justify-between')}>
           <h2 className={cn('text-18-bold')}>{title}</h2>
-          <button
-            type="button"
-            onClick={closeModal}
-            aria-label="닫기"
-            className={cn('text-gray-600')}
-          >
-            ✕
+          <button type="button" onClick={closeModal} aria-label="닫기">
+            <Image src={OutIcon} alt="" width={24} height={24} />
           </button>
         </div>
-        <div
-          className={cn(
-            'flex flex-1 flex-col px-4 pt-[16px] pb-[24px]',
-            'desktop:px-[24px]',
-          )}
-        >
+        <div className={cn('flex flex-1 flex-col mt-[24px]')}>
           <label className={cn('mb-2 block text-body-16-160 text-gray-900')}>
             {label}
           </label>
@@ -75,14 +69,7 @@ export default function ModalRejectReason({
             onChange={(e) => setReason(e.target.value)}
           />
           {/* TODO: Form/Textarea 만들어지면 넣어야함 */}
-          <ButtonPrimary
-            variant="secondary"
-            color="black"
-            size="xxl"
-            width="100%"
-            onClick={handleSubmit}
-            disabled={isEmpty}
-          >
+          <ButtonPrimary size="xxl" onClick={handleSubmit} disabled={isEmpty}>
             {submitText}
           </ButtonPrimary>
         </div>

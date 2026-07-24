@@ -17,7 +17,7 @@ import ModalBase from './ModalBase';
  */
 export default function ModalNotice({
   message,
-  confirmText = '확인',
+  confirmButtonText = '확인',
   onConfirm,
 }) {
   const { closeModal } = useModal();
@@ -53,7 +53,7 @@ export default function ModalNotice({
         )}
       >
         <ButtonPrimary width="120px" size="xxl" onClick={handleConfirm}>
-          {confirmText}
+          {confirmButtonText}
         </ButtonPrimary>
       </div>
     </ModalBase>

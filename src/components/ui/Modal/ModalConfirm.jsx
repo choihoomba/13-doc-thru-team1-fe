@@ -19,7 +19,7 @@ import ModalBase from './ModalBase';
  * openModal(
       <ModalConfirm
         message={'로그인이 필요한 기능이에요\n로그인 하시겠어요?'}
-        confirmText="로그인하러 가기"
+        confirmButtonText="로그인하러 가기"
         onConfirm={closeModal}
       />,
     );
@@ -30,7 +30,7 @@ import ModalBase from './ModalBase';
  *   <ModalConfirm
  *     message={"정말 삭제하시겠어요?"}
  *     cancelText="아니오"
- *     confirmText="네"
+ *     confirmButtonText="네"
  *     onConfirm={() => { handleDelete(); closeModal(); }}
  *   />
  * );
@@ -39,7 +39,7 @@ export default function ModalConfirm({
   icon = <Image src={CheckIcon} alt="" width={24} height={24} />,
   message,
   cancelText,
-  confirmText = '확인',
+  confirmButtonText = '확인',
   onCancel,
   onConfirm,
 }) {
@@ -61,7 +61,7 @@ export default function ModalConfirm({
       {!cancelText ? (
         <div className={cn('flex justify-center items-center')}>
           <ButtonPrimary size="lg" onClick={onConfirm}>
-            {confirmText}
+            {confirmButtonText}
           </ButtonPrimary>
         </div>
       ) : (
@@ -74,7 +74,7 @@ export default function ModalConfirm({
             {cancelText}
           </ButtonPrimary>
           <ButtonPrimary size="lg" onClick={onConfirm}>
-            {confirmText}
+            {confirmButtonText}
           </ButtonPrimary>
         </div>
       )}
