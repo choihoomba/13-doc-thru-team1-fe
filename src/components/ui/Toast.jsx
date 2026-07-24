@@ -37,12 +37,13 @@ export default function Toast({
   onClose,
   onLoad,
   message = `임시 저장된 작업물이 있어요.\n저장된 작업물을 불러오시겠어요?`,
+  closeOnOutsideClick = false,
 }) {
   const cardRef = useRef(null);
 
   useOutsideClick(cardRef, () => onClose?.(), {
-    enabled: isOpen,
-    closeOnEscape: true,
+    enabled: isOpen && closeOnOutsideClick,
+    closeOnEscape: closeOnOutsideClick,
   });
 
   if (!isOpen || typeof document === 'undefined') return null;
@@ -50,8 +51,9 @@ export default function Toast({
   return createPortal(
     <div
       className={cn(
-        'fixed z-toast inset-x-4 bottom-4 flex justify-center p-[8px]',
-        'tablet:bottom-6 tablet:inset-x-6',
+        'fixed left-1/2 -translate-x-1/2 w-full',
+        'z-toast bottom-4 flex justify-center px-[16px]',
+        'tablet:bottom-6 tablet:px-[24px]',
         'desktop:bottom-8',
       )}
     >
@@ -59,7 +61,7 @@ export default function Toast({
         ref={cardRef}
         role="status" // 스크린리더가 읽을수있게함
         className={cn(
-          'flex w-full min-w-[343px] max-w-[890px] justify-between gap-2.5 rounded-lg border-2 border-brand-black bg-[#F6F8FACC] p-2',
+          'flex w-full min-w-[calc(100vw - 32px)] max-w-[890px] justify-between items-center gap-[14px] rounded-lg border-2 border-brand-black bg-[#F6F8FACC] p-[8px]',
         )}
       >
         <div className={cn('flex items-center justify-center gap-2')}>
