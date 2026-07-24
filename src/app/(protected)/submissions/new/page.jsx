@@ -69,12 +69,9 @@ export default function NewSubmissionPage() {
         class: cn(
           'min-h-[200px] outline-none break-words',
           'text-body-16-160 text-gray-800',
-          // Tailwind preflight가 ul/ol의 list-style을 지워버려서 직접 복원
           '[&_ul]:list-disc [&_ul]:pl-5',
           '[&_ol]:list-decimal [&_ol]:pl-5',
           '[&_li]:my-1',
-          // Placeholder 확장이 빈 문단에 붙이는 data-placeholder를 ::before로 렌더링
-          // (내용을 입력하는 순간 is-editor-empty 클래스가 빠지면서 자동으로 사라짐)
           '[&_p.is-editor-empty:first-child]:before:content-[attr(data-placeholder)]',
           '[&_p.is-editor-empty:first-child]:before:pointer-events-none',
           '[&_p.is-editor-empty:first-child]:before:float-left',
@@ -123,11 +120,6 @@ export default function NewSubmissionPage() {
     };
   }, [isResizing]);
 
-  // TODO: 헤더의 "임시저장" 버튼 클릭 시
-  // 1) 제목 입력 모달 없이, 지금 입력된 title/editor 내용 그대로 임시저장 API 호출
-  // 2) 저장 성공 시 useModal().openModal(<ModalNotice message="임시저장되었습니다!" />)
-  // 3) 확인 클릭 시 router.push(TODO: 작업물 상세페이지 경로, submissionId 없음 - 백엔드 연동 후 결정)
-
   // 글자 색상 변경 함수
   function changeTextColor(color) {
     if (!color) {
@@ -145,23 +137,33 @@ export default function NewSubmissionPage() {
   }
 
   return (
-    <div className={cn('mt-6 flex h-screen w-full flex-col', 'tablet:px-6')}>
+    <div className={cn('mt-6 flex min-h-screen w-full flex-col')}>
       {isResizing && (
         <div className={cn('fixed inset-0 z-100 cursor-col-resize')} />
       )}
       <div
-        className={cn('flex min-h-0 flex-1 gap-6')}
+        className={cn('flex w-full flex-col', 'tablet:flex-row')}
         style={{
           '--panel-width':
             panelWidth !== null ? `${panelWidth}px` : DEFAULT_PANEL_WIDTH_CSS,
         }}
       >
+        <OriginalUrlPanel
+          isOpen={isOriginalOpen}
+          url={ORIGINAL_URL}
+          onClose={() => setIsOriginalOpen(false)}
+          onResizeStart={handleResizeStart}
+        />
         {/* TODO: <Header /> */}
         <div
           className={cn(
-            // 'flex items-center justify-between',
-            'flex min-w-0 flex-1 flex-col',
-            isOriginalOpen && 'mr-[calc(var(--panel-width)+24px)]',
+            'flex w-full flex-col p-[16px]',
+            'tablet:p-[24px]',
+            !isOriginalOpen && 'desktop:mx-auto desktop:max-w-[890px]',
+            isOriginalOpen && 'mt-[16px]',
+            isOriginalOpen &&
+              'tablet:mt-0 tablet:mr-[calc(var(--panel-width)+18px)]',
+            isOriginalOpen && 'desktop:mr-[calc(var(--panel-width)+24px)]',
           )}
         >
           <input
@@ -191,7 +193,7 @@ export default function NewSubmissionPage() {
           <div className={cn('my-6 h-px w-full bg-gray-200')} />
 
           {editor && (
-            <div className={cn('flex min-h-0 flex-1 flex-col')}>
+            <div className={cn('flex flex-1 flex-col')}>
               <div className={cn('flex flex-wrap items-center gap-0.5')}>
                 <ToolbarButton
                   label="Bold"
@@ -277,18 +279,10 @@ export default function NewSubmissionPage() {
                 </div>
               </div>
 
-              <div className={cn('min-h-0 flex-1 overflow-y-auto')}>
-                <EditorContent editor={editor} />
-              </div>
+              <EditorContent editor={editor} />
             </div>
           )}
         </div>
-        <OriginalUrlPanel
-          isOpen={isOriginalOpen}
-          url={ORIGINAL_URL}
-          onClose={() => setIsOriginalOpen(false)}
-          onResizeStart={handleResizeStart}
-        />
       </div>
       <Toast
         isOpen={showDraftBanner}

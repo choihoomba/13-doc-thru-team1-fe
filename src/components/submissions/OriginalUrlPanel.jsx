@@ -19,13 +19,15 @@ export default function OriginalUrlPanel({
   return (
     <div
       className={cn(
-        'fixed inset-0 z-40 flex w-(--panel-width) flex-col bg-white right-0 left-auto',
+        'relative z-40 flex h-[320px] w-full flex-col bg-white',
+        'tablet:fixed tablet:inset-y-0 tablet:right-0 tablet:left-auto tablet:h-auto tablet:w-(--panel-width)',
       )}
     >
       <div
         onMouseDown={onResizeStart}
         className={cn(
-          'absolute inset-y-0 left-0 z-10 w-2 -translate-x-1/2 cursor-col-resize block',
+          'hidden',
+          'tablet:absolute tablet:inset-y-0 tablet:left-0 tablet:z-10 tablet:block tablet:w-2 tablet:-translate-x-1/2 tablet:cursor-col-resize',
         )}
       />
       {/* TODO: 이건 따로 버튼이 없는것같은데 찾아보기  */}
