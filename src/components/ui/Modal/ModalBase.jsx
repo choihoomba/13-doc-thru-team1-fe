@@ -28,13 +28,16 @@ export default function ModalBase({ children, className }) {
   return createPortal(
     <div
       className={cn(
-        'fixed inset-0 z-50 flex items-center justify-center bg-black/50',
+        'fixed inset-0 z-modal',
+        'flex items-center justify-center',
+        'bg-black/50',
       )}
     >
       <div
         ref={boxRef}
         className={cn(
-          'w-[min(90vw,327px)] max-h-[85vh,220px] overflow-y-auto rounded-lg border-2 border-gray-800 bg-white',
+          'w-[min(90vw,327px)] max-h-[85vh,220px]',
+          'overflow-y-auto rounded-lg border-2 border-gray-800 bg-white',
           className,
         )}
         role="dialog"
