@@ -30,21 +30,26 @@ export default function ModalNotice({
   return (
     <ModalBase
       className={cn(
-        'w-[min(90vw,327px)] min-h-[220px] desktop:w-[540px] desktop:min-h-[250px]',
+        'w-[min(90vw,327px)] min-h-[220px]',
+        'desktop:w-[540px] desktop:min-h-[250px]',
       )}
     >
       <div
         className={cn(
-          'flex flex-col items-center px-6 pt-[81px] desktop:pt-[108px] pb-[45px]',
+          'flex flex-col items-center px-6 pt-[81px] pb-[45px]',
+          'desktop:pt-[108px]',
         )}
       >
-        <p className={cn('text-center text-16-medium desktop:text-18-medium')}>
+        <p
+          className={cn('text-center text-16-medium', 'desktop:text-18-medium')}
+        >
           {message}
         </p>
       </div>
       <div
         className={cn(
-          'flex justify-center desktop:justify-end desktop:mr-[28px]  pb-7',
+          'flex justify-center pb-7',
+          'desktop:mr-[28px] desktop:justify-end',
         )}
       >
         <ButtonPrimary width="120px" size="xxl" onClick={handleConfirm}>

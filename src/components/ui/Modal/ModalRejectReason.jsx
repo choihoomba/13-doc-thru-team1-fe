@@ -35,11 +35,12 @@ export default function ModalRejectReason({
   };
 
   return (
-    <ModalBase className={cn('w-[min(90vw,343px)] desktop:w-[496px]')}>
-      <div className={cn('flex h-[407px] desktop:h-[423px] flex-col')}>
+    <ModalBase className={cn('w-[min(90vw,343px)]', 'desktop:w-[496px]')}>
+      <div className={cn('flex h-[407px] flex-col', 'desktop:h-[423px]')}>
         <div
           className={cn(
-            'flex items-center justify-between px-4 desktop:px-[24px] pt-4 desktop:pt-4',
+            'flex items-center justify-between px-4 pt-4',
+            'desktop:px-[24px]',
           )}
         >
           <h2 className={cn('text-18-bold')}>{title}</h2>
@@ -54,7 +55,8 @@ export default function ModalRejectReason({
         </div>
         <div
           className={cn(
-            'flex flex-1 flex-col px-4 pt-[16px] pb-[24px] desktop:px-[24px]',
+            'flex flex-1 flex-col px-4 pt-[16px] pb-[24px]',
+            'desktop:px-[24px]',
           )}
         >
           <label className={cn('mb-2 block text-body-16-160 text-gray-900')}>
@@ -63,7 +65,8 @@ export default function ModalRejectReason({
           {/* TODO: Form/Label 만들어지면 넣어야함 */}
           <textarea
             className={cn(
-              'box-border w-full flex-1 resize-none rounded-md border border-gray-300 px-5 py-4 mb-4 desktop:mb-6',
+              'box-border w-full flex-1 resize-none rounded-md border border-gray-300 px-5 py-4 mb-4',
+              'desktop:mb-6',
               'text-16-regular text-gray-900 placeholder:text-gray-500',
               'focus:border-gray-800 focus:outline-none',
             )}

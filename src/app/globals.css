@@ -9,6 +9,13 @@
   --breakpoint-tablet: 744px;
   --breakpoint-desktop: 1024px;
 
+  /* -------- Z-index --------
+     className="z-modal"처럼 사용. 일반 요소는 커스텀 토큰 없이 기본 z-50 이하로 사용 */
+  --z-modal: 100;
+  --z-toast: 90;
+  --z-header: 80;
+  --z-dropdown: 70;
+
   /* -------- Color -------- */
   --color-gray-900: #171717;
   --color-gray-800: #262626;
