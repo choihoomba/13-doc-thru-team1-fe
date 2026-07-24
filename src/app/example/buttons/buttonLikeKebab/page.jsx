@@ -37,17 +37,19 @@ export default function ButtonLikeKebabExPage() {
         - 클릭 시 <HighlightedText text={`onClick`} /> 콜백만 호출되며, 실제
         active/inactive 상태 변경은 부모(사용하는 쪽)에서 처리합니다.
         <br />
-        - <HighlightedText text={`disabled`} /> : true일 경우 클릭 불가 (하트
-        이미지만 클릭 영역이며, count 텍스트는 클릭되지 않습니다. <br />
-        <span className={cn('pl-[105px]')}>마감 시 못 누르게 하는 용도)</span>
+        - 버튼 전체(하트 이미지 + count)가 클릭 영역입니다.
+        <br />
+        - <HighlightedText text={`disabled`} /> : true일 경우 클릭 불가
         <br />
         - <HighlightedText text={`className`} /> : 최상위 요소에 병합되어
         외부에서 마진/위치 조정이 가능합니다.
+        <br />- hover 시 살짝 어두워지는 효과가 적용되어 있습니다. (disalbed일땐
+        미적용)
       </h2>
 
       <ExLayout title="ButtonLike 컴포넌트">
         <ExContainer>
-          <div className={cn('flex flex-col gap-[8px] mb-[8px]')}>
+          <div className={cn('flex flex-col items-start gap-[8px] mb-[8px]')}>
             <span className={cn('text-16-semibold')}>
               🥕 size=&quot;sm&quot;
             </span>
@@ -63,7 +65,7 @@ export default function ButtonLikeKebabExPage() {
             />
           </div>
 
-          <div className={cn('flex flex-col gap-[8px] mb-[8px]')}>
+          <div className={cn('flex flex-col items-start gap-[8px] mb-[8px]')}>
             <span className={cn('text-16-semibold')}>
               🥕 size=&quot;lg&quot;
             </span>
@@ -79,7 +81,7 @@ export default function ButtonLikeKebabExPage() {
             />
           </div>
 
-          <div className={cn('flex flex-col gap-[8px] mb-[8px]')}>
+          <div className={cn('flex flex-col items-start gap-[8px] mb-[8px]')}>
             <span className={cn('text-16-semibold')}>
               🥕 count가 9,999를 초과하는 경우
             </span>
@@ -95,7 +97,7 @@ export default function ButtonLikeKebabExPage() {
             />
           </div>
 
-          <div className={cn('flex flex-col gap-[8px]')}>
+          <div className={cn('flex flex-col items-start gap-[8px]')}>
             <span className={cn('text-16-semibold')}>
               🥕 disabled - 클릭 불가
             </span>
@@ -125,9 +127,11 @@ export default function ButtonLikeKebabExPage() {
         <br />- 노출 여부(어드민/작성자 등 권한 판단)는 컴포넌트 책임이 아니며,
         사용하는 쪽에서 조건부 렌더링으로 처리합니다.
         <br />- 키보드(Tab)로 다른 케밥 버튼에 포커스를 이동해 열 때도, 이전에
-        열려있던 메뉴는 자동으로 닫힙니다{' '}
+        열려있던 메뉴는 자동으로 닫힙니다 (
         <HighlightedText text={`useOutsideClick`} />의{' '}
         <HighlightedText text={`detectFocus`} /> 옵션 사용).
+        <br />- <HighlightedText text={`Esc`} /> 키로도 메뉴가 닫힙니다 (
+        <HighlightedText text={`closeOnEscape`} /> 옵션 사용).
       </h2>
 
       <ExLayout title="ButtonKebab 컴포넌트">
