@@ -46,31 +46,34 @@ export default function ModalConfirm({
   const { closeModal } = useModal();
 
   return (
-    <ModalBase className={cn('flex flex-col gap-11')}>
-      <div className={cn('flex flex-col items-center gap-8 pt-6')}>
+    <ModalBase className={cn('flex flex-col p-6')}>
+      <div className={cn('flex flex-col items-center')}>
         <div className={cn('flex justify-center')}>{icon}</div>
-        <p className={cn('whitespace-pre-line text-center text-16-medium')}>
+        <p
+          className={cn(
+            'whitespace-pre-line text-center mt-[24px] mb-[32px] text-16-medium',
+          )}
+        >
           {message}
         </p>
       </div>
 
       {!cancelText ? (
-        <div className={cn('flex justify-center px-6 pb-6')}>
+        <div className={cn('flex justify-center items-center')}>
           <ButtonPrimary size="lg" onClick={onConfirm}>
             {confirmText}
           </ButtonPrimary>
         </div>
       ) : (
-        <div className={cn('flex gap-2 px-15 pb-6')}>
+        <div className={cn('flex items-center justify-center gap-2 ')}>
           <ButtonPrimary
             variant="secondary"
             size="lg"
-            className="flex-1"
             onClick={onCancel ?? closeModal}
           >
             {cancelText}
           </ButtonPrimary>
-          <ButtonPrimary size="lg" className="flex-1" onClick={onConfirm}>
+          <ButtonPrimary size="lg" onClick={onConfirm}>
             {confirmText}
           </ButtonPrimary>
         </div>
