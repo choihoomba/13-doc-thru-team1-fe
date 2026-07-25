@@ -169,7 +169,10 @@ function getLaterDate(firstDate, secondDate) {
 1. 현재 보고 있는 월의 1일 요일을 구합니다.
 2. 해당 주의 일요일까지 시작 날짜를 이동합니다.
 3. 시작 날짜부터 42일을 만들어 6주 그리드를 구성합니다.
-4. 각 날짜가 현재 월에 속하는지 isCurrentMonth로 표시합니다.
+4. 각 날짜의 실제 Date 객체와 YYYY-MM-DD 값을 저장합니다.
+
+현재 월인지 여부로 색상을 나누지 않으므로,
+선택 가능한 다음 달 날짜도 현재 달 날짜와 동일한 색상으로 표시합니다.
 
 useMemo에서 호출해 viewDate가 변경될 때만 다시 계산합니다.
 */
@@ -189,7 +192,6 @@ function createCalendarDays(viewDate) {
     return {
       date,
       value: toDateValue(date),
-      isCurrentMonth: date.getMonth() === month,
     };
   });
 }
@@ -210,10 +212,11 @@ function createCalendarDays(viewDate) {
 2. 오늘부터 미래 날짜
    - 선택 가능
 
-3. 현재 달력 화면에 회색으로 표시되는 앞달 또는 다음 달 날짜
-   - 오늘 이전이면 선택 불가
-   - 오늘 이후라면 선택 가능
-   - 예: 8월 달력 마지막 줄에 표시된 회색 9월 1일도 바로 선택 가능
+3. 현재 달력 화면에 함께 표시되는 앞달 또는 다음 달 날짜
+   - 오늘 이전이면 회색 표시 및 선택 불가
+   - 오늘 이후라면 현재 달 날짜와 동일한 검은색 표시
+   - 미래 날짜라면 현재 월 여부와 관계없이 선택 가능
+   - 예: 8월 달력 마지막 줄에 표시된 9월 1일도 검은색으로 표시되고 바로 선택 가능
 
 4. 신규 챌린지의 "현재일 기준 7일 뒤부터 허용" 정책
    - 캘린더 자체에서 선택을 막지 않습니다.
@@ -484,53 +487,48 @@ export default function InputCalendar({
                 </span>
               ))}
 
-              {calendarDays.map(
-                ({ date, value: dateValue, isCurrentMonth }) => {
-                  /*
-                  선택 불가능 조건은 minimumDate보다 이전인지 여부만 확인합니다.
+              {calendarDays.map(({ date, value: dateValue }) => {
+                /*
+                선택 불가능 조건은 minimumDate보다 이전인지 여부만 확인합니다.
 
-                  현재 월이 아닌 날짜는 회색으로 보이지만 미래 날짜라면 선택 가능합니다.
-                  따라서 8월 달력에 표시된 회색 9월 날짜를 클릭해도 값이 정상 적용됩니다.
-                  */
-                  const isBeforeMinimum =
-                    startOfDay(date).getTime() < minimumDate.getTime();
+                현재 월인지, 달력 마지막 줄에 함께 표시된 다음 달인지와 관계없이
+                오늘 이후의 선택 가능한 날짜는 모두 검은색으로 표시합니다.
 
-                  const isSelected =
-                    !isBeforeMinimum && dateValue === selectedValue;
+                따라서 8월 달력에 함께 표시된 9월 날짜도
+                현재 달 날짜와 동일하게 보이며 클릭하면 정상 적용됩니다.
+                */
+                const isBeforeMinimum =
+                  startOfDay(date).getTime() < minimumDate.getTime();
 
-                  return (
-                    <button
-                      key={dateValue}
-                      type="button"
-                      disabled={isBeforeMinimum}
-                      onClick={() => handleSelectDate(date)}
-                      aria-label={`${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`}
-                      aria-pressed={isSelected}
-                      className={cn(
-                        'flex h-[40px] items-center justify-center rounded-[8px] text-14-regular',
+                const isSelected =
+                  !isBeforeMinimum && dateValue === selectedValue;
 
-                        // 과거 날짜는 회색·비활성화합니다.
-                        isBeforeMinimum && 'cursor-not-allowed text-gray-300',
+                return (
+                  <button
+                    key={dateValue}
+                    type="button"
+                    disabled={isBeforeMinimum}
+                    onClick={() => handleSelectDate(date)}
+                    aria-label={`${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`}
+                    aria-pressed={isSelected}
+                    className={cn(
+                      'flex h-[40px] items-center justify-center rounded-[8px] text-14-regular',
 
-                        // 현재 월의 선택 가능한 날짜
-                        !isBeforeMinimum &&
-                          isCurrentMonth &&
-                          'cursor-pointer text-gray-900 hover:bg-gray-50',
+                      // 과거 날짜만 회색으로 표시하고 마우스·키보드 선택을 막습니다.
+                      isBeforeMinimum && 'cursor-not-allowed text-gray-300',
 
-                        // 다음 달 또는 앞달 날짜여도 미래라면 회색 상태로 선택 가능합니다.
-                        !isBeforeMinimum &&
-                          !isCurrentMonth &&
-                          'cursor-pointer text-gray-300 hover:bg-gray-50',
+                      // 오늘 이후 날짜는 현재 월 여부와 관계없이 동일한 검은색으로 표시합니다.
+                      !isBeforeMinimum &&
+                        'cursor-pointer text-gray-900 hover:bg-gray-50',
 
-                        // 선택 상태는 현재 월 여부보다 우선해 동일하게 표시합니다.
-                        isSelected && 'bg-gray-800 text-white',
-                      )}
-                    >
-                      {date.getDate()}
-                    </button>
-                  );
-                },
-              )}
+                      // 선택된 날짜는 검은 배경과 흰색 글자로 강조합니다.
+                      isSelected && 'bg-gray-800 text-white',
+                    )}
+                  >
+                    {date.getDate()}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}

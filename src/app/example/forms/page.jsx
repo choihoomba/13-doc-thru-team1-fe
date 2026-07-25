@@ -44,7 +44,7 @@ const DOCUMENT_TYPE_OPTIONS = [
 */
 const MINIMUM_DEADLINE_DAYS = 7;
 const DEADLINE_ERROR_MESSAGE =
-  '마감일은 현재일 기준 7일 뒤부터 선택 가능합니다.';
+  '* 마감일은 현재일 기준 7일 뒤부터 선택 가능합니다.';
 
 /*
 @ 날짜 비교용 하루 시작 시각
@@ -196,7 +196,8 @@ export default function FormsExPage() {
             InputCalendar는 오늘 이전 날짜만 선택할 수 없게 막습니다.
 
             오늘부터 미래 날짜는 모두 선택할 수 있고,
-            현재 달력에 회색으로 표시된 다음 달 날짜도 미래라면 선택 가능합니다.
+            현재 달력에 함께 표시되는 다음 달 날짜도 미래라면
+            현재 달 날짜와 동일한 검은색으로 표시되고 선택 가능합니다.
 
             이 페이지는 value, onChange, error를 전달해
             "현재일 기준 7일 뒤부터 선택 가능" 정책을 검증합니다.
@@ -204,7 +205,7 @@ export default function FormsExPage() {
             오늘부터 6일 뒤까지의 날짜를 선택하면:
             - 선택한 날짜는 입력창에 표시
             - 입력창 border는 오류 색상으로 변경
-            - 입력창 아래에 안내 메시지 표시
+            - 입력창 아래에 별표(*)가 포함된 안내 메시지 표시
             - submit 시 생성 로직 진행 차단
           */}
           <InputCalendar
