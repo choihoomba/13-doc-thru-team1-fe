@@ -1,7 +1,7 @@
 /** 작업 도전하기 페이지 */
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import Color from '@tiptap/extension-color';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -23,7 +23,7 @@ import iconItalic from '@/app/assets/icons/icon_font_italic.svg';
 import iconNumbering from '@/app/assets/icons/icon_font_numbering.svg';
 import iconUnderline from '@/app/assets/icons/icon_font_underline.svg';
 
-import { getSubmission } from '@/lib/submissionNew';
+import { getSubmission, saveDraft } from '@/lib/submissionNew';
 
 import { cn } from '@/utils/cn';
 
@@ -32,13 +32,45 @@ import Toast from '@/components/ui/Toast';
 
 // TODO: 챌린지 원문 URL API
 // TODO: iframe 에러 분기 처리
-const ORIGINAL_URL =
-  'https://ko.wikipedia.org/wiki/%EC%9C%84%ED%82%A4%EB%B0%B1%EA%B3%BC:%EB%8C%80%EB%AC%B8';
+const ORIGINAL_URL = 'https://github.com/choihoomba/13-doc-thru-team1-fe/pulls';
+// 'https://ko.wikipedia.org/wiki/%EC%9C%84%ED%82%A4%EB%B0%B1%EA%B3%BC:%EB%8C%80%EB%AC%B8';
 
 const MIN_PANEL_WIDTH = 320; // 원문 최소 폭(px)
 const MIN_EDITOR_WIDTH = 320; // 에디터 최소 폭(px)
 // 드래그로 조절하기 전 기본 폭: 화면의 절반, vw 기반이라 창 크기 바뀌어도 JS 계산 없이 자동으로 따라감
 const DEFAULT_PANEL_WIDTH_CSS = `clamp(${MIN_PANEL_WIDTH}px, 50vw, calc(100vw - ${MIN_EDITOR_WIDTH}px))`;
+
+const SAVE_DEBOUNCE_MS = 500;
+
+/**
+ * 로컬스토리지 임시저장 (API 아님, 이 페이지 전용 보조 저장소)
+ *
+ * - 편집 중 새로고침: 로컬에 남아있는 값을 묻지 않고 바로 복원 (같은 세션 연속)
+ * - 새로 진입(로컬 비어있음): "저장된 임시글이 있는지"는 서버가 기준 -> 토스트로 물어봄
+ */
+const LOCAL_DRAFT_KEY = 'submissionNew:draft';
+
+function saveDraftToLocal({ title, content }) {
+  if (typeof window === 'undefined') return;
+
+  localStorage.setItem(
+    LOCAL_DRAFT_KEY,
+    JSON.stringify({ title, content, updatedAt: new Date().toISOString() }),
+  );
+}
+
+function getDraftFromLocal() {
+  if (typeof window === 'undefined') return null;
+
+  const raw = localStorage.getItem(LOCAL_DRAFT_KEY);
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
 
 /** 툴바 버튼 하나 */
 function ToolbarButton({ label, icon, onClick, className }) {
@@ -59,6 +91,30 @@ export default function NewSubmissionPage() {
   // 지금은 임시로 쿼리스트링(?id=)에서 읽음 (예: /submissions/new?id=1)
   const searchParams = useSearchParams();
   const submissionId = searchParams.get('id');
+
+  const [title, setTitle] = useState('');
+  const titleRef = useRef(title);
+  useEffect(() => {
+    titleRef.current = title;
+  }, [title]);
+
+  const saveTimeoutRef = useRef(null);
+  // 제목/본문이 바뀔 때마다 호출: 로컬엔 항상 즉시 저장, 서버엔 submissionId가
+  // 있을 때만 best-effort로 같이 저장(실패해도 로컬엔 이미 저장됐으니 무시)
+  function scheduleSave(nextTitle, nextContent) {
+    clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      saveDraftToLocal({ title: nextTitle, content: nextContent });
+
+      if (!submissionId) return;
+      saveDraft(submissionId, { title: nextTitle, content: nextContent }).catch(
+        (error) => {
+          // TODO: 서버 저장 실패한 채로 페이지 벗어나려 하면 "임시저장하시겠습니까?" 확인 띄우기
+          console.error('임시저장(서버) 실패:', error);
+        },
+      );
+    }, SAVE_DEBOUNCE_MS);
+  }
 
   const editor = useEditor({
     extensions: [
@@ -85,15 +141,33 @@ export default function NewSubmissionPage() {
         ),
       },
     },
+    onUpdate: ({ editor }) => scheduleSave(titleRef.current, editor.getHTML()),
+    // 에디터가 막 준비된 시점(=마운트 직후)에 한 번 실행:
+    // - 로컬에 있으면 "적다가 새로고침"한 걸로 보고 묻지 않고 바로 채움
+    // - 로컬이 비어있으면 "새로 진입"한 걸로 보고 서버 기준으로 토스트 노출
+    onCreate: ({ editor }) => {
+      const local = getDraftFromLocal();
+      if (local) {
+        setTitle(local.title ?? '');
+        editor.commands.setContent(local.content ?? '');
+        return;
+      }
+
+      if (!submissionId) return;
+
+      getSubmission(submissionId)
+        .then((submission) => setIsToastOpen(Boolean(submission?.draft)))
+        .catch((error) => {
+          console.error('임시저장 존재 확인 실패:', error);
+        });
+    },
     immediatelyRender: false,
   });
-  const [title, setTitle] = useState('');
   const [isOriginalOpen, setIsOriginalOpen] = useState(false);
   // null이면 CSS 기본값(화면 절반, 반응형) 사용 중, 드래그 시작하면 px로 고정됨
   const [panelWidth, setPanelWidth] = useState(null);
   const [isResizing, setIsResizing] = useState(false);
-  // TODO: 실제로는 저장된 임시글이 있을 때만 true -> toast 띄우기
-  const [isToastOpen, setIsToastOpen] = useState(true);
+  const [isToastOpen, setIsToastOpen] = useState(false);
 
   const handleResizeStart = (e) => {
     e.preventDefault();
@@ -134,20 +208,36 @@ export default function NewSubmissionPage() {
     editor?.chain().focus().setColor(color).run();
   }
 
+  // 이 경로는 "로컬은 비어있고 서버엔 있는" 상황(=토스트가 뜬 상황)에서만
+  // 눌리므로 서버 값만 채우면 됨. 로컬 폴백은 당장은 의미가 줄었지만
+  // 방어적으로 필요할 수 있어 주석으로 남겨둠.
   async function handleLoadDraft() {
-    if (!submissionId) {
-      setIsToastOpen(false);
-      return;
-    }
-
     try {
       const submission = await getSubmission(submissionId);
       setTitle(submission?.draft?.title ?? '');
-      // TODO: 백엔드가 draft.content를 내려주기 전까진 항상 빈 값으로 채워짐
       editor?.commands.setContent(submission?.draft?.content ?? '');
+      saveDraftToLocal({
+        title: submission?.draft?.title ?? '',
+        content: submission?.draft?.content ?? '',
+      });
+      // if (submission?.draft) {
+      //   setTitle(submission.draft.title ?? '');
+      //   editor?.commands.setContent(submission.draft.content ?? '');
+      //   saveDraftToLocal({
+      //     title: submission.draft.title ?? '',
+      //     content: submission.draft.content ?? '',
+      //   });
+      //   return;
+      // }
+      // const local = getDraftFromLocal();
+      // setTitle(local?.title ?? '');
+      // editor?.commands.setContent(local?.content ?? '');
     } catch (error) {
-      // TODO: 실패 시 사용자에게 보여줄 UI (에러 토스트 등) 정하기
-      console.error('임시저장 불러오기 실패:', error);
+      console.error('임시저장 불러오기(서버) 실패:', error);
+      // 서버 실패 시 로컬로 폴백
+      // const local = getDraftFromLocal();
+      // setTitle(local?.title ?? '');
+      // editor?.commands.setContent(local?.content ?? '');
     } finally {
       setIsToastOpen(false);
     }
@@ -186,7 +276,10 @@ export default function NewSubmissionPage() {
           <input
             type="text"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              scheduleSave(e.target.value, editor?.getHTML() ?? '');
+            }}
             placeholder="제목을 입력해주세요"
             className={cn(
               'w-full text-20-semibold text-gray-900 outline-none',
