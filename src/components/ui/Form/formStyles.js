@@ -35,9 +35,12 @@ export const FORM_GROUP_STYLE = [
 
 공통으로 관리하는 항목:
 - 너비
-- 기본 border와 배경색
+- 기본 1px border와 배경색
 - 텍스트와 placeholder 색상
 - focus, disabled 상태
+
+Tailwind의 border 클래스는 border-width: 1px을 담당하고,
+각 컴포넌트의 border-gray-200 또는 border-gray-300이 border 색상을 담당합니다.
 */
 export const FORM_CONTROL_STYLE = [
   'w-full',
@@ -61,22 +64,22 @@ export const FORM_CONTROL_STYLE = [
 ].join(' ');
 
 /*
-@ Form/InputBase 전용 외형
+@ Form/InputBase 공통 외형
 
-Figma CSS:
+Figma 공통 CSS:
 display: flex;
 height: 48px;
 padding: 11px 20px;
 align-items: center;
 gap: 10px;
-border-radius: 12px;
 border: 1px solid #E5E5E5;
 background: #FFF;
 
-- InputBase는 제목, 원문 링크, 최대 인원, 이메일, 비밀번호처럼
-  한 줄 입력에 사용하는 공통 컴포넌트입니다.
-- 반응형별 치수가 같으므로 mobile:, tablet:, desktop: 접두사를 사용하지 않습니다.
-- 너비는 FORM_CONTROL_STYLE의 w-full이 부모 너비에 맞춰 처리합니다.
+InputBase를 사용하는 위치마다 radius가 다르게 확인되어
+높이와 padding은 공통으로 유지하고 radius만 별도 style map으로 분리했습니다.
+
+- 제목, 원문 링크: 12px
+- 최대 인원: 8px
 */
 export const FORM_INPUT_BASE_STYLE = [
   'flex',
@@ -85,9 +88,22 @@ export const FORM_INPUT_BASE_STYLE = [
   'gap-[10px]',
   'px-[20px]',
   'py-[11px]',
-  'rounded-[12px]',
   'border-gray-200',
 ].join(' ');
+
+/*
+@ InputBase radius 선택값
+
+InputBase 내부에 name === 'maxParticipants' 같은 페이지 전용 조건을 넣지 않습니다.
+공통 컴포넌트가 특정 페이지의 필드명을 알게 되면 재사용성이 떨어지기 때문입니다.
+
+대신 사용하는 페이지에서 borderRadius prop으로 Figma 값을 선택합니다.
+지원하지 않는 값이 들어오면 InputBase에서 기본 12px을 사용합니다.
+*/
+export const FORM_INPUT_RADIUS_STYLE = {
+  8: 'rounded-[8px]',
+  12: 'rounded-[12px]',
+};
 
 /*
 @ 오류 상태

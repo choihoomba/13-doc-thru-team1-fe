@@ -15,6 +15,7 @@ import {
   FORM_ERROR_STYLE,
   FORM_GROUP_STYLE,
   FORM_INPUT_BASE_STYLE,
+  FORM_INPUT_RADIUS_STYLE,
   FORM_MESSAGE_STYLE,
 } from './formStyles';
 import Label from './Label';
@@ -50,12 +51,14 @@ const ICON_BUTTON_STYLE = [
 - 비밀번호
 - 일반 text, url, number 입력
 
-공통 컴포넌트 안에는 페이지별 문구를 고정하지 않습니다.
+공통 컴포넌트 안에는 페이지별 문구나 필드명을 고정하지 않습니다.
 label과 placeholder는 사용하는 페이지에서 props로 전달하므로,
 신규 챌린지 페이지와 로그인/회원가입 페이지가 같은 컴포넌트를 사용해도
-서로 다른 텍스트를 표시할 수 있습니다.
+각 페이지에서 전달한 텍스트만 표시됩니다.
 
-Figma 외형은 formStyles.js의 FORM_INPUT_BASE_STYLE에서 관리합니다.
+Figma에서 제목/원문 링크와 최대 인원의 radius가 다르게 확인되어
+borderRadius prop으로 12px 또는 8px을 선택할 수 있도록 확장했습니다.
+기본값은 기존 사용처에 영향을 주지 않도록 12px입니다.
 */
 export default function InputBase({
   id,
@@ -67,6 +70,7 @@ export default function InputBase({
   required = false,
   disabled = false,
   type = 'text',
+  borderRadius = 12,
   endIcon,
   endIconAlt = '',
   onEndIconClick,
@@ -82,6 +86,17 @@ export default function InputBase({
   const generatedId = useId();
   const inputId = id || generatedId;
   const errorId = error ? `${inputId}-error` : undefined;
+
+  /*
+  @ InputBase radius 결정
+
+  - borderRadius={12}: 제목, 원문 링크 등 기본 InputBase
+  - borderRadius={8}: 신규 챌린지의 최대 인원 InputBase
+
+  지원하지 않는 값이 들어오면 기본 12px을 사용해 스타일 누락을 방지합니다.
+  */
+  const radiusStyle =
+    FORM_INPUT_RADIUS_STYLE[borderRadius] ?? FORM_INPUT_RADIUS_STYLE[12];
 
   /*
   @ 비밀번호 표시 상태
@@ -151,11 +166,14 @@ export default function InputBase({
           aria-invalid={Boolean(error)}
           aria-describedby={errorId}
           className={cn(
-            // 모든 Form 입력이 공유하는 텍스트, focus, disabled 상태
+            // 모든 Form 입력이 공유하는 border, 텍스트, focus, disabled 상태
             FORM_CONTROL_STYLE,
 
-            // InputBase 전용 48px, padding 11px 20px, radius 12px
+            // InputBase 전용 높이 48px, padding 11px 20px, gray-200 border
             FORM_INPUT_BASE_STYLE,
+
+            // 사용하는 위치의 Figma에 맞춰 12px 또는 8px radius를 적용합니다.
+            radiusStyle,
 
             // 24px 아이콘과 텍스트가 겹치지 않도록 우측 공간을 확보합니다.
             icon && 'pr-[54px]',

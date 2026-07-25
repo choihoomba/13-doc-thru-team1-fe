@@ -86,8 +86,9 @@ const WEEK_DAYS = ['일', '월', '화', '수', '목', '금', '토'];
 /*
 @ 날짜 비교를 위한 하루 시작 시각
 
-시간, 분, 초 값을 제거해 날짜만 비교합니다.
-예를 들어 오늘 오전과 오늘 오후를 서로 다른 날짜로 판단하지 않도록 합니다.
+시간, 분, 초를 제거해 날짜만 비교합니다.
+같은 날짜 안에서 현재 시각보다 빠르다는 이유로
+오늘 날짜가 잘못 비활성화되지 않도록 합니다.
 */
 function startOfDay(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -144,11 +145,16 @@ function toDateValue(date) {
 }
 
 /*
-@ 오늘과 min prop 중 더 늦은 날짜 선택
+@ 오늘과 min 중 더 늦은 날짜 선택
 
-- 기본 최소 날짜는 오늘입니다.
-- 페이지에서 min을 전달하더라도 과거 날짜가 최소값으로 설정되지 않도록
-  오늘과 min 중 더 늦은 값을 실제 minimumDate로 사용합니다.
+공통 캘린더의 기본 제한은 오늘입니다.
+
+- min prop이 없으면 오늘부터 선택할 수 있습니다.
+- min prop이 전달되면 오늘과 min 중 더 늦은 날짜부터 선택할 수 있습니다.
+- 신규 챌린지 예제 페이지에서는 오늘 + 7일을 min으로 막지 않고,
+  오늘부터 선택하게 한 뒤 페이지의 error 검증으로 안내합니다.
+
+min prop은 다른 페이지에서 더 강한 선택 제한이 필요한 경우를 위해 유지합니다.
 */
 function getLaterDate(firstDate, secondDate) {
   return firstDate.getTime() >= secondDate.getTime() ? firstDate : secondDate;
@@ -194,10 +200,29 @@ function createCalendarDays(viewDate) {
 브라우저 기본 date picker를 사용하지 않는 이유:
 - 브라우저마다 모양과 펼침 위치가 다릅니다.
 - popup을 부모 오른쪽 기준으로 왼쪽에 펼치는 동작을 확실하게 제어하기 어렵습니다.
-- 과거 날짜와 다른 달 날짜의 표시 방식을 Figma에 맞게 제어하기 어렵습니다.
+- 현재 월과 앞뒤 월 날짜의 표시 및 선택 동작을 Figma에 맞게 제어하기 어렵습니다.
 
-따라서 화면에는 커스텀 캘린더를 렌더링하고,
-form submit을 위한 native date input은 sr-only로 유지합니다.
+최종 날짜 선택 규칙:
+1. 오늘 이전 날짜
+   - 회색 표시
+   - 선택 불가
+
+2. 오늘부터 미래 날짜
+   - 선택 가능
+
+3. 현재 달력 화면에 회색으로 표시되는 앞달 또는 다음 달 날짜
+   - 오늘 이전이면 선택 불가
+   - 오늘 이후라면 선택 가능
+   - 예: 8월 달력 마지막 줄에 표시된 회색 9월 1일도 바로 선택 가능
+
+4. 신규 챌린지의 "현재일 기준 7일 뒤부터 허용" 정책
+   - 캘린더 자체에서 선택을 막지 않습니다.
+   - 페이지에서 value, onChange, error를 전달해 안내 문구와 오류 border를 표시합니다.
+   - 잘못된 날짜가 선택되어 있어도 사용자가 선택한 값은 input에서 확인할 수 있습니다.
+   - Form 제출 시 페이지 검증에서 진행을 차단합니다.
+
+이렇게 기본적인 과거 날짜 제한은 공통 캘린더가 담당하고,
+서비스의 업무 규칙은 사용하는 페이지가 담당하도록 분리했습니다.
 */
 export default function InputCalendar({
   id,
@@ -244,15 +269,21 @@ export default function InputCalendar({
 
   value가 전달되면 부모가 날짜를 관리하고,
   value가 없으면 내부 state로 관리합니다.
+
+  신규 챌린지 페이지에서는 선택값 검증과 오류 표시가 필요하므로
+  value, onChange, error를 전달하는 controlled 방식으로 사용합니다.
   */
   const selectedValue = value ?? internalValue;
   const selectedDate = parseDateValue(selectedValue);
 
   /*
-  @ 최소 선택 날짜
+  @ 실제 최소 선택 날짜
 
-  기본적으로 오늘 이전 날짜는 선택할 수 없습니다.
-  min prop이 오늘보다 미래라면 해당 날짜부터 선택 가능합니다.
+  기본값은 오늘입니다.
+  min prop이 전달되면 오늘과 min 중 더 늦은 값을 사용합니다.
+
+  신규 챌린지 예제 페이지에서는 min을 전달하지 않으므로
+  오늘부터 모든 미래 날짜를 선택할 수 있습니다.
   */
   const today = startOfDay(new Date());
   const minDateFromProps = parseDateValue(min);
@@ -264,7 +295,7 @@ export default function InputCalendar({
   /*
   @ 현재 화면에 표시할 월
 
-  처음에는 선택된 날짜가 있으면 그 날짜의 월,
+  선택된 날짜가 있으면 해당 월을 보여주고,
   선택값이 없으면 최소 선택 날짜가 포함된 월을 보여줍니다.
   */
   const [viewDate, setViewDate] = useState(() =>
@@ -293,6 +324,7 @@ export default function InputCalendar({
   - uncontrolled 방식이면 내부 값을 변경합니다.
   - native input의 onChange와 비슷하게 target.name, target.value 형태로 전달합니다.
   - 실제 값은 YYYY-MM-DD 형식입니다.
+  - 페이지는 전달받은 값을 기준으로 업무 규칙 검증을 수행할 수 있습니다.
   */
   const emitChange = (nextValue) => {
     if (value === undefined) {
@@ -315,8 +347,8 @@ export default function InputCalendar({
   @ 캘린더 열기
 
   - disabled 상태에서는 열리지 않습니다.
-  - 캘린더를 다시 열 때 선택된 날짜가 있으면 해당 월을 보여줍니다.
-  - 선택값이 없으면 최소 선택 날짜가 있는 월을 보여줍니다.
+  - 선택된 날짜가 있으면 해당 월을 보여줍니다.
+  - 선택값이 없으면 현재 월을 보여줍니다.
   */
   const handleOpenCalendar = () => {
     if (disabled) return;
@@ -329,8 +361,8 @@ export default function InputCalendar({
   @ 날짜 선택
 
   - 오늘 또는 min보다 이전 날짜는 함수에서도 다시 차단합니다.
-  - UI의 disabled 처리만 믿지 않고 로직에서도 검증해 안전하게 처리합니다.
-  - 선택 후 popup을 닫습니다.
+  - 현재 달력 화면의 다음 달 날짜라도 미래 날짜이면 선택할 수 있습니다.
+  - 선택한 날짜는 YYYY-MM-DD 형식으로 전달하고 popup을 닫습니다.
   */
   const handleSelectDate = (date) => {
     if (startOfDay(date).getTime() < minimumDate.getTime()) return;
@@ -340,7 +372,7 @@ export default function InputCalendar({
   };
 
   /*
-  화면에는 프로젝트 formatDate 유틸을 사용해 YY/MM/DD 형식으로 보여주고,
+  화면에는 프로젝트 formatDate 유틸을 사용해 날짜 형식을 변환하고,
   실제 form 값은 YYYY-MM-DD 형식을 유지합니다.
   */
   const formattedDate = selectedValue
@@ -373,11 +405,15 @@ export default function InputCalendar({
           aria-expanded={isOpen}
           aria-controls={`${inputId}-calendar`}
           aria-describedby={errorId}
+          aria-invalid={Boolean(error)}
           className={cn(
             FORM_CONTROL_STYLE,
             CALENDAR_TRIGGER_STYLE,
             disabled && 'cursor-not-allowed bg-gray-50 text-gray-400',
+
+            // 페이지에서 error를 전달하면 입력창 border를 오류 색상으로 변경합니다.
             error && FORM_ERROR_STYLE,
+
             inputClassName,
           )}
         >
@@ -408,8 +444,8 @@ export default function InputCalendar({
             className={CALENDAR_POPOVER_STYLE}
           >
             {/*
-              캘린더 제목과 이전/다음 달 이동 버튼
-              월 이동 자체는 제한하지 않고, 선택 가능한 날짜만 제한합니다.
+              월 이동은 제한하지 않습니다.
+              과거 월도 확인할 수 있지만 minimumDate 이전 날짜는 선택할 수 없습니다.
             */}
             <div className="mb-[16px] flex items-center justify-between">
               <strong className="text-18-semibold text-gray-900">
@@ -438,9 +474,6 @@ export default function InputCalendar({
               </div>
             </div>
 
-            {/*
-              7열 그리드에 요일과 42개의 날짜를 배치합니다.
-            */}
             <div className="grid grid-cols-7">
               {WEEK_DAYS.map((day) => (
                 <span
@@ -454,36 +487,42 @@ export default function InputCalendar({
               {calendarDays.map(
                 ({ date, value: dateValue, isCurrentMonth }) => {
                   /*
-                  선택 불가능 조건:
-                  1. 오늘 또는 min보다 이전 날짜
-                  2. 현재 보고 있는 월의 앞뒤에 표시된 다른 달 날짜
+                  선택 불가능 조건은 minimumDate보다 이전인지 여부만 확인합니다.
 
-                  선택할 수 없는 날짜도 달력 모양을 유지하기 위해 화면에는 표시하되,
-                  gray-300 색상과 disabled 속성으로 구분합니다.
+                  현재 월이 아닌 날짜는 회색으로 보이지만 미래 날짜라면 선택 가능합니다.
+                  따라서 8월 달력에 표시된 회색 9월 날짜를 클릭해도 값이 정상 적용됩니다.
                   */
-                  const isPast =
+                  const isBeforeMinimum =
                     startOfDay(date).getTime() < minimumDate.getTime();
 
-                  const isDisabled = isPast || !isCurrentMonth;
-                  const isSelected = !isDisabled && dateValue === selectedValue;
+                  const isSelected =
+                    !isBeforeMinimum && dateValue === selectedValue;
 
                   return (
                     <button
                       key={dateValue}
                       type="button"
-                      disabled={isDisabled}
+                      disabled={isBeforeMinimum}
                       onClick={() => handleSelectDate(date)}
                       aria-label={`${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`}
                       aria-pressed={isSelected}
                       className={cn(
                         'flex h-[40px] items-center justify-center rounded-[8px] text-14-regular',
 
-                        // 선택 불가 날짜는 회색으로 표시하고 pointer cursor를 사용하지 않습니다.
-                        isDisabled
-                          ? 'cursor-not-allowed text-gray-300'
-                          : 'text-gray-900 hover:bg-gray-50',
+                        // 과거 날짜는 회색·비활성화합니다.
+                        isBeforeMinimum && 'cursor-not-allowed text-gray-300',
 
-                        // 현재 선택된 날짜는 진한 배경과 흰색 텍스트로 표시합니다.
+                        // 현재 월의 선택 가능한 날짜
+                        !isBeforeMinimum &&
+                          isCurrentMonth &&
+                          'cursor-pointer text-gray-900 hover:bg-gray-50',
+
+                        // 다음 달 또는 앞달 날짜여도 미래라면 회색 상태로 선택 가능합니다.
+                        !isBeforeMinimum &&
+                          !isCurrentMonth &&
+                          'cursor-pointer text-gray-300 hover:bg-gray-50',
+
+                        // 선택 상태는 현재 월 여부보다 우선해 동일하게 표시합니다.
                         isSelected && 'bg-gray-800 text-white',
                       )}
                     >
@@ -501,7 +540,9 @@ export default function InputCalendar({
 
           화면에는 커스텀 캘린더를 사용하지만,
           name, value, required, min과 같은 HTML form 기능은 native input에 유지합니다.
-          min에는 실제 최소 선택 날짜를 넣어 과거 값 제출도 방지합니다.
+
+          min에는 오늘 또는 전달된 min을 넣어 과거 날짜가 유효한 값으로 제출되지 않도록 합니다.
+          현재일 + 7일 정책은 min이 아니라 페이지의 error 검증으로 처리합니다.
         */}
         <input
           id={inputId}
@@ -519,6 +560,10 @@ export default function InputCalendar({
         />
       </div>
 
+      {/*
+        페이지의 검증 결과가 error 문자열로 전달되면
+        마감일 입력창 아래에 안내 메시지를 표시합니다.
+      */}
       {error && (
         <p id={errorId} className={FORM_MESSAGE_STYLE}>
           {error}

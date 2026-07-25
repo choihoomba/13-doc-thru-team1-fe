@@ -20,24 +20,56 @@ import {
 import Label from './Label';
 
 /*
-@ Select trigger
+@ Select 전체 frame
 
-Figma 기준:
+Figma에서 Select frame에 확인된 값:
 display: flex;
 height: 56px;
-align-items: center;
-gap: 10px;
+flex-direction: column;
+align-items: flex-start;
+align-self: stretch;
 
-닫힌 상태:
-- 다른 입력 영역과 자연스럽게 맞도록 radius 12px을 사용합니다.
+커스텀 Select는 trigger와 dropdown을 함께 관리해야 하므로
+이 값은 trigger 자체가 아니라 trigger를 감싸는 relative frame에 적용합니다.
 
-열린 상태:
-- Figma의 border-radius: 4px 4px 0 0 값을 적용합니다.
-- 열린 상태 스타일은 JSX에서 isOpen 조건으로 추가합니다.
+trigger에 flex-direction: column을 직접 적용하면
+텍스트와 화살표가 세로로 쌓이기 때문에 Figma 화면과 달라집니다.
+따라서 frame은 column 구조로 맞추고,
+실제 trigger 내부는 텍스트와 아이콘을 가로로 배치합니다.
+*/
+const SELECT_FRAME_STYLE = [
+  'relative',
+  'flex',
+  'h-[56px]',
+  'w-full',
+  'flex-col',
+  'items-start',
+  'self-stretch',
+].join(' ');
+
+/*
+@ Select trigger
+
+Figma에서 전달된 radius 값은 4px 계열이지만,
+닫힌 상태에서 아래쪽 radius를 0으로 적용하면 입력창이 미완성된 사각형처럼 보였습니다.
+
+최종 적용값:
+height: 56px;
+border-radius: 4px;
+border: 1px solid #E5E5E5;
+background: #FFF;
+
+- 닫힘/열림 상태 모두 네 모서리에 4px radius를 유지합니다.
+- dropdown은 trigger 아래에 별도 popup으로 표시되므로
+  trigger의 아래쪽 radius를 제거할 필요가 없습니다.
+- FORM_CONTROL_STYLE에도 border가 있지만,
+  Select의 네 방향 1px border를 코드에서 명확하게 확인할 수 있도록
+  border-[1px]과 border-solid를 이 스타일에도 명시했습니다.
 */
 const SELECT_TRIGGER_STYLE = [
   'flex',
   'h-[56px]',
+  'w-full',
   'cursor-pointer',
   'items-center',
   'justify-between',
@@ -45,8 +77,16 @@ const SELECT_TRIGGER_STYLE = [
   'px-[20px]',
   'pr-[54px]',
   'text-left',
-  'rounded-[12px]',
+
+  // 닫힘/열림 상태 모두 네 모서리에 4px radius를 유지합니다.
+  'rounded-[4px]',
+
+  // 위, 오른쪽, 아래, 왼쪽에 1px solid border를 확실하게 적용합니다.
+  'border-[1px]',
+  'border-solid',
   'border-gray-200',
+
+  'bg-white',
   'disabled:cursor-not-allowed',
 ].join(' ');
 
@@ -57,7 +97,6 @@ const SELECT_TRIGGER_STYLE = [
 - z-dropdown은 globals.css의 --z-index-dropdown: 70 토큰을 사용합니다.
 - max-h-[320px]보다 옵션이 많으면 내부에서 스크롤됩니다.
 - 스크롤 기능은 유지하되 스크롤바만 숨겨, 스크롤바 너비 때문에 UI가 깨지지 않도록 합니다.
-- 현재 분야 옵션 7개는 최대 높이 안에 들어오므로 대부분 스크롤 없이 모두 표시됩니다.
 */
 const SELECT_MENU_STYLE = [
   'absolute',
@@ -331,10 +370,9 @@ export default function Select({
       )}
 
       {/*
-        trigger와 dropdown을 같은 relative 부모 안에 배치합니다.
-        dropdown은 absolute이므로 다음 form 항목의 위치를 밀지 않습니다.
+        Figma의 56px column frame과 dropdown의 absolute 기준을 동시에 담당합니다.
       */}
-      <div ref={containerRef} className="relative">
+      <div ref={containerRef} className={SELECT_FRAME_STYLE}>
         <button
           ref={triggerRef}
           id={selectId}
@@ -353,8 +391,8 @@ export default function Select({
             FORM_CONTROL_STYLE,
             SELECT_TRIGGER_STYLE,
 
-            // 열린 상태의 Figma radius: 4px 4px 0 0
-            isOpen && 'rounded-t-[4px] rounded-b-none border-gray-700',
+            // 열린 상태에서도 4px radius는 유지하고 border 색상만 진하게 표시합니다.
+            isOpen && 'border-gray-700',
 
             // 값이 없으면 placeholder 색상, 선택값이 있으면 본문 색상을 사용합니다.
             selectedOption ? 'text-gray-800' : 'text-gray-400',
