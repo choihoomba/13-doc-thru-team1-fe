@@ -1,10 +1,12 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 
 import Image from 'next/image';
 
 import IcChevronDown from '@/app/assets/icons/icon_chevron_down.svg';
+
+import { useOutsideClick } from '@/hooks/common/useOutsideClick';
 
 import { cn } from '@/utils/cn';
 
@@ -17,12 +19,41 @@ import {
 } from './formStyles';
 import Label from './Label';
 
-const SELECT_CONTROL_STYLE = [
+const SELECT_TRIGGER_STYLE = [
   'h-[56px]',
   'cursor-pointer',
-  'appearance-none',
   'pr-[52px]',
+  'text-left',
   'disabled:cursor-not-allowed',
+].join(' ');
+
+const SELECT_MENU_STYLE = [
+  'absolute',
+  'top-[calc(100%+8px)]',
+  'left-0',
+  'z-[70]',
+  'w-full',
+  'overflow-hidden',
+  'rounded-[12px]',
+  'border',
+  'border-gray-200',
+  'bg-white',
+  'py-[4px]',
+].join(' ');
+
+const SELECT_OPTION_STYLE = [
+  'flex',
+  'h-[48px]',
+  'w-full',
+  'cursor-pointer',
+  'items-center',
+  'px-[16px]',
+  'text-left',
+  'text-16-regular',
+  'text-gray-800',
+  'hover:bg-gray-50',
+  'focus:bg-gray-50',
+  'focus:outline-none',
 ].join(' ');
 
 /*
@@ -46,15 +77,16 @@ function getOptionData(option) {
 
 /*
 @ Select
-- Figma의 닫힌 Select 규격인 56px 높이와 우측 화살표를 적용합니다.
-- 기본 HTML select를 유지해 키보드 조작과 모바일의 기본 선택 UI를 사용합니다.
+- 브라우저 기본 팝업은 간격과 라운드를 제어할 수 없어 Figma 규격의 목록을 직접 렌더링합니다.
 - options는 단순 문자열과 { value, label } 객체를 모두 받을 수 있습니다.
-- 선택 전 안내 문구는 gray-400, 실제 선택값은 gray-800로 구분합니다.
+- 선택 전 안내 문구는 trigger에만 표시하고 실제 선택 목록에는 포함하지 않습니다.
+- 실제 form 전송은 숨긴 native select가 담당해 기존 name/value 사용 방식을 유지합니다.
 */
 export default function Select({
   id,
   className = '',
   selectClassName = '',
+  labelClassName = '',
   label,
   error,
   required = false,
@@ -62,92 +94,226 @@ export default function Select({
   options = [],
   value,
   defaultValue = '',
+  name,
+  disabled = false,
   onChange,
   ...props
 }) {
-  // Label, 오류 메시지, select를 같은 id 기준으로 연결합니다.
   const generatedId = useId();
   const selectId = id || generatedId;
+  const listboxId = `${selectId}-listbox`;
+  const nativeSelectId = `${selectId}-native`;
   const errorId = error ? `${selectId}-error` : undefined;
 
-  /*
-  @ controlled / uncontrolled 분기
-  - value가 있으면 부모 상태를 그대로 사용합니다.
-  - value가 없으면 defaultValue를 초기값으로 내부 상태를 관리합니다.
-  - 현재 값을 알아야 Figma의 placeholder 색상을 선택값과 구분할 수 있습니다.
-  */
+  const containerRef = useRef(null);
+  const triggerRef = useRef(null);
+  const optionRefs = useRef([]);
+  const [isOpen, setIsOpen] = useState(false);
   const [internalValue, setInternalValue] = useState(defaultValue);
-  const selectedValue = value ?? internalValue;
 
-  const handleChange = (event) => {
-    // 부모가 value를 관리하지 않을 때만 컴포넌트 내부 값을 변경합니다.
+  const selectedValue = value ?? internalValue;
+  const normalizedOptions = options.map(getOptionData);
+  const selectedOption = normalizedOptions.find(
+    ({ optionValue }) => String(optionValue) === String(selectedValue),
+  );
+
+  useOutsideClick(containerRef, () => setIsOpen(false), {
+    enabled: isOpen,
+    detectFocus: true,
+    closeOnEscape: true,
+  });
+
+  /*
+  @ option 선택
+  - uncontrolled 사용 시 내부 값을 변경하고 controlled 사용 시 부모의 값을 기다립니다.
+  - 기존 native select와 같은 형태로 target.value와 target.name을 onChange에 전달합니다.
+  */
+  const handleSelectOption = (nextValue) => {
     if (value === undefined) {
-      setInternalValue(event.target.value);
+      setInternalValue(nextValue);
     }
 
-    // 부모가 전달한 onChange도 실행해 페이지 상태나 form 로직을 연결합니다.
-    onChange?.(event);
+    setIsOpen(false);
+    triggerRef.current?.focus();
+
+    onChange?.({
+      target: {
+        name,
+        value: nextValue,
+      },
+      currentTarget: {
+        name,
+        value: nextValue,
+      },
+    });
+  };
+
+  const focusOption = (index) => {
+    optionRefs.current[index]?.focus();
+  };
+
+  const handleTriggerKeyDown = (event) => {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+
+    event.preventDefault();
+    setIsOpen(true);
+
+    requestAnimationFrame(() => {
+      const firstIndex =
+        event.key === 'ArrowDown' ? 0 : normalizedOptions.length - 1;
+      focusOption(firstIndex);
+    });
+  };
+
+  const handleOptionKeyDown = (event, index, optionValue) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleSelectOption(optionValue);
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      focusOption(Math.min(index + 1, normalizedOptions.length - 1));
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      focusOption(Math.max(index - 1, 0));
+      return;
+    }
+
+    if (event.key === 'Home') {
+      event.preventDefault();
+      focusOption(0);
+      return;
+    }
+
+    if (event.key === 'End') {
+      event.preventDefault();
+      focusOption(normalizedOptions.length - 1);
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      setIsOpen(false);
+      triggerRef.current?.focus();
+    }
   };
 
   return (
     <div className={cn(FORM_GROUP_STYLE, className)}>
       {label && (
-        <Label htmlFor={selectId} required={required}>
+        <Label
+          htmlFor={selectId}
+          required={required}
+          className={labelClassName}
+        >
           {label}
         </Label>
       )}
 
-      <div className="relative">
-        <select
+      <div ref={containerRef} className="relative">
+        <button
+          ref={triggerRef}
           id={selectId}
-          value={selectedValue}
-          onChange={handleChange}
-          required={required}
+          type="button"
+          role="combobox"
+          disabled={disabled}
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
+          aria-controls={listboxId}
+          aria-required={required}
           aria-invalid={Boolean(error)}
           aria-describedby={errorId}
+          onClick={() => setIsOpen((previous) => !previous)}
+          onKeyDown={handleTriggerKeyDown}
           className={cn(
             FORM_CONTROL_STYLE,
-            SELECT_CONTROL_STYLE,
-            selectedValue ? 'text-gray-800' : 'text-gray-400',
+            SELECT_TRIGGER_STYLE,
+            selectedOption ? 'text-gray-800' : 'text-gray-400',
             error && FORM_ERROR_STYLE,
             selectClassName,
           )}
           {...props}
         >
-          {/* 빈 값은 안내 문구로만 사용하며 실제 선택 항목에서는 비활성화합니다. */}
-          {placeholder && (
-            <option value="" disabled>
-              {placeholder}
-            </option>
-          )}
+          <span>{selectedOption?.optionLabel ?? placeholder}</span>
 
-          {options.map((option) => {
-            // 페이지에 따라 문자열 또는 value/label 객체를 사용할 수 있습니다.
-            const { optionValue, optionLabel } = getOptionData(option);
+          <Image
+            className={cn(
+              FORM_END_ICON_STYLE,
+              'transition-transform',
+              isOpen && 'rotate-180',
+            )}
+            src={IcChevronDown}
+            alt=""
+            width={24}
+            height={24}
+            unoptimized
+          />
+        </button>
 
-            return (
-              <option key={optionValue} value={optionValue}>
-                {optionLabel}
-              </option>
-            );
-          })}
-        </select>
+        {isOpen && (
+          <div
+            id={listboxId}
+            role="listbox"
+            aria-labelledby={selectId}
+            className={SELECT_MENU_STYLE}
+          >
+            {normalizedOptions.map(({ optionValue, optionLabel }, index) => {
+              const isSelected = String(optionValue) === String(selectedValue);
+
+              return (
+                <button
+                  key={optionValue}
+                  ref={(element) => {
+                    optionRefs.current[index] = element;
+                  }}
+                  type="button"
+                  role="option"
+                  aria-selected={isSelected}
+                  onClick={() => handleSelectOption(optionValue)}
+                  onKeyDown={(event) =>
+                    handleOptionKeyDown(event, index, optionValue)
+                  }
+                  className={cn(
+                    SELECT_OPTION_STYLE,
+                    isSelected && 'bg-gray-50',
+                  )}
+                >
+                  {optionLabel}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/*
-          기본 화살표를 숨기고 Figma에서 박스를 포함해 내보낸 24px SVG를
-          Next Image로 표시합니다.
+          커스텀 목록을 사용해도 form submit과 required 검증이 동작하도록
+          같은 값을 가진 native select를 화면 밖에 유지합니다.
         */}
-        <Image
-          className={FORM_END_ICON_STYLE}
-          src={IcChevronDown}
-          alt=""
-          width={24}
-          height={24}
-          unoptimized
-        />
+        <select
+          id={nativeSelectId}
+          name={name}
+          value={selectedValue}
+          required={required}
+          disabled={disabled}
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={() => {}}
+          className="sr-only"
+        >
+          <option value="" />
+          {normalizedOptions.map(({ optionValue, optionLabel }) => (
+            <option key={optionValue} value={optionValue}>
+              {optionLabel}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* 오류 메시지는 필요할 때만 렌더링하고 select와 연결합니다. */}
       {error && (
         <p id={errorId} className={FORM_MESSAGE_STYLE}>
           {error}

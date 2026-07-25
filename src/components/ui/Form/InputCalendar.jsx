@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 
 import Image from 'next/image';
 
@@ -23,18 +23,18 @@ const CALENDAR_CONTROL_STYLE = [
   'flex',
   'items-center',
   'pr-[56px]',
-  'focus-within:border-gray-700',
+  'cursor-pointer',
+  'text-left',
 ].join(' ');
 
 const NATIVE_DATE_INPUT_STYLE = [
   'absolute',
-  'inset-0',
-  'z-10',
+  'top-0',
+  'right-0',
   'h-full',
-  'w-full',
-  'cursor-pointer',
+  'w-[56px]',
+  'pointer-events-none',
   'opacity-0',
-  'disabled:cursor-not-allowed',
 ].join(' ');
 
 const DISABLED_CALENDAR_STYLE = [
@@ -54,6 +54,7 @@ export default function InputCalendar({
   id,
   className = '',
   inputClassName = '',
+  labelClassName = '',
   label,
   error,
   required = false,
@@ -67,7 +68,9 @@ export default function InputCalendar({
   // Label, 오류 메시지, date input을 같은 id 기준으로 연결합니다.
   const generatedId = useId();
   const inputId = id || generatedId;
+  const triggerId = `${inputId}-trigger`;
   const errorId = error ? `${inputId}-error` : undefined;
+  const dateInputRef = useRef(null);
 
   /*
   @ controlled / uncontrolled 분기
@@ -88,63 +91,95 @@ export default function InputCalendar({
     onChange?.(event);
   };
 
+  /*
+  @ 달력 열기
+  - 실제 date input을 아이콘이 있는 우측 영역에 배치해 팝업 기준점도 우측으로 맞춥니다.
+  - 버튼 클릭 시 showPicker를 호출하므로 Figma 캘린더 아이콘 자체를 눌러도 열립니다.
+  */
+  const handleOpenCalendar = () => {
+    const dateInput = dateInputRef.current;
+
+    if (!dateInput || disabled) return;
+
+    if (typeof dateInput.showPicker === 'function') {
+      dateInput.showPicker();
+      return;
+    }
+
+    // showPicker를 지원하지 않는 브라우저에서는 기본 input 클릭으로 대체합니다.
+    dateInput.click();
+  };
+
   return (
     <div className={cn(FORM_GROUP_STYLE, className)}>
       {label && (
-        <Label htmlFor={inputId} required={required}>
+        <Label
+          htmlFor={triggerId}
+          required={required}
+          className={labelClassName}
+        >
           {label}
         </Label>
       )}
 
-      <div
-        className={cn(
-          FORM_CONTROL_STYLE,
-          CALENDAR_CONTROL_STYLE,
-          disabled && DISABLED_CALENDAR_STYLE,
-          error && FORM_ERROR_STYLE,
-          inputClassName,
-        )}
-      >
+      <div className="relative">
+        <button
+          id={triggerId}
+          type="button"
+          onClick={handleOpenCalendar}
+          disabled={disabled}
+          aria-haspopup="dialog"
+          aria-controls={inputId}
+          aria-describedby={errorId}
+          className={cn(
+            FORM_CONTROL_STYLE,
+            CALENDAR_CONTROL_STYLE,
+            disabled && DISABLED_CALENDAR_STYLE,
+            error && FORM_ERROR_STYLE,
+            inputClassName,
+          )}
+        >
+          {/* 선택값 또는 Figma의 YY/MM/DD 안내 문구를 버튼 안에 표시합니다. */}
+          <span
+            className={cn(
+              'text-16-regular',
+              dateValue ? 'text-gray-800' : 'text-gray-400',
+            )}
+          >
+            {formattedDate || placeholder}
+          </span>
+
+          {/* Figma에서 박스를 포함해 내보낸 28px SVG를 클릭 버튼 안에 배치합니다. */}
+          <Image
+            className={FORM_END_ICON_STYLE}
+            src={IcCalendar}
+            alt=""
+            width={28}
+            height={28}
+            unoptimized
+          />
+        </button>
+
         {/*
-          투명한 기본 date input을 영역 전체에 올립니다.
-          사용자는 커스텀 UI 어느 곳을 눌러도 브라우저 날짜 선택기를 열 수 있습니다.
+          form 전송과 브라우저 날짜 선택기는 기본 date input이 담당합니다.
+          우측 56px에 배치해 showPicker 팝업이 아이콘 쪽을 기준으로 열리게 합니다.
         */}
         <input
+          ref={dateInputRef}
           id={inputId}
           type="date"
           value={dateValue}
           required={required}
           disabled={disabled}
-          aria-invalid={Boolean(error)}
-          aria-describedby={errorId}
+          tabIndex={-1}
+          aria-hidden="true"
           onChange={handleChange}
           className={NATIVE_DATE_INPUT_STYLE}
           {...props}
         />
-
-        {/* 실제 input은 투명하므로 선택값 또는 placeholder를 별도로 보여줍니다. */}
-        <span
-          className={cn(
-            'text-16-regular',
-            dateValue ? 'text-gray-800' : 'text-gray-400',
-          )}
-          aria-hidden="true"
-        >
-          {formattedDate || placeholder}
-        </span>
-
-        {/* Figma에서 박스를 포함해 내보낸 28px SVG를 Next Image로 표시합니다. */}
-        <Image
-          className={FORM_END_ICON_STYLE}
-          src={IcCalendar}
-          alt=""
-          width={28}
-          height={28}
-          unoptimized
-        />
       </div>
 
-      {/* 오류 메시지는 필요할 때만 렌더링하고 date input과 연결합니다. */}
+      {/* 오류 메시지는 필요할 때만 렌더링하고 달력 버튼과 연결합니다. */}
       {error && (
         <p id={errorId} className={FORM_MESSAGE_STYLE}>
           {error}

@@ -13,10 +13,7 @@ export default function Label({
   ...props
 }) {
   return (
-    <label
-      className={cn('text-14-regular text-gray-700', className)}
-      {...props}
-    >
+    <label className={cn('text-14-medium text-gray-900', className)} {...props}>
       {children}
       {required && (
         <>

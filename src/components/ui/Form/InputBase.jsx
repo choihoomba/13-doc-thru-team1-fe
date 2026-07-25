@@ -5,6 +5,7 @@ import { useId, useState } from 'react';
 import Image from 'next/image';
 
 import IcVisibilityOff from '@/app/assets/icons/icon_visibility_off.svg';
+import IcVisibilityOn from '@/app/assets/icons/icon_visibility_on.svg';
 
 import { cn } from '@/utils/cn';
 
@@ -23,9 +24,11 @@ const ICON_BUTTON_STYLE = [
   'right-[16px]',
   'flex',
   'size-[24px]',
+  'cursor-pointer',
   '-translate-y-1/2',
   'items-center',
   'justify-center',
+  'disabled:cursor-not-allowed',
 ].join(' ');
 
 /*
@@ -39,9 +42,11 @@ export default function InputBase({
   id,
   className = '',
   inputClassName = '',
+  labelClassName = '',
   label,
   error,
   required = false,
+  disabled = false,
   type = 'text',
   endIcon,
   endIconAlt = '',
@@ -70,7 +75,9 @@ export default function InputBase({
     onEndIconClick?.(event);
   };
 
-  const icon = endIcon || (isPassword ? IcVisibilityOff : null);
+  // 비밀번호가 보이는 상태에서는 Figma의 visibility_on 아이콘으로 전환합니다.
+  const passwordIcon = isPasswordVisible ? IcVisibilityOn : IcVisibilityOff;
+  const icon = isPassword ? passwordIcon : endIcon;
   const isIconButton = isPassword || Boolean(onEndIconClick);
   const inputType = isPassword && isPasswordVisible ? 'text' : type;
   let iconAriaLabel = endIconAlt;
@@ -82,7 +89,7 @@ export default function InputBase({
   return (
     <div className={cn(FORM_GROUP_STYLE, className)}>
       {label && (
-        <Label htmlFor={inputId} required={required}>
+        <Label htmlFor={inputId} required={required} className={labelClassName}>
           {label}
         </Label>
       )}
@@ -92,6 +99,7 @@ export default function InputBase({
           id={inputId}
           type={inputType}
           required={required}
+          disabled={disabled}
           aria-invalid={Boolean(error)}
           aria-describedby={errorId}
           className={cn(
@@ -111,6 +119,7 @@ export default function InputBase({
               className={ICON_BUTTON_STYLE}
               onClick={handleIconClick}
               aria-label={iconAriaLabel}
+              disabled={disabled}
             >
               {/*
                 Figma에서 받은 24px 아이콘 박스를 그대로 사용합니다.

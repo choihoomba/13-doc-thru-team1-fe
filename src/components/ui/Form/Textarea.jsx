@@ -29,6 +29,7 @@ export default function Textarea({
   id,
   className = '',
   textareaClassName = '',
+  labelClassName = '',
   label,
   error,
   required = false,
@@ -42,7 +43,11 @@ export default function Textarea({
   return (
     <div className={cn(FORM_GROUP_STYLE, className)}>
       {label && (
-        <Label htmlFor={textareaId} required={required}>
+        <Label
+          htmlFor={textareaId}
+          required={required}
+          className={labelClassName}
+        >
           {label}
         </Label>
       )}
