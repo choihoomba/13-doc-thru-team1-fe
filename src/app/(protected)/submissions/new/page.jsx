@@ -10,6 +10,7 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 
 import iconList from '@/app/assets/icons/ic_list.svg';
 import iconAlignCenter from '@/app/assets/icons/icon_font_alignment_center.svg';
@@ -21,6 +22,8 @@ import iconColor from '@/app/assets/icons/icon_font_color.svg';
 import iconItalic from '@/app/assets/icons/icon_font_italic.svg';
 import iconNumbering from '@/app/assets/icons/icon_font_numbering.svg';
 import iconUnderline from '@/app/assets/icons/icon_font_underline.svg';
+
+import { getSubmission } from '@/lib/submissionNew';
 
 import { cn } from '@/utils/cn';
 
@@ -52,6 +55,11 @@ function ToolbarButton({ label, icon, onClick, className }) {
 }
 
 export default function NewSubmissionPage() {
+  // TODO: 참여(participations) 연동 후 실제 submissionId 확보 방식으로 교체
+  // 지금은 임시로 쿼리스트링(?id=)에서 읽음 (예: /submissions/new?id=1)
+  const searchParams = useSearchParams();
+  const submissionId = searchParams.get('id');
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -126,11 +134,23 @@ export default function NewSubmissionPage() {
     editor?.chain().focus().setColor(color).run();
   }
 
-  function handleLoadDraft() {
-    // TODO: 임시저장 내용 불러와서 title과 content 채우기:
-    // const { title, content } = await getDraft();
-    // setTitle(title); editor?.commands.setContent(content);
-    setIsToastOpen(false);
+  async function handleLoadDraft() {
+    if (!submissionId) {
+      setIsToastOpen(false);
+      return;
+    }
+
+    try {
+      const submission = await getSubmission(submissionId);
+      setTitle(submission?.draft?.title ?? '');
+      // TODO: 백엔드가 draft.content를 내려주기 전까진 항상 빈 값으로 채워짐
+      editor?.commands.setContent(submission?.draft?.content ?? '');
+    } catch (error) {
+      // TODO: 실패 시 사용자에게 보여줄 UI (에러 토스트 등) 정하기
+      console.error('임시저장 불러오기 실패:', error);
+    } finally {
+      setIsToastOpen(false);
+    }
   }
 
   return (
