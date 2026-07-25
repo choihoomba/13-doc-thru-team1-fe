@@ -1,15 +1,24 @@
 /*
-@ 공통 Form 스타일
-- Figma에서 반복되는 크기, 색상, 타이포그래피를 한곳에서 관리합니다.
-- Tailwind 클래스는 리뷰할 때 속성별로 읽을 수 있도록 한 줄씩 나눴습니다.
-- 배열의 문자열은 모두 정적인 Tailwind 클래스이며, join은 className에 전달할
-  하나의 문자열로 합치는 역할만 합니다.
+@ 공통 Form 스타일 모음
+
+- InputBase, Select, InputCalendar, Textarea에서 반복되는 Tailwind 클래스를 한곳에서 관리합니다.
+- 컴포넌트마다 Figma의 높이, padding, border-radius가 다르기 때문에
+  모든 값을 하나의 공통 스타일에 넣지 않고, 공통 상태와 컴포넌트별 외형을 분리했습니다.
+- 색상과 타이포그래피는 globals.css의 Tailwind v4 theme 토큰을 사용합니다.
+  예) border-gray-200, text-16-regular, text-red-error
 */
 
 /*
 @ 필드 그룹
-- Label 17px + 간격 8px + 기본 입력창 48px로 총 73px 높이가 됩니다.
-- Select와 Textarea는 각 컴포넌트에서 입력 영역 높이만 별도로 덮어씁니다.
+
+구조:
+Label
+입력 영역
+오류 메시지
+
+- w-full: 부모 영역의 너비를 채워 모바일, 태블릿, 데스크톱에서 자연스럽게 줄어듭니다.
+- flex-col: Label과 입력 영역을 세로로 배치합니다.
+- gap-[8px]: Figma에서 확인한 Label과 입력 영역 사이 간격입니다.
 */
 export const FORM_GROUP_STYLE = [
   'flex',
@@ -19,40 +28,72 @@ export const FORM_GROUP_STYLE = [
 ].join(' ');
 
 /*
-@ 기본 입력 영역
-- globals.css에 정의된 gray 색상과 Pretendard 타이포 토큰을 재사용합니다.
-- focus, disabled, placeholder 상태를 공통으로 지정해 사용하는 페이지가 달라도
-  동일한 입력 경험을 유지합니다.
+@ 모든 입력형 컴포넌트의 공통 상태
+
+이 스타일에는 높이, padding, border-radius를 넣지 않습니다.
+각 컴포넌트의 Figma 값이 서로 다르기 때문입니다.
+
+공통으로 관리하는 항목:
+- 너비
+- 기본 border와 배경색
+- 텍스트와 placeholder 색상
+- focus, disabled 상태
 */
 export const FORM_CONTROL_STYLE = [
-  // 크기와 배치
-  'h-[48px]',
   'w-full',
-  'px-[16px]',
-
-  // Figma 기본 모양
-  'rounded-[12px]',
   'border',
-  'border-gray-200',
   'bg-white',
 
-  // globals.css 타이포그래피와 색상 토큰
+  // globals.css에 정의된 Pretendard 타이포그래피와 색상 토큰
   'text-16-regular',
   'text-gray-800',
   'placeholder:text-gray-400',
 
-  // 사용자 상태
+  // 브라우저 기본 outline 대신 프로젝트 border 색상으로 focus를 표시합니다.
   'outline-none',
   'transition-colors',
   'focus:border-gray-700',
+
+  // 비활성화 상태에서 입력할 수 없다는 점을 시각적으로 전달합니다.
   'disabled:cursor-not-allowed',
   'disabled:bg-gray-50',
   'disabled:text-gray-400',
 ].join(' ');
 
 /*
+@ Form/InputBase 전용 외형
+
+Figma CSS:
+display: flex;
+height: 48px;
+padding: 11px 20px;
+align-items: center;
+gap: 10px;
+border-radius: 12px;
+border: 1px solid #E5E5E5;
+background: #FFF;
+
+- InputBase는 제목, 원문 링크, 최대 인원, 이메일, 비밀번호처럼
+  한 줄 입력에 사용하는 공통 컴포넌트입니다.
+- 반응형별 치수가 같으므로 mobile:, tablet:, desktop: 접두사를 사용하지 않습니다.
+- 너비는 FORM_CONTROL_STYLE의 w-full이 부모 너비에 맞춰 처리합니다.
+*/
+export const FORM_INPUT_BASE_STYLE = [
+  'flex',
+  'h-[48px]',
+  'items-center',
+  'gap-[10px]',
+  'px-[20px]',
+  'py-[11px]',
+  'rounded-[12px]',
+  'border-gray-200',
+].join(' ');
+
+/*
 @ 오류 상태
-- cn 유틸리티가 기본 border 색상보다 뒤에 있는 오류 색상을 최종 적용합니다.
+
+- 기본 border보다 뒤에 합쳐져 error 색상이 최종 적용됩니다.
+- focus 상태에서도 오류 표시가 사라지지 않도록 focus:border-red-error를 함께 사용합니다.
 */
 export const FORM_ERROR_STYLE = [
   'border-red-error',
@@ -61,21 +102,25 @@ export const FORM_ERROR_STYLE = [
 
 /*
 @ 오류 메시지
-- 프로젝트의 가장 작은 본문 토큰과 error 색상 토큰을 사용합니다.
+
+- 프로젝트에서 사용하는 가장 작은 본문 타이포그래피와 오류 색상 토큰을 사용합니다.
 */
 export const FORM_MESSAGE_STYLE = ['text-12-regular', 'text-red-error'].join(
   ' ',
 );
 
 /*
-@ 입력창 우측 아이콘
-- Figma가 제공한 아이콘 박스 위치를 유지하고, 클릭이 필요 없는 아이콘은
-  pointer-events를 막아 input/select 조작을 방해하지 않게 합니다.
+@ 입력 영역 우측 아이콘 공통 위치
+
+- InputBase의 일반 아이콘, Select 화살표, InputCalendar 아이콘에 사용합니다.
+- right-[20px]은 각 입력 컴포넌트의 우측 padding 20px과 맞춘 값입니다.
+- pointer-events-none은 장식용 이미지가 input 또는 button 클릭을 막지 않도록 합니다.
+- 비밀번호 보기 버튼처럼 실제 클릭이 필요한 아이콘은 각 컴포넌트에서 별도 버튼 스타일을 사용합니다.
 */
 export const FORM_END_ICON_STYLE = [
   'pointer-events-none',
   'absolute',
   'top-1/2',
-  'right-[16px]',
+  'right-[20px]',
   '-translate-y-1/2',
 ].join(' ');
