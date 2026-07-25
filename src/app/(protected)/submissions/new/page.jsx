@@ -22,16 +22,22 @@ import iconColor from '@/app/assets/icons/icon_font_color.svg';
 import iconItalic from '@/app/assets/icons/icon_font_italic.svg';
 import iconNumbering from '@/app/assets/icons/icon_font_numbering.svg';
 import iconUnderline from '@/app/assets/icons/icon_font_underline.svg';
+import logo from '@/app/assets/images/img_logo.svg';
 
 import { getSubmission, saveDraft } from '@/lib/submissionNew';
+
+import useDebounce from '@/hooks/common/useDebounce';
 
 import { cn } from '@/utils/cn';
 
 import OriginalUrlPanel from '@/components/submissions/OriginalUrlPanel';
+import ButtonPrimary from '@/components/ui/Button/ButtonPrimary';
+import ButtonQuit from '@/components/ui/Button/ButtonQuit';
+import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 import Toast from '@/components/ui/Toast';
 
 // TODO: 챌린지 원문 URL API
-// TODO: iframe 에러 분기 처리
+// TODO: iframe 에러 분기 처리 -> 고민 (1. 그냥 원문 패널에 열수없다고 알리기 2. 모달을 띄워서 열수없다 링크열겠냐 하기 3. 백엔드에서 막기(원문버튼없애기) )
 const ORIGINAL_URL = 'https://github.com/choihoomba/13-doc-thru-team1-fe/pulls';
 // 'https://ko.wikipedia.org/wiki/%EC%9C%84%ED%82%A4%EB%B0%B1%EA%B3%BC:%EB%8C%80%EB%AC%B8';
 
@@ -93,28 +99,36 @@ export default function NewSubmissionPage() {
   const submissionId = searchParams.get('id');
 
   const [title, setTitle] = useState('');
-  const titleRef = useRef(title);
+  const [editorContent, setEditorContent] = useState('');
+
+  // title/editorContent를 하나로 묶어서 debounce - 둘 중 하나라도 바뀌면 타이머 리셋
+  const draftSnapshot = JSON.stringify({ title, content: editorContent });
+  const debouncedSnapshot = useDebounce(draftSnapshot, SAVE_DEBOUNCE_MS);
+
+  // 마운트 시 1회(빈 값) 저장은 건너뛰기 위한 플래그
+  const hasMountedRef = useRef(false);
   useEffect(() => {
-    titleRef.current = title;
-  }, [title]);
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
 
-  const saveTimeoutRef = useRef(null);
-  // 제목/본문이 바뀔 때마다 호출: 로컬엔 항상 즉시 저장, 서버엔 submissionId가
-  // 있을 때만 best-effort로 같이 저장(실패해도 로컬엔 이미 저장됐으니 무시)
-  function scheduleSave(nextTitle, nextContent) {
-    clearTimeout(saveTimeoutRef.current);
-    saveTimeoutRef.current = setTimeout(() => {
-      saveDraftToLocal({ title: nextTitle, content: nextContent });
+    const { title: debouncedTitle, content: debouncedContent } =
+      JSON.parse(debouncedSnapshot);
 
-      if (!submissionId) return;
-      saveDraft(submissionId, { title: nextTitle, content: nextContent }).catch(
-        (error) => {
-          // TODO: 서버 저장 실패한 채로 페이지 벗어나려 하면 "임시저장하시겠습니까?" 확인 띄우기
-          console.error('임시저장(서버) 실패:', error);
-        },
-      );
-    }, SAVE_DEBOUNCE_MS);
-  }
+    // 로컬엔 항상 즉시 저장, 서버엔 submissionId가 있을 때만 best-effort로
+    // 같이 저장(실패해도 로컬엔 이미 저장됐으니 무시)
+    saveDraftToLocal({ title: debouncedTitle, content: debouncedContent });
+
+    if (!submissionId) return;
+    saveDraft(submissionId, {
+      title: debouncedTitle,
+      content: debouncedContent,
+    }).catch((error) => {
+      // TODO: 서버 저장 실패한 채로 페이지 벗어나려 하면 "임시저장하시겠습니까?" 확인 띄우기
+      console.error('임시저장(서버) 실패:', error);
+    });
+  }, [debouncedSnapshot, submissionId]);
 
   const editor = useEditor({
     extensions: [
@@ -141,7 +155,7 @@ export default function NewSubmissionPage() {
         ),
       },
     },
-    onUpdate: ({ editor }) => scheduleSave(titleRef.current, editor.getHTML()),
+    onUpdate: ({ editor }) => setEditorContent(editor.getHTML()),
     // 에디터가 막 준비된 시점(=마운트 직후)에 한 번 실행:
     // - 로컬에 있으면 "적다가 새로고침"한 걸로 보고 묻지 않고 바로 채움
     // - 로컬이 비어있으면 "새로 진입"한 걸로 보고 서버 기준으로 토스트 노출
@@ -149,6 +163,7 @@ export default function NewSubmissionPage() {
       const local = getDraftFromLocal();
       if (local) {
         setTitle(local.title ?? '');
+        setEditorContent(local.content ?? '');
         editor.commands.setContent(local.content ?? '');
         return;
       }
@@ -208,18 +223,16 @@ export default function NewSubmissionPage() {
     editor?.chain().focus().setColor(color).run();
   }
 
-  // 이 경로는 "로컬은 비어있고 서버엔 있는" 상황(=토스트가 뜬 상황)에서만
-  // 눌리므로 서버 값만 채우면 됨. 로컬 폴백은 당장은 의미가 줄었지만
-  // 방어적으로 필요할 수 있어 주석으로 남겨둠.
+  // 로컬은 비었고, 서버에는 draft가 있을때 toast띄워서 임시저장 불러오기
   async function handleLoadDraft() {
     try {
       const submission = await getSubmission(submissionId);
-      setTitle(submission?.draft?.title ?? '');
-      editor?.commands.setContent(submission?.draft?.content ?? '');
-      saveDraftToLocal({
-        title: submission?.draft?.title ?? '',
-        content: submission?.draft?.content ?? '',
-      });
+      const loadedTitle = submission?.draft?.title ?? '';
+      const loadedContent = submission?.draft?.content ?? '';
+      setTitle(loadedTitle);
+      setEditorContent(loadedContent);
+      editor?.commands.setContent(loadedContent);
+      saveDraftToLocal({ title: loadedTitle, content: loadedContent });
       // if (submission?.draft) {
       //   setTitle(submission.draft.title ?? '');
       //   editor?.commands.setContent(submission.draft.content ?? '');
@@ -244,7 +257,7 @@ export default function NewSubmissionPage() {
   }
 
   return (
-    <div className={cn('mt-6 flex min-h-screen w-full flex-col')}>
+    <div className={cn('flex min-h-screen w-full flex-col')}>
       {isResizing && (
         <div className={cn('fixed inset-0 z-100 cursor-col-resize')} />
       )}
@@ -261,7 +274,6 @@ export default function NewSubmissionPage() {
           onClose={() => setIsOriginalOpen(false)}
           onResizeStart={handleResizeStart}
         />
-        {/* TODO: <Header /> 버튼도 내가 만들어야하나... */}
         <div
           className={cn(
             'flex w-full flex-col p-[16px]',
@@ -273,13 +285,57 @@ export default function NewSubmissionPage() {
             isOriginalOpen && 'desktop:mr-[calc(var(--panel-width)+24px)]',
           )}
         >
+          {/* TODO: Header -> Button이 말썽 */}
+          <div
+            className={cn('flex justify-between mb-[16px]', 'tablet:mb-[24px]')}
+          >
+            <Image
+              src={logo}
+              alt="logo"
+              width={120}
+              height={27}
+              className={cn(
+                'h-[18px] w-[80px]',
+                'tablet:h-[27px] tablet:w-[120px]',
+              )}
+            ></Image>
+            {isOriginalOpen ? (
+              <div
+                className={cn('flex flex-row gap-[4px]', 'tablet:gap-[8px]')}
+              >
+                <ButtonQuit />
+                <ButtonSecondary variant="secondary">임시저장</ButtonSecondary>
+                <ButtonSecondary>제출하기</ButtonSecondary>
+              </div>
+            ) : (
+              <div
+                className={cn('flex flex-row gap-[4px]', 'desktop:gap-[8px]')}
+              >
+                <ButtonQuit /> {/* 이게 반응형이... */}
+                <ButtonPrimary
+                  variant="secondary"
+                  size="sm"
+                  className={cn(
+                    'desktop:h-[40px] desktop:min-w-[90px] desktop:rounded-[12px] desktop:text-16-semibold',
+                  )}
+                >
+                  임시저장
+                </ButtonPrimary>
+                <ButtonPrimary
+                  size="sm"
+                  className={cn(
+                    'desktop:h-[40px] desktop:min-w-[90px] desktop:rounded-[12px] desktop:text-16-semibold',
+                  )}
+                >
+                  제출하기
+                </ButtonPrimary>
+              </div>
+            )}
+          </div>
           <input
             type="text"
             value={title}
-            onChange={(e) => {
-              setTitle(e.target.value);
-              scheduleSave(e.target.value, editor?.getHTML() ?? '');
-            }}
+            onChange={(e) => setTitle(e.target.value)}
             placeholder="제목을 입력해주세요"
             className={cn(
               'w-full text-20-semibold text-gray-900 outline-none',
@@ -291,7 +347,7 @@ export default function NewSubmissionPage() {
               type="button"
               onClick={() => setIsOriginalOpen(true)}
               className={cn(
-                'flex fixed items-center gap-1 rounded-l-3xl px-3 top-6 right-0 z-50 bg-white py-[14px] shadow-md',
+                'flex fixed items-center gap-1 rounded-l-3xl px-3 top-[128px] right-0 z-50 bg-white py-[14px] shadow-md',
                 'text-14-semibold text-gray-500',
               )}
             >
