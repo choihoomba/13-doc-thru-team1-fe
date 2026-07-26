@@ -50,3 +50,24 @@ export function deleteDraft(id) {
 export function getChallenge(challengeId) {
   return request(`/challenges/${challengeId}`);
 }
+
+/**
+ * 작업물 단건 상세 조회 - participationId 필요할 때 씀
+ * (목록 조회 getSubmission과 달리 draft.content는 안 오지만 participationId는 옴)
+ */
+export function getSubmissionDetail(id) {
+  return request(`/submissions/${id}`);
+}
+
+/** 작업 도전 포기하기 - participationId 필요 (submissionId 아님) */
+export function cancelParticipation(participationId) {
+  return request(`/participations/${participationId}`, { method: 'PATCH' });
+}
+
+/** 작업물 최종 제출 (content 확정) */
+export function updateSubmission(id, content) {
+  return request(`/submissions/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ content }),
+  });
+}

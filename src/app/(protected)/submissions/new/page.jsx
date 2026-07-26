@@ -10,7 +10,7 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import iconList from '@/app/assets/icons/ic_list.svg';
 import iconAlignCenter from '@/app/assets/icons/icon_font_alignment_center.svg';
@@ -24,7 +24,14 @@ import iconNumbering from '@/app/assets/icons/icon_font_numbering.svg';
 import iconUnderline from '@/app/assets/icons/icon_font_underline.svg';
 import logo from '@/app/assets/images/img_logo.svg';
 
-import { getChallenge, getSubmission, saveDraft } from '@/lib/submissionNew';
+import {
+  cancelParticipation,
+  getChallenge,
+  getSubmission,
+  getSubmissionDetail,
+  saveDraft,
+  updateSubmission,
+} from '@/lib/submissionNew';
 
 import useDebounce from '@/hooks/common/useDebounce';
 import { useModal } from '@/hooks/modal/useModal';
@@ -100,8 +107,12 @@ export default function NewSubmissionPage() {
   const [editorContent, setEditorContent] = useState('');
   const titleTextareaRef = useRef(null);
 
+  const router = useRouter();
+
   // 원문 링크: submission -> challengeId -> challenge.originalUrl 순서로 조회
+  // challengeId는 포기(ButtonQuit) 후 돌아갈 챌린지 상세 경로에도 씀
   const [originalUrl, setOriginalUrl] = useState(null);
+  const [challengeId, setChallengeId] = useState(null);
   useEffect(() => {
     if (!submissionId) return;
 
@@ -109,6 +120,7 @@ export default function NewSubmissionPage() {
     getSubmission(submissionId)
       .then((submission) => {
         if (!submission?.challengeId) return null;
+        if (!cancelled) setChallengeId(submission.challengeId);
         return getChallenge(submission.challengeId);
       })
       .then((challenge) => {
@@ -308,6 +320,57 @@ export default function NewSubmissionPage() {
     );
   }
 
+  // 포기 버튼 - participationId가 필요해서 단건 상세(getSubmissionDetail)로 따로 조회
+  function handleQuit() {
+    if (!submissionId) return;
+
+    openModal(
+      <ModalConfirm
+        message="정말로 포기하시겠어요?"
+        cancelButtonText="아니오"
+        confirmButtonText="네"
+        onCancel={closeModal}
+        onConfirm={async () => {
+          try {
+            const submission = await getSubmissionDetail(submissionId);
+            if (!submission?.participationId) return;
+            await cancelParticipation(submission.participationId);
+            router.push(
+              challengeId ? `/challenges/${challengeId}` : '/challenges',
+            );
+          } catch (error) {
+            console.error('작업 포기 실패:', error);
+          } finally {
+            closeModal();
+          }
+        }}
+      />,
+    );
+  }
+
+  function handleSubmit() {
+    if (!submissionId) return;
+
+    openModal(
+      <ModalConfirm
+        message="작업물을 제출하시겠어요?"
+        cancelButtonText="아니오"
+        confirmButtonText="네"
+        onCancel={closeModal}
+        onConfirm={async () => {
+          try {
+            await updateSubmission(submissionId, editor?.getHTML() ?? '');
+            router.push(`/submissions/${submissionId}`);
+          } catch (error) {
+            console.error('제출 실패:', error);
+          } finally {
+            closeModal();
+          }
+        }}
+      />,
+    );
+  }
+
   return (
     <div className={cn('flex min-h-screen w-full flex-col')}>
       {isResizing && (
@@ -365,20 +428,28 @@ export default function NewSubmissionPage() {
                   isOriginalOpen &&
                     'tablet:h-[32px] tablet:px-[10px] tablet:[&>span]:hidden! tablet:[&_img]:w-[16px]!',
                 )}
-                // onClick={handleQuit}
+                onClick={handleQuit}
               />
               <ButtonSecondary
                 variant="secondary"
                 size={isOriginalOpen ? 'sm' : 'md'}
                 className={cn(isOriginalOpen && 'rounded-[10px]')}
-                onClick={() => saveDraft()}
+                onClick={() => {
+                  if (!submissionId) return;
+                  saveDraft(submissionId, {
+                    title,
+                    content: editorContent,
+                  }).catch((error) => {
+                    console.error('임시저장(수동) 실패:', error);
+                  });
+                }}
               >
                 임시저장
               </ButtonSecondary>
               <ButtonSecondary
                 size={isOriginalOpen ? 'sm' : 'md'}
                 className={cn(isOriginalOpen && 'rounded-[10px]')}
-                // onClick={handleSumbit}
+                onClick={handleSubmit}
               >
                 제출하기
               </ButtonSecondary>
