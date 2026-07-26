@@ -1,55 +1,45 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext } from 'react';
+
+import { useQuery } from '@tanstack/react-query';
+
+import { getMe } from '@/lib/api/auth';
+
+import { authKeys } from '@/hooks/queries/auth/keys';
+
+import LoadingDisplay from '@/components/ui/LoadingDisplay';
 
 const AuthContext = createContext(null);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
+export function AuthProvider({ children }) {
+  const { data: user, isLoading } = useQuery({
+    queryKey: authKeys.me(),
+    queryFn: async () => {
+      try {
+        return await getMe();
+      } catch {
+        return null;
+      }
+    },
+    retry: false,
+  });
 
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  if (isLoading) {
+    return <LoadingDisplay className="min-h-screen" />;
   }
 
-  return context;
-};
-
-export default function AuthProvider({ children, initialUser = null }) {
-  const [user, setUser] = useState(initialUser);
-  /**
-   * isLoading : 로그인 여부 확인이 끝났는지 여부
-   * user === null이 "비로그인"인지 "아직 확인 중"인지 구분하기 위한 값으로,
-   * 확인 전 리다이렉트/깜빡임을 막는 용도로 user와 함께 사용
-   */
-  const [isLoading, setIsLoading] = useState(true);
-
-  const getUser = async () => {
-    setUser(null);
-    setIsLoading(false);
-  };
-
-  const signup = async () => {};
-
-  const signin = async () => {};
-
-  const signout = async () => {};
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    getUser();
-  }, []);
-
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        signup,
-        signin,
-        signout,
-      }}
-    >
+    <AuthContext.Provider value={{ user: user ?? null }}>
       {children}
     </AuthContext.Provider>
   );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth는 AuthProvider 내부에서만 사용 가능');
+  }
+  return context;
 }

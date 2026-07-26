@@ -1,22 +1,29 @@
-'use client';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
-// import { useRouter } from 'next/navigation';
-// import { useEffect } from 'react';
-// import { useAuth } from '@/lib/providers/AuthProvider';
+import * as authService from '@/lib/services/authService';
 
-/** 관리자 페이지 레이아웃 */
-export default function AdminLayout({ children }) {
-  // TODO: 인증/인가 작업 후 처리
-  // const router = useRouter();
-  // const { user, isLoading } = useAuth();
+export default async function AdminLayout({ children }) {
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore
+    .getAll()
+    .map((c) => `${c.name}=${c.value}`)
+    .join('; ');
 
-  // useEffect(() => {
-  //   if (!isLoading && user?.role !== 'admin') {
-  //     router.replace('/challenges');
-  //   }
-  // }, [isLoading, user, router]);
+  let user;
+  try {
+    user = await authService.getMe(cookieHeader);
+  } catch {
+    user = null;
+  }
 
-  // if (isLoading || user?.role !== 'admin') return null;
+  if (!user) {
+    redirect('/signin');
+  }
+
+  if (user.role !== 'ADMIN') {
+    redirect('/challenges');
+  }
 
   return children;
 }

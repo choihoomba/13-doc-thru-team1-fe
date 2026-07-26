@@ -1,6 +1,6 @@
 'use client';
 
-import AuthProvider from '@/lib/providers/AuthProvider';
+import { AuthProvider } from '@/lib/providers/AuthProvider.jsx';
 import ModalProvider from '@/lib/providers/ModalProvider';
 import QueryProvider from '@/lib/providers/QueryProvider';
 
