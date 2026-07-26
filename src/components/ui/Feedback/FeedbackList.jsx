@@ -1,3 +1,76 @@
-export default function FeedbackList() {
-  return <div>FeedbackList</div>;
+'use client';
+
+import { cn } from '@/utils/cn';
+
+import ButtonLoadMore from '@/components/ui/Button/ButtonLoadMore';
+
+import Feedback from './Feedback';
+import FeedbackTextarea from './FeedbackTextarea';
+
+/**
+ * 피드백 목록 (입력창 + 목록 + 더보기)
+ *
+ * 데이터와 동작을 모두 prop으로 받아, 화면 구성만 담당한다.
+ * API 호출은 이 컴포넌트를 사용하는 페이지/도메인 컴포넌트에서 처리한다.
+ *
+ * @param feedbacks     피드백 배열
+ * @param currentUser   로그인 사용자 { id, role }. 권한 계산에 사용
+ * @param isClosed      챌린지 마감 여부. true면 수정/삭제 버튼과 입력창을 노출하지 않는다
+ * @param hasNext       다음 페이지 존재 여부 (백엔드 응답의 hasNext)
+ * @param isSubmitting  전송 중 여부. 입력창 비활성화에 사용
+ * @param onSubmit      피드백 작성 시 실행
+ * @param onLoadMore    더보기 클릭 시 실행
+ * @param onEdit        수정하기 클릭 시 실행
+ * @param onDelete      삭제하기 클릭 시 실행
+ */
+export default function FeedbackList({
+  feedbacks = [],
+  currentUser,
+  isClosed = false,
+  hasNext = false,
+  isSubmitting = false,
+  onSubmit,
+  onLoadMore,
+  onEdit,
+  onDelete,
+  className,
+}) {
+  // 피드백별 수정/삭제 권한 판단
+  // 백엔드 서비스의 권한 로직(마감 여부 → isOwner || isAdmin)과 동일한 기준을 사용한다.
+  // 프론트는 버튼을 숨기고, 실제 차단은 백엔드가 담당 (이중 방어)
+  const canManageFeedback = (feedback) => {
+    if (!currentUser) return false;
+    // 마감된 챌린지의 피드백은 어드민도 수정/삭제할 수 없다 (요구사항)
+    if (isClosed) return false;
+    return currentUser.id === feedback.user.id || currentUser.role === 'ADMIN';
+  };
+
+  return (
+    <div className={cn('flex flex-col gap-4', className)}>
+      {/* 입력창은 목록 상단에 고정. 마감된 챌린지에는 작성 자체가 불가하므로 숨긴다 */}
+      {!isClosed && (
+        <FeedbackTextarea onSubmit={onSubmit} disabled={isSubmitting} />
+      )}
+
+      {/* 피드백 목록. 피그마상 빈 상태 안내 문구가 없어 목록이 있을 때만 렌더 */}
+      {/* desktop:pr-[64px] — 입력창의 전송 버튼(40px)+gap(24px)만큼 오른쪽 여백을 줘
+    입력창과 카드의 오른쪽 끝을 맞춘다 */}
+      {feedbacks.length > 0 && (
+        <div className="flex flex-col gap-3 desktop:pr-[64px]">
+          {feedbacks.map((feedback) => (
+            <Feedback
+              key={feedback.id}
+              feedback={feedback}
+              canManage={canManageFeedback(feedback)}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* 커서 페이지네이션: 백엔드가 hasNext를 true로 줄 때만 노출 */}
+      {hasNext && <ButtonLoadMore onClick={onLoadMore} className="mx-auto" />}
+    </div>
+  );
 }
