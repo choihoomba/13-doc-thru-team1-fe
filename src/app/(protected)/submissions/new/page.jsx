@@ -44,8 +44,6 @@ import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 import ModalConfirm from '@/components/ui/Modal/ModalConfirm';
 import Toast from '@/components/ui/Toast';
 
-// TODO: iframe 에러 분기 처리
-// -> 고민 (1. 그냥 원문 패널에 열수없다고 알리기 2. 모달을 띄워서 열수없다 링크열겠냐 하기 3. 백엔드에서 막기(원문버튼없애기) )
 // submissionId 없을 때(테스트 등) 쓸 fallback - 실제 원문은 challenge.originalUrl에서 가져옴
 const ORIGINAL_URL = 'https://github.com/choihoomba/13-doc-thru-team1-fe/pulls';
 
@@ -250,8 +248,7 @@ export default function NewSubmissionPage() {
     };
   }, [isResizing]);
 
-  // 제목 textarea 높이 자동조절 - 타이핑, 원문패널 열림/닫힘·드래그 리사이즈,
-  // 로컬/서버에서 제목 불러오기뿐 아니라 브라우저 창 자체 리사이즈(위 셋 중 아무 state도 안 바뀜)에도 다시 계산해야 해서 window resize 이벤트도 같이 듣는다
+  // 제목 textarea -> title, isOriginalOpen, panelWidth에 따라서 wrap
   useEffect(() => {
     const el = titleTextareaRef.current;
     if (!el) return;
@@ -277,6 +274,7 @@ export default function NewSubmissionPage() {
   const { openModal, closeModal } = useModal();
 
   // 로컬은 비었고, 서버에는 draft가 있을때 toast띄워서 임시저장 불러오기
+  // 서버 실패 시 로컬로 폴백 -> 일단 주석으로 남겨둠
   function handleLoadDraft() {
     setIsToastOpen(false);
     openModal(
@@ -308,7 +306,6 @@ export default function NewSubmissionPage() {
             // editor?.commands.setContent(local?.content ?? '');
           } catch (error) {
             console.error('임시저장 불러오기(서버) 실패:', error);
-            // 서버 실패 시 로컬로 폴백
             // const local = getDraftFromLocal();
             // setTitle(local?.title ?? '');
             // editor?.commands.setContent(local?.content ?? '');
@@ -374,7 +371,7 @@ export default function NewSubmissionPage() {
   return (
     <div className={cn('flex min-h-screen w-full flex-col')}>
       {isResizing && (
-        <div className={cn('fixed inset-0 z-100 cursor-col-resize')} />
+        <div className={cn('fixed inset-0 z-50 cursor-col-resize')} />
       )}
       <div
         className={cn('flex w-full flex-col', 'tablet:flex-row')}
@@ -384,6 +381,7 @@ export default function NewSubmissionPage() {
         }}
       >
         <OriginalUrlPanel
+          key={originalUrl ?? ORIGINAL_URL}
           isOpen={isOriginalOpen}
           url={originalUrl ?? ORIGINAL_URL}
           onClose={() => setIsOriginalOpen(false)}
@@ -400,7 +398,6 @@ export default function NewSubmissionPage() {
             isOriginalOpen && 'desktop:mr-[calc(var(--panel-width)+24px)]',
           )}
         >
-          {/* TODO: Header -> Button들이 원문패널때문에 복잡해지네 */}
           <div
             className={cn(
               'flex justify-between items-center mb-[16px]',
