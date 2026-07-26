@@ -45,12 +45,11 @@ import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 import ModalConfirm from '@/components/ui/Modal/ModalConfirm';
 import Toast from '@/components/ui/Toast';
 
-// submissionId 없을 때(테스트 등) 쓸 fallback - 실제 원문은 challenge.originalUrl에서 가져옴
+// 임시 originalUrl
 const ORIGINAL_URL = 'https://github.com/choihoomba/13-doc-thru-team1-fe/pulls';
 
 const MIN_PANEL_WIDTH = 320; // 원문 최소 폭(px)
 const MIN_EDITOR_WIDTH = 320; // 에디터 최소 폭(px)
-// 드래그로 조절하기 전 기본 폭: 화면의 절반, vw 기반이라 창 크기 바뀌어도 JS 계산 없이 자동으로 따라감
 const DEFAULT_PANEL_WIDTH_CSS = `clamp(${MIN_PANEL_WIDTH}px, 50vw, calc(100vw - ${MIN_EDITOR_WIDTH}px))`;
 
 const SAVE_DEBOUNCE_MS = 500;
@@ -71,7 +70,7 @@ function ToolbarButton({ label, icon, onClick, className }) {
 
 /**
  * - 편집 중 새로고침: 로컬에 남아있는 값을 묻지 않고 바로 복원 (같은 세션 연속)
- * - 새로 진입(로컬 비어있음): "저장된 임시글이 있는지"는 서버가 기준 -> 토스트로 물어봄
+ * - 새로 진입(로컬 비어있음): 저장된 임시글이 있는지는 서버 기준 Toast로 물어봄
  */
 const LOCAL_DRAFT_KEY = 'submissionNew:draft';
 
@@ -86,10 +85,8 @@ function saveDraftToLocal({ title, content }) {
 
 function getDraftFromLocal() {
   if (typeof window === 'undefined') return null;
-
   const raw = localStorage.getItem(LOCAL_DRAFT_KEY);
   if (!raw) return null;
-
   try {
     return JSON.parse(raw);
   } catch {
@@ -98,7 +95,7 @@ function getDraftFromLocal() {
 }
 
 export default function NewSubmissionPage() {
-  // TODO: submissionId 가져와야함
+  // TODO: 챌린지 상세페이지에서 도전하기버튼을 누르면 route로 submissionId받으면? 이렇게 구현?
   const searchParams = useSearchParams();
   const submissionId = searchParams.get('id');
 
@@ -108,8 +105,7 @@ export default function NewSubmissionPage() {
 
   const router = useRouter();
 
-  // 원문 링크: submission -> challengeId -> challenge.originalUrl 순서로 조회
-  // challengeId는 포기(ButtonQuit) 후 돌아갈 챌린지 상세 경로에도 씀
+  // originalUrl 가져오기
   const [originalUrl, setOriginalUrl] = useState(null);
   const [challengeId, setChallengeId] = useState(null);
   useEffect(() => {
@@ -136,11 +132,11 @@ export default function NewSubmissionPage() {
     };
   }, [submissionId]);
 
-  // title/editorContent를 하나로 묶어서 debounce - 둘 중 하나라도 바뀌면 타이머 리셋
+  // debounce
   const draftSnapshot = JSON.stringify({ title, content: editorContent });
   const debouncedSnapshot = useDebounce(draftSnapshot, SAVE_DEBOUNCE_MS);
+  const [hasSaveError, setHasSaveError] = useState(false); // 서버 저장 실패 여부 판단
 
-  // 마운트 시 1회(빈 값) 저장은 건너뛰기 위한 플래그
   const hasMountedRef = useRef(false);
   useEffect(() => {
     if (!hasMountedRef.current) {
@@ -151,18 +147,19 @@ export default function NewSubmissionPage() {
     const { title: debouncedTitle, content: debouncedContent } =
       JSON.parse(debouncedSnapshot);
 
-    // 로컬엔 항상 즉시 저장, 서버엔 submissionId가 있을 때만 best-effort로
-    // 같이 저장(실패해도 로컬엔 이미 저장됐으니 무시)
+    // 로컬엔 항상 즉시 저장
     saveDraftToLocal({ title: debouncedTitle, content: debouncedContent });
 
     if (!submissionId) return;
     saveDraft(submissionId, {
       title: debouncedTitle,
       content: debouncedContent,
-    }).catch((error) => {
-      // TODO: 서버 저장 실패한 채로 페이지 벗어나려 하면 "임시저장하시겠습니까?" 확인 띄우기
-      console.error('임시저장(서버) 실패:', error);
-    });
+    })
+      .then(() => setHasSaveError(false))
+      .catch((error) => {
+        setHasSaveError(true);
+        console.error('임시저장(서버) 실패:', error);
+      });
   }, [debouncedSnapshot, submissionId]);
 
   const editor = useEditor({
@@ -191,9 +188,8 @@ export default function NewSubmissionPage() {
       },
     },
     onUpdate: ({ editor }) => setEditorContent(editor.getHTML()),
-    // 에디터가 막 준비된 시점(=마운트 직후)에 한 번 실행:
-    // - 로컬에 있으면 "적다가 새로고침"한 걸로 보고 묻지 않고 바로 채움
-    // - 로컬이 비어있으면 "새로 진입"한 걸로 보고 서버 기준으로 토스트 노출
+    // - 로컬에 있으면 묻지 않고 바로 채움 -> 적다가 모르고 새로고침함
+    // - 로컬이 비어있으면 서버 기준으로 Toast 노출
     onCreate: ({ editor }) => {
       const local = getDraftFromLocal();
       if (local) {
@@ -214,7 +210,6 @@ export default function NewSubmissionPage() {
     immediatelyRender: false,
   });
   const [isOriginalOpen, setIsOriginalOpen] = useState(false);
-  // null이면 CSS 기본값(화면 절반, 반응형) 사용 중, 드래그 시작하면 px로 고정됨
   const [panelWidth, setPanelWidth] = useState(null);
   const [isResizing, setIsResizing] = useState(false);
   const [isToastOpen, setIsToastOpen] = useState(false);
@@ -274,8 +269,46 @@ export default function NewSubmissionPage() {
   }
   const { openModal, closeModal } = useModal();
 
-  // 로컬은 비었고, 서버에는 draft가 있을때 toast띄워서 임시저장 불러오기
-  // 서버 실패 시 로컬로 폴백 -> 일단 주석으로 남겨둠
+  // 서버 저장 실패한 채로 브라우저 뒤로가기를 시도하면 ModalConfirm으로 임시저장 여부 확인
+  useEffect(() => {
+    if (!hasSaveError) return;
+    window.history.pushState(null, '', window.location.href);
+
+    function handlePopState() {
+      openModal(
+        <ModalConfirm
+          message="작성 중인 내용이 있습니다. 임시저장하시겠습니까?"
+          cancelButtonText="아니오"
+          confirmButtonText="네"
+          onCancel={() => {
+            window.history.pushState(null, '', window.location.href);
+            closeModal();
+          }}
+          onConfirm={async () => {
+            try {
+              await saveDraft(submissionId, {
+                title,
+                content: editorContent,
+              });
+              setHasSaveError(false);
+              closeModal();
+              window.history.back(); // 저장 성공했을 때만 실제로 이전 페이지로 이동
+            } catch (error) {
+              console.error('임시저장(뒤로가기 시) 실패:', error);
+              window.history.pushState(null, '', window.location.href);
+              closeModal();
+            }
+          }}
+        />,
+      );
+    }
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [hasSaveError, submissionId, title, editorContent, openModal, closeModal]);
+
+  // - 로컬은 비었고, 서버에는 draft가 있을때 Toast띄워서 임시저장 불러오기
+  // - 서버 실패 시 로컬로 폴백 -> TODO: 일단 주석으로 남겨둠
   function handleLoadDraft() {
     setIsToastOpen(false);
     openModal(
@@ -318,7 +351,7 @@ export default function NewSubmissionPage() {
     );
   }
 
-  // 포기 버튼 - participationId가 필요해서 단건 상세(getSubmissionDetail)로 따로 조회
+  // 포기 버튼 누르면:
   function handleQuit() {
     if (!submissionId) return;
 
@@ -346,6 +379,7 @@ export default function NewSubmissionPage() {
     );
   }
 
+  // 제출하기 버튼 누르면:
   function handleSubmit() {
     if (!submissionId) return;
 
@@ -358,7 +392,6 @@ export default function NewSubmissionPage() {
         onConfirm={async () => {
           try {
             await updateSubmission(submissionId, editor?.getHTML() ?? '');
-            // 최종 제출 성공 후 임시저장은 더 이상 필요 없으니 정리(best-effort, 실패해도 제출 자체는 이미 끝남)
             deleteDraft(submissionId).catch((error) => {
               console.error('임시저장 삭제 실패:', error);
             });
@@ -441,9 +474,15 @@ export default function NewSubmissionPage() {
                   saveDraft(submissionId, {
                     title,
                     content: editorContent,
-                  }).catch((error) => {
-                    console.error('임시저장(수동) 실패:', error);
-                  });
+                  })
+                    .then(() => {
+                      setHasSaveError(false);
+                      router.push(`/submissions/${submissionId}`);
+                    })
+                    .catch((error) => {
+                      setHasSaveError(true);
+                      console.error('임시저장(수동) 실패:', error);
+                    });
                 }}
               >
                 임시저장
