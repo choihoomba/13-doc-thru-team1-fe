@@ -27,16 +27,19 @@ import logo from '@/app/assets/images/img_logo.svg';
 import { getSubmission, saveDraft } from '@/lib/submissionNew';
 
 import useDebounce from '@/hooks/common/useDebounce';
+import { useModal } from '@/hooks/modal/useModal';
 
 import { cn } from '@/utils/cn';
 
 import OriginalUrlPanel from '@/components/submissions/OriginalUrlPanel';
 import ButtonQuit from '@/components/ui/Button/ButtonQuit';
 import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
+import ModalConfirm from '@/components/ui/Modal/ModalConfirm';
 import Toast from '@/components/ui/Toast';
 
 // TODO: 챌린지 원문 URL API
-// TODO: iframe 에러 분기 처리 -> 고민 (1. 그냥 원문 패널에 열수없다고 알리기 2. 모달을 띄워서 열수없다 링크열겠냐 하기 3. 백엔드에서 막기(원문버튼없애기) )
+// TODO: iframe 에러 분기 처리
+// -> 고민 (1. 그냥 원문 패널에 열수없다고 알리기 2. 모달을 띄워서 열수없다 링크열겠냐 하기 3. 백엔드에서 막기(원문버튼없애기) )
 const ORIGINAL_URL = 'https://github.com/choihoomba/13-doc-thru-team1-fe/pulls';
 // 'https://ko.wikipedia.org/wiki/%EC%9C%84%ED%82%A4%EB%B0%B1%EA%B3%BC:%EB%8C%80%EB%AC%B8';
 
@@ -48,9 +51,20 @@ const DEFAULT_PANEL_WIDTH_CSS = `clamp(${MIN_PANEL_WIDTH}px, 50vw, calc(100vw - 
 const SAVE_DEBOUNCE_MS = 500;
 const TITLE_MAX_LENGTH = 50; // challenge.title 제한은 BE에서 100자인데 draft는 그렇게까지? 싶어서 50으로..
 
+function ToolbarButton({ label, icon, onClick, className }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      className={cn(className)}
+    >
+      <Image src={icon} alt={label} width={24} height={24} />
+    </button>
+  );
+}
+
 /**
- * 로컬스토리지 임시저장 (API 아님, 이 페이지 전용 보조 저장소)
- *
  * - 편집 중 새로고침: 로컬에 남아있는 값을 묻지 않고 바로 복원 (같은 세션 연속)
  * - 새로 진입(로컬 비어있음): "저장된 임시글이 있는지"는 서버가 기준 -> 토스트로 물어봄
  */
@@ -78,23 +92,8 @@ function getDraftFromLocal() {
   }
 }
 
-/** 툴바 버튼 하나 */
-function ToolbarButton({ label, icon, onClick, className }) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className={cn(className)}
-    >
-      <Image src={icon} alt={label} width={24} height={24} />
-    </button>
-  );
-}
-
 export default function NewSubmissionPage() {
-  // TODO: 참여(participations) 연동 후 실제 submissionId 확보 방식으로 교체
-  // 지금은 임시로 쿼리스트링(?id=)에서 읽음 (예: /submissions/new?id=1)
+  // TODO: submissionId 가져와야함
   const searchParams = useSearchParams();
   const submissionId = searchParams.get('id');
 
@@ -216,8 +215,7 @@ export default function NewSubmissionPage() {
   }, [isResizing]);
 
   // 제목 textarea 높이 자동조절 - 타이핑, 원문패널 열림/닫힘·드래그 리사이즈,
-  // 로컬/서버에서 제목 불러오기뿐 아니라 브라우저 창 자체 리사이즈(위 셋 중
-  // 아무 state도 안 바뀜)에도 다시 계산해야 해서 window resize 이벤트도 같이 듣는다
+  // 로컬/서버에서 제목 불러오기뿐 아니라 브라우저 창 자체 리사이즈(위 셋 중 아무 state도 안 바뀜)에도 다시 계산해야 해서 window resize 이벤트도 같이 듣는다
   useEffect(() => {
     const el = titleTextareaRef.current;
     if (!el) return;
@@ -240,38 +238,51 @@ export default function NewSubmissionPage() {
     }
     editor?.chain().focus().setColor(color).run();
   }
+  const { openModal, closeModal } = useModal();
 
   // 로컬은 비었고, 서버에는 draft가 있을때 toast띄워서 임시저장 불러오기
-  async function handleLoadDraft() {
-    try {
-      const submission = await getSubmission(submissionId);
-      const loadedTitle = submission?.draft?.title ?? '';
-      const loadedContent = submission?.draft?.content ?? '';
-      setTitle(loadedTitle);
-      setEditorContent(loadedContent);
-      editor?.commands.setContent(loadedContent);
-      saveDraftToLocal({ title: loadedTitle, content: loadedContent });
-      // if (submission?.draft) {
-      //   setTitle(submission.draft.title ?? '');
-      //   editor?.commands.setContent(submission.draft.content ?? '');
-      //   saveDraftToLocal({
-      //     title: submission.draft.title ?? '',
-      //     content: submission.draft.content ?? '',
-      //   });
-      //   return;
-      // }
-      // const local = getDraftFromLocal();
-      // setTitle(local?.title ?? '');
-      // editor?.commands.setContent(local?.content ?? '');
-    } catch (error) {
-      console.error('임시저장 불러오기(서버) 실패:', error);
-      // 서버 실패 시 로컬로 폴백
-      // const local = getDraftFromLocal();
-      // setTitle(local?.title ?? '');
-      // editor?.commands.setContent(local?.content ?? '');
-    } finally {
-      setIsToastOpen(false);
-    }
+  function handleLoadDraft() {
+    setIsToastOpen(false); // 확인 모달로 넘어가므로 토스트는 바로 닫음
+
+    openModal(
+      <ModalConfirm
+        message="이전 작업물을 불러오시겠어요?"
+        cancelButtonText="아니오"
+        confirmButtonText="네"
+        onCancel={closeModal}
+        onConfirm={async () => {
+          try {
+            const submission = await getSubmission(submissionId);
+            const loadedTitle = submission?.draft?.title ?? '';
+            const loadedContent = submission?.draft?.content ?? '';
+            setTitle(loadedTitle);
+            setEditorContent(loadedContent);
+            editor?.commands.setContent(loadedContent);
+            saveDraftToLocal({ title: loadedTitle, content: loadedContent });
+            // if (submission?.draft) {
+            //   setTitle(submission.draft.title ?? '');
+            //   editor?.commands.setContent(submission.draft.content ?? '');
+            //   saveDraftToLocal({
+            //     title: submission.draft.title ?? '',
+            //     content: submission.draft.content ?? '',
+            //   });
+            //   return;
+            // }
+            // const local = getDraftFromLocal();
+            // setTitle(local?.title ?? '');
+            // editor?.commands.setContent(local?.content ?? '');
+          } catch (error) {
+            console.error('임시저장 불러오기(서버) 실패:', error);
+            // 서버 실패 시 로컬로 폴백
+            // const local = getDraftFromLocal();
+            // setTitle(local?.title ?? '');
+            // editor?.commands.setContent(local?.content ?? '');
+          } finally {
+            closeModal();
+          }
+        }}
+      />,
+    );
   }
 
   return (
@@ -303,7 +314,7 @@ export default function NewSubmissionPage() {
             isOriginalOpen && 'desktop:mr-[calc(var(--panel-width)+24px)]',
           )}
         >
-          {/* TODO: Header -> Button들이 패널때문에 복잡해지네 */}
+          {/* TODO: Header -> Button들이 원문패널때문에 복잡해지네 */}
           <div
             className={cn(
               'flex justify-between items-center mb-[16px]',
@@ -354,7 +365,7 @@ export default function NewSubmissionPage() {
               setTitle(e.target.value.slice(0, TITLE_MAX_LENGTH))
             }
             onKeyDown={(e) => {
-              if (e.key === 'Enter') e.preventDefault(); // 제목엔 줄바꿈 없음
+              if (e.key === 'Enter') e.preventDefault();
             }}
             placeholder="제목을 입력해주세요"
             maxLength={TITLE_MAX_LENGTH}
