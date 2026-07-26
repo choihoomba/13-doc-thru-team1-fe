@@ -31,7 +31,6 @@ import useDebounce from '@/hooks/common/useDebounce';
 import { cn } from '@/utils/cn';
 
 import OriginalUrlPanel from '@/components/submissions/OriginalUrlPanel';
-import ButtonPrimary from '@/components/ui/Button/ButtonPrimary';
 import ButtonQuit from '@/components/ui/Button/ButtonQuit';
 import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 import Toast from '@/components/ui/Toast';
@@ -285,7 +284,7 @@ export default function NewSubmissionPage() {
             isOriginalOpen && 'desktop:mr-[calc(var(--panel-width)+24px)]',
           )}
         >
-          {/* TODO: Header -> Button이 말썽 */}
+          {/* TODO: Header -> Button들이 패널때문에 복잡해지네 */}
           <div
             className={cn('flex justify-between mb-[16px]', 'tablet:mb-[24px]')}
           >
@@ -296,41 +295,35 @@ export default function NewSubmissionPage() {
               height={27}
               className={cn(
                 'h-[18px] w-[80px]',
-                'tablet:h-[27px] tablet:w-[120px]',
+                !isOriginalOpen && 'tablet:h-[27px] tablet:w-[120px]',
               )}
             ></Image>
-            {isOriginalOpen ? (
-              <div
-                className={cn('flex flex-row gap-[4px]', 'tablet:gap-[8px]')}
+            <div
+              className={cn(
+                'flex flex-row gap-[4px]',
+                !isOriginalOpen && 'tablet:gap-[8px]',
+              )}
+            >
+              <ButtonQuit
+                className={cn(
+                  isOriginalOpen &&
+                    'tablet:h-[32px] tablet:px-[10px] tablet:[&>span]:hidden! tablet:[&_img]:w-[16px]!',
+                )}
+              />
+              <ButtonSecondary
+                variant="secondary"
+                size={isOriginalOpen ? 'sm' : 'md'}
+                className={cn(isOriginalOpen && 'rounded-[10px]')}
               >
-                <ButtonQuit />
-                <ButtonSecondary variant="secondary">임시저장</ButtonSecondary>
-                <ButtonSecondary>제출하기</ButtonSecondary>
-              </div>
-            ) : (
-              <div
-                className={cn('flex flex-row gap-[4px]', 'desktop:gap-[8px]')}
+                임시저장
+              </ButtonSecondary>
+              <ButtonSecondary
+                size={isOriginalOpen ? 'sm' : 'md'}
+                className={cn(isOriginalOpen && 'rounded-[10px]')}
               >
-                <ButtonQuit /> {/* 이게 반응형이... */}
-                <ButtonPrimary
-                  variant="secondary"
-                  size="sm"
-                  className={cn(
-                    'desktop:h-[40px] desktop:min-w-[90px] desktop:rounded-[12px] desktop:text-16-semibold',
-                  )}
-                >
-                  임시저장
-                </ButtonPrimary>
-                <ButtonPrimary
-                  size="sm"
-                  className={cn(
-                    'desktop:h-[40px] desktop:min-w-[90px] desktop:rounded-[12px] desktop:text-16-semibold',
-                  )}
-                >
-                  제출하기
-                </ButtonPrimary>
-              </div>
-            )}
+                제출하기
+              </ButtonSecondary>
+            </div>
           </div>
           <input
             type="text"
