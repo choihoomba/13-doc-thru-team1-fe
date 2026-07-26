@@ -24,7 +24,7 @@ import iconNumbering from '@/app/assets/icons/icon_font_numbering.svg';
 import iconUnderline from '@/app/assets/icons/icon_font_underline.svg';
 import logo from '@/app/assets/images/img_logo.svg';
 
-import { getSubmission, saveDraft } from '@/lib/submissionNew';
+import { getChallenge, getSubmission, saveDraft } from '@/lib/submissionNew';
 
 import useDebounce from '@/hooks/common/useDebounce';
 import { useModal } from '@/hooks/modal/useModal';
@@ -37,11 +37,10 @@ import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 import ModalConfirm from '@/components/ui/Modal/ModalConfirm';
 import Toast from '@/components/ui/Toast';
 
-// TODO: 챌린지 원문 URL API
 // TODO: iframe 에러 분기 처리
 // -> 고민 (1. 그냥 원문 패널에 열수없다고 알리기 2. 모달을 띄워서 열수없다 링크열겠냐 하기 3. 백엔드에서 막기(원문버튼없애기) )
+// submissionId 없을 때(테스트 등) 쓸 fallback - 실제 원문은 challenge.originalUrl에서 가져옴
 const ORIGINAL_URL = 'https://github.com/choihoomba/13-doc-thru-team1-fe/pulls';
-// 'https://ko.wikipedia.org/wiki/%EC%9C%84%ED%82%A4%EB%B0%B1%EA%B3%BC:%EB%8C%80%EB%AC%B8';
 
 const MIN_PANEL_WIDTH = 320; // 원문 최소 폭(px)
 const MIN_EDITOR_WIDTH = 320; // 에디터 최소 폭(px)
@@ -100,6 +99,31 @@ export default function NewSubmissionPage() {
   const [title, setTitle] = useState('');
   const [editorContent, setEditorContent] = useState('');
   const titleTextareaRef = useRef(null);
+
+  // 원문 링크: submission -> challengeId -> challenge.originalUrl 순서로 조회
+  const [originalUrl, setOriginalUrl] = useState(null);
+  useEffect(() => {
+    if (!submissionId) return;
+
+    let cancelled = false;
+    getSubmission(submissionId)
+      .then((submission) => {
+        if (!submission?.challengeId) return null;
+        return getChallenge(submission.challengeId);
+      })
+      .then((challenge) => {
+        if (!cancelled && challenge?.originalUrl) {
+          setOriginalUrl(challenge.originalUrl);
+        }
+      })
+      .catch((error) => {
+        console.error('원문 링크 조회 실패:', error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [submissionId]);
 
   // title/editorContent를 하나로 묶어서 debounce - 둘 중 하나라도 바뀌면 타이머 리셋
   const draftSnapshot = JSON.stringify({ title, content: editorContent });
@@ -242,8 +266,7 @@ export default function NewSubmissionPage() {
 
   // 로컬은 비었고, 서버에는 draft가 있을때 toast띄워서 임시저장 불러오기
   function handleLoadDraft() {
-    setIsToastOpen(false); // 확인 모달로 넘어가므로 토스트는 바로 닫음
-
+    setIsToastOpen(false);
     openModal(
       <ModalConfirm
         message="이전 작업물을 불러오시겠어요?"
@@ -299,7 +322,7 @@ export default function NewSubmissionPage() {
       >
         <OriginalUrlPanel
           isOpen={isOriginalOpen}
-          url={ORIGINAL_URL}
+          url={originalUrl ?? ORIGINAL_URL}
           onClose={() => setIsOriginalOpen(false)}
           onResizeStart={handleResizeStart}
         />
@@ -342,17 +365,20 @@ export default function NewSubmissionPage() {
                   isOriginalOpen &&
                     'tablet:h-[32px] tablet:px-[10px] tablet:[&>span]:hidden! tablet:[&_img]:w-[16px]!',
                 )}
+                // onClick={handleQuit}
               />
               <ButtonSecondary
                 variant="secondary"
                 size={isOriginalOpen ? 'sm' : 'md'}
                 className={cn(isOriginalOpen && 'rounded-[10px]')}
+                onClick={() => saveDraft()}
               >
                 임시저장
               </ButtonSecondary>
               <ButtonSecondary
                 size={isOriginalOpen ? 'sm' : 'md'}
                 className={cn(isOriginalOpen && 'rounded-[10px]')}
+                // onClick={handleSumbit}
               >
                 제출하기
               </ButtonSecondary>

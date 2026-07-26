@@ -1,10 +1,6 @@
 /**
- * '/submissions/new' 페이지 전용 임시 API 연동 함수
- *
- * lib/api, hooks/queries/submissions 쪽 공용 인프라(clientFetch 등)가
- * 아직 빈 스캐폴딩 상태라, 다른 작업과 충돌 없이 이 페이지만 우선
- * 동작시키기 위해 임시로 분리한 파일. 공용 인프라가 채워지면 그쪽으로
- * 이관하고 이 파일은 지워도 됨.
+ * '/submissions/new' 임시 API
+ * TODO: 옮길거 lib/api/submissions.js 옮기고 지우기
  */
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
@@ -23,22 +19,14 @@ async function request(path, options = {}) {
       body?.message ?? `요청에 실패했습니다 (${response.status})`,
     );
   }
-
   return body?.data;
 }
 
 /**
  * 작업물 상세 조회 (draft 포함) - 임시저장 불러오기용
  *
- * 단건 조회(GET /submissions/:id)는 draft.content를 select 하지 않아서
- * 목록 조회(GET /submissions?include=draft)를 대신 쓴다.
- * (이쪽 select엔 이미 content가 포함돼 있음 - submission.repository.js의
- * buildListSelect 참고) 응답 배열에서 id가 일치하는 항목만 찾아서 반환.
- *
- * TODO: 이 목록 API는 challengeId로 필터링해도 로그인 사용자 기준
- * 필터가 없어서, 사실 남의 draft.content까지 다 같이 내려온다.
- * 지금은 그중 내 id만 골라 쓰는 거라 이 페이지 동작엔 문제없지만,
- * 백엔드에 userId 필터 추가되는 게 맞음 (별도로 이미 전달함).
+ * 단건 조회(GET /submissions/:id) -> TODO: 지금은 userId를 안받아서 아직은 불완전, 나중에 다시 생각해보기
+ * 목록 조회(GET /submissions?include=draft) -> 이걸 일단 씀
  */
 export async function getSubmission(id) {
   const submissions = await request('/submissions?include=draft');
@@ -56,4 +44,9 @@ export function saveDraft(id, { title, content }) {
 /** 임시저장 삭제 */
 export function deleteDraft(id) {
   return request(`/draft/${id}`, { method: 'DELETE' });
+}
+
+/** 챌린지 상세 조회 (원문 링크 originalUrl) */
+export function getChallenge(challengeId) {
+  return request(`/challenges/${challengeId}`);
 }
