@@ -431,8 +431,9 @@ export default function NewSubmissionPage() {
             'tablet:p-[24px]',
             !isOriginalOpen && 'desktop:mx-auto desktop:max-w-[890px]',
             isOriginalOpen && 'mt-[16px]',
-            isOriginalOpen && 'tablet:mt-0 tablet:mr-[calc(var(--panel-width)]',
-            isOriginalOpen && 'desktop:mr-[calc(var(--panel-width))]',
+            isOriginalOpen &&
+              'tablet:mt-0 tablet:pr-0 tablet:ml-auto tablet:max-w-[890px] tablet:mr-[calc(var(--panel-width)+18px)]',
+            isOriginalOpen && 'desktop:mr-[calc(var(--panel-width)+24px)]',
           )}
         >
           <div
