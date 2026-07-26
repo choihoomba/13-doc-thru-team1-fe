@@ -46,6 +46,7 @@ const MIN_EDITOR_WIDTH = 320; // 에디터 최소 폭(px)
 const DEFAULT_PANEL_WIDTH_CSS = `clamp(${MIN_PANEL_WIDTH}px, 50vw, calc(100vw - ${MIN_EDITOR_WIDTH}px))`;
 
 const SAVE_DEBOUNCE_MS = 500;
+const TITLE_MAX_LENGTH = 50; // challenge.title 제한은 BE에서 100자인데 draft는 그렇게까지? 싶어서 50으로..
 
 /**
  * 로컬스토리지 임시저장 (API 아님, 이 페이지 전용 보조 저장소)
@@ -99,6 +100,7 @@ export default function NewSubmissionPage() {
 
   const [title, setTitle] = useState('');
   const [editorContent, setEditorContent] = useState('');
+  const titleTextareaRef = useRef(null);
 
   // title/editorContent를 하나로 묶어서 debounce - 둘 중 하나라도 바뀌면 타이머 리셋
   const draftSnapshot = JSON.stringify({ title, content: editorContent });
@@ -213,6 +215,23 @@ export default function NewSubmissionPage() {
     };
   }, [isResizing]);
 
+  // 제목 textarea 높이 자동조절 - 타이핑, 원문패널 열림/닫힘·드래그 리사이즈,
+  // 로컬/서버에서 제목 불러오기뿐 아니라 브라우저 창 자체 리사이즈(위 셋 중
+  // 아무 state도 안 바뀜)에도 다시 계산해야 해서 window resize 이벤트도 같이 듣는다
+  useEffect(() => {
+    const el = titleTextareaRef.current;
+    if (!el) return;
+
+    function resizeToFitContent() {
+      el.style.height = 'auto';
+      el.style.height = `${el.scrollHeight}px`;
+    }
+
+    resizeToFitContent();
+    window.addEventListener('resize', resizeToFitContent);
+    return () => window.removeEventListener('resize', resizeToFitContent);
+  }, [title, isOriginalOpen, panelWidth]);
+
   // 글자 색상 변경 함수
   function changeTextColor(color) {
     if (!color) {
@@ -275,7 +294,7 @@ export default function NewSubmissionPage() {
         />
         <div
           className={cn(
-            'flex w-full flex-col p-[16px]',
+            'flex min-w-0 w-full flex-col p-[16px]',
             'tablet:p-[24px]',
             !isOriginalOpen && 'desktop:mx-auto desktop:max-w-[890px]',
             isOriginalOpen && 'mt-[16px]',
@@ -286,7 +305,10 @@ export default function NewSubmissionPage() {
         >
           {/* TODO: Header -> Button들이 패널때문에 복잡해지네 */}
           <div
-            className={cn('flex justify-between mb-[16px]', 'tablet:mb-[24px]')}
+            className={cn(
+              'flex justify-between items-center mb-[16px]',
+              'tablet:mb-[24px]',
+            )}
           >
             <Image
               src={logo}
@@ -325,23 +347,36 @@ export default function NewSubmissionPage() {
               </ButtonSecondary>
             </div>
           </div>
-          <input
-            type="text"
+          <textarea
+            ref={titleTextareaRef}
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) =>
+              setTitle(e.target.value.slice(0, TITLE_MAX_LENGTH))
+            }
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.preventDefault(); // 제목엔 줄바꿈 없음
+            }}
             placeholder="제목을 입력해주세요"
+            maxLength={TITLE_MAX_LENGTH}
+            rows={1}
             className={cn(
-              'w-full text-20-semibold text-gray-900 outline-none',
+              'w-full resize-none overflow-hidden break-words text-20-semibold text-gray-900 outline-none',
               'placeholder:text-gray-400',
             )}
           />
+          <p className={cn('text-right text-12-regular text-gray-400')}>
+            {title.length}/{TITLE_MAX_LENGTH}
+          </p>
           {!isOriginalOpen && (
             <button
               type="button"
               onClick={() => setIsOriginalOpen(true)}
               className={cn(
-                'flex fixed items-center gap-1 rounded-l-3xl px-3 top-[128px] right-0 z-50 bg-white py-[14px] shadow-md',
+                'flex fixed items-center gap-1 rounded-l-3xl px-3 top-[144px] right-0 z-50 bg-white py-[14px] shadow-md',
+                'tablet:top-[160px]',
+                'desktop:top-[136px] desktop:flex-col desktop:gap-[8px]',
                 'text-14-semibold text-gray-500',
+                'desktop:text-16-semibold',
               )}
             >
               <Image src={iconList} alt="" width={16} height={16} />
