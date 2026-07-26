@@ -52,6 +52,7 @@ export default function OriginalUrlPanel({
       className={cn(
         'relative z-40 flex h-[320px] w-full flex-col bg-white',
         'tablet:fixed tablet:inset-y-0 tablet:right-0 tablet:left-auto tablet:h-auto tablet:w-(--panel-width)',
+        'tablet:shadow-[-4px_0_16px_0_rgba(0,0,0,0.08)]',
       )}
     >
       <div
