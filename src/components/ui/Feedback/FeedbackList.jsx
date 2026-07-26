@@ -53,8 +53,10 @@ export default function FeedbackList({
       )}
 
       {/* 피드백 목록. 피그마상 빈 상태 안내 문구가 없어 목록이 있을 때만 렌더 */}
+      {/* desktop:pr-[64px] — 입력창의 전송 버튼(40px)+gap(24px)만큼 오른쪽 여백을 줘
+    입력창과 카드의 오른쪽 끝을 맞춘다 */}
       {feedbacks.length > 0 && (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 desktop:pr-[64px]">
           {feedbacks.map((feedback) => (
             <Feedback
               key={feedback.id}
