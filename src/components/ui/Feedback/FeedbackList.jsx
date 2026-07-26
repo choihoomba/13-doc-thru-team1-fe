@@ -15,7 +15,7 @@ import FeedbackTextarea from './FeedbackTextarea';
  *
  * @param feedbacks     피드백 배열
  * @param currentUser   로그인 사용자 { id, role }. 권한 계산에 사용
- * @param isClosed      챌린지 마감 여부. true면 수정/삭제 버튼을 노출하지 않는다
+ * @param isClosed      챌린지 마감 여부. true면 수정/삭제 버튼과 입력창을 노출하지 않는다
  * @param hasNext       다음 페이지 존재 여부 (백엔드 응답의 hasNext)
  * @param isSubmitting  전송 중 여부. 입력창 비활성화에 사용
  * @param onSubmit      피드백 작성 시 실행
@@ -52,11 +52,8 @@ export default function FeedbackList({
         <FeedbackTextarea onSubmit={onSubmit} disabled={isSubmitting} />
       )}
 
-      {feedbacks.length === 0 ? (
-        <p className="py-8 text-center text-14-regular text-gray-400">
-          아직 등록된 피드백이 없습니다.
-        </p>
-      ) : (
+      {/* 피드백 목록. 피그마상 빈 상태 안내 문구가 없어 목록이 있을 때만 렌더 */}
+      {feedbacks.length > 0 && (
         <div className="flex flex-col gap-3">
           {feedbacks.map((feedback) => (
             <Feedback

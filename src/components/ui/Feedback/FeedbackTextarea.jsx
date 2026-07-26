@@ -43,12 +43,7 @@ export default function FeedbackTextarea({
 
   return (
     <div
-      className={cn(
-        // relative: 전송 버튼(absolute)의 위치 기준점. 없으면 버튼이 박스를 벗어난다
-        'relative w-full min-h-[89px] rounded-[12px] border border-gray-200 bg-gray-50 p-4',
-        'focus-within:border-brand-yellow',
-        className,
-      )}
+      className={cn('flex items-start gap-[17px] tablet:gap-[24px]', className)}
     >
       <textarea
         value={value}
@@ -58,21 +53,21 @@ export default function FeedbackTextarea({
         disabled={disabled}
         rows={2}
         className={cn(
-          // pr-14: 전송 버튼(40px)과 텍스트가 겹치지 않도록 오른쪽 여백 확보
-          'w-full h-full resize-none bg-transparent pr-14',
+          'min-h-[89px] rounded-[12px] border border-gray-200 p-[16px]',
+          'w-full resize-none bg-white',
           'text-14-regular text-gray-800 placeholder:text-gray-400',
-          'outline-none disabled:cursor-not-allowed',
+          'outline-none focus:border-brand-yellow disabled:cursor-not-allowed',
+          'tablet:text-16-medium',
         )}
       />
 
       {/* 공통 원형 버튼. 활성/비활성 아이콘 전환은 ButtonCircle이 처리 */}
-      {/* 세로 중앙 정렬, 오른쪽 여백은 컨테이너 padding(16px)과 동일 */}
       <ButtonCircle
         variant="primary"
         onClick={handleSubmit}
         disabled={isEmpty || disabled}
         aria-label="피드백 등록"
-        className="absolute right-4 top-1/2 -translate-y-1/2"
+        className="h-fit"
       />
     </div>
   );

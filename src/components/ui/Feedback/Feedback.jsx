@@ -1,9 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
+
+import IcProfile from '@/app/assets/icons/ic_profile.png';
 
 import { cn } from '@/utils/cn';
 import formatDate from '@/utils/formatDate';
+
+import ButtonKebab from '@/components/ui/Button/ButtonKebab';
 
 /**
  * 피드백 1건 표시
@@ -20,108 +24,53 @@ export default function Feedback({
   onDelete,
   className,
 }) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef(null); // 바깥 클릭 판별을 위해 메뉴 영역 DOM을 참조
-
-  // 메뉴 바깥을 클릭하면 닫기
-  // 메뉴는 스스로 닫힐 수단이 없으므로 document 전체의 클릭을 감시한다
-  useEffect(() => {
-    if (!isMenuOpen) return; // 닫혀 있으면 감시할 필요 없음
-
-    function handleClickOutside(e) {
-      // 클릭 지점이 메뉴 영역 밖이면 닫는다
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setIsMenuOpen(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    // 메뉴가 닫히거나 컴포넌트가 사라질 때 이벤트 해제 (쌓이면 메모리 누수)
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isMenuOpen]);
-
   const { user, content, createdAt } = feedback;
 
   return (
     <div
       className={cn(
-        'flex min-h-[117px] gap-[10px] rounded-[12px] bg-gray-50 p-4',
+        'flex flex-col rounded-[12px] bg-gray-50 p-[16px]',
         className,
       )}
     >
-      {/* 기본 프로필 아이콘. User 모델에 이미지 필드가 없어 모든 사용자 공통 */}
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-yellow">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          className="text-white"
-        >
-          <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" />
-          <path d="M12 14c-5 0-9 2.5-9 5.5V22h18v-2.5c0-3-4-5.5-9-5.5Z" />
-        </svg>
-      </div>
+      <div className="flex gap-[8px]">
+        {/* 기본 프로필 아이콘. User 모델에 이미지 필드가 없어 모든 사용자 공통 */}
+        <Image
+          src={IcProfile}
+          alt=""
+          width={32}
+          height={32}
+          className="h-8 w-8 flex-none rounded-full"
+        />
 
-      {/* min-w-0: 긴 텍스트가 flex 컨테이너를 밀어내지 않도록 (break-words와 한 세트) */}
-      <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex w-full items-start justify-between gap-2">
           <div>
-            <p className="text-14-medium text-gray-800">{user.nickname}</p>
-            <p className="text-12-regular text-gray-400">
+            <p className="mb-[4px] text-14-medium text-gray-800">
+              {user.nickname}
+            </p>
+            <p className="text-12-medium text-gray-400">
               {/* 두 번째 인자 true = 시간까지 표시 */}
               {formatDate(createdAt, true)}
             </p>
           </div>
 
-          {/* 권한이 있을 때만 ⋮ 노출 (기획: 권한 있는 경우에만 버튼 표시) */}
+          {/* 권한이 있을 때만 노출 (기획: 권한 있는 경우에만 버튼 표시) */}
+          {/* 공통 ButtonKebab이 열림/닫힘·바깥클릭·z-index를 자체 처리 */}
           {canManage && (
-            <div ref={menuRef} className="relative shrink-0">
-              <button
-                type="button"
-                onClick={() => setIsMenuOpen((prev) => !prev)}
-                aria-label="피드백 메뉴"
-                aria-expanded={isMenuOpen}
-                className="rounded p-1 text-gray-400 hover:bg-gray-100"
-              >
-                ⋮
-              </button>
-
-              {/* 드롭다운 크기는 피그마 기준 139×86 (항목당 43px) */}
-              {isMenuOpen && (
-                <div className="absolute right-0 top-full z-10 mt-1 w-[139px] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      onEdit?.(feedback); // 실제 수정 동작은 부모가 정의
-                    }}
-                    className="flex h-[43px] w-full items-center justify-center text-14-regular text-gray-700 hover:bg-gray-50"
-                  >
-                    수정하기
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      onDelete?.(feedback);
-                    }}
-                    className="flex h-[43px] w-full items-center justify-center text-14-regular text-gray-700 hover:bg-gray-50"
-                  >
-                    삭제하기
-                  </button>
-                </div>
-              )}
-            </div>
+            <ButtonKebab
+              onEdit={() => onEdit?.(feedback)}
+              onDelete={() => onDelete?.(feedback)}
+              className="shrink-0"
+            />
           )}
         </div>
-
-        {/* whitespace-pre-wrap: 사용자가 입력한 줄바꿈 보존 */}
-        {/* break-words: 띄어쓰기 없는 긴 문자열(URL 등)이 레이아웃을 넘치지 않게 */}
-        <p className="mt-2 whitespace-pre-wrap break-words text-body-14-160 text-gray-700">
-          {content}
-        </p>
       </div>
+
+      {/* whitespace-pre-wrap: 사용자가 입력한 줄바꿈 보존 */}
+      {/* break-words: 띄어쓰기 없는 긴 문자열(URL 등)이 레이아웃을 넘치지 않게 */}
+      <p className="mt-[12px] whitespace-pre-wrap break-words text-14-regular text-gray-700 tablet:text-16-regular">
+        {content}
+      </p>
     </div>
   );
 }
