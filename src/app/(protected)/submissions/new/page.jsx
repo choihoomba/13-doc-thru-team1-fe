@@ -26,12 +26,13 @@ import logo from '@/app/assets/images/img_logo.svg';
 
 import {
   cancelParticipation,
+  deleteDraft,
   getChallenge,
   getSubmission,
   getSubmissionDetail,
   saveDraft,
   updateSubmission,
-} from '@/lib/submissionNew';
+} from '@/lib/api/submissionNew';
 
 import useDebounce from '@/hooks/common/useDebounce';
 import { useModal } from '@/hooks/modal/useModal';
@@ -357,6 +358,10 @@ export default function NewSubmissionPage() {
         onConfirm={async () => {
           try {
             await updateSubmission(submissionId, editor?.getHTML() ?? '');
+            // 최종 제출 성공 후 임시저장은 더 이상 필요 없으니 정리(best-effort, 실패해도 제출 자체는 이미 끝남)
+            deleteDraft(submissionId).catch((error) => {
+              console.error('임시저장 삭제 실패:', error);
+            });
             router.push(`/submissions/${submissionId}`);
           } catch (error) {
             console.error('제출 실패:', error);

@@ -5,6 +5,7 @@
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
+/* clientFetch.js 역할 임시로 만듦 */
 async function request(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: 'include',
@@ -22,10 +23,15 @@ async function request(path, options = {}) {
   return body?.data;
 }
 
+/* originalUrl */
+export function getChallenge(challengeId) {
+  return request(`/challenges/${challengeId}`);
+}
+
 /**
- * 작업물 상세 조회 (draft 포함) - 임시저장 불러오기용
+ * 임시저장 불러오기:
  *
- * 단건 조회(GET /submissions/:id) -> TODO: 지금은 userId를 안받아서 아직은 불완전, 나중에 다시 생각해보기
+ * 단건 조회(GET /submissions/:id) -> TODO: 지금은 userId를 안받아서 불완전하기 떄문에 쓸수없음;;
  * 목록 조회(GET /submissions?include=draft) -> 이걸 일단 씀
  */
 export async function getSubmission(id) {
@@ -33,7 +39,7 @@ export async function getSubmission(id) {
   return submissions?.find((submission) => submission.id === Number(id));
 }
 
-/** 임시저장 (upsert) */
+/* 임시저장 버튼 클릭시: */
 export function saveDraft(id, { title, content }) {
   return request(`/draft/${id}`, {
     method: 'PUT',
@@ -41,33 +47,25 @@ export function saveDraft(id, { title, content }) {
   });
 }
 
-/** 임시저장 삭제 */
-export function deleteDraft(id) {
-  return request(`/draft/${id}`, { method: 'DELETE' });
-}
-
-/** 챌린지 상세 조회 (원문 링크 originalUrl) */
-export function getChallenge(challengeId) {
-  return request(`/challenges/${challengeId}`);
-}
-
-/**
- * 작업물 단건 상세 조회 - participationId 필요할 때 씀
- * (목록 조회 getSubmission과 달리 draft.content는 안 오지만 participationId는 옴)
- */
+/* 포기하기 버튼 클릭시: */
+/* 1. GET participationId */
 export function getSubmissionDetail(id) {
   return request(`/submissions/${id}`);
 }
-
-/** 작업 도전 포기하기 - participationId 필요 (submissionId 아님) */
+/* 2. 포기하기로 상태 변경 */
 export function cancelParticipation(participationId) {
   return request(`/participations/${participationId}`, { method: 'PATCH' });
 }
 
-/** 작업물 최종 제출 (content 확정) */
+/* 제출하기 버튼 클릭시: */
+/* 1. 작업물 최종 제출, submission.content로 들어감 */
 export function updateSubmission(id, content) {
   return request(`/submissions/${id}`, {
     method: 'PATCH',
     body: JSON.stringify({ content }),
   });
+}
+/* 2. 임시저장 삭제 */
+export function deleteDraft(id) {
+  return request(`/draft/${id}`, { method: 'DELETE' });
 }
