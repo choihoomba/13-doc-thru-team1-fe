@@ -6,6 +6,8 @@ import Image from 'next/image';
 
 import iconToggleDown from '@/app/assets/icons/icon_toggle_down.svg';
 
+import { useOutsideClick } from '@/hooks/common/useOutsideClick';
+
 import { cn } from '@/utils/cn';
 
 const challengeSortOptions = [
@@ -42,49 +44,50 @@ const challengeSortOptions = [
   },
 ];
 
-export default function SortDropdown({ onSelect }) {
+export default function SortDropdown({ onSelect, className }) {
   const [isOpen, setIsOpen] = useState(false);
-
   const [selectedOption, setSelectedOption] = useState(challengeSortOptions[0]);
+
   const dropdownRef = useRef(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  useOutsideClick(dropdownRef, () => setIsOpen(false), { closeOnEscape: true });
 
-  const handleToggle = () => setIsOpen(!isOpen);
+  useEffect(() => {
+    onSelect?.(selectedOption);
+  }, [onSelect, selectedOption]);
+
+  const handleToggle = () => setIsOpen((prev) => !prev);
 
   const handleOptionClick = (option) => {
     setSelectedOption(option);
-    if (onSelect) {
-      onSelect(option);
-    }
+    onSelect?.(option);
     setIsOpen(false);
   };
 
   return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
+    <div
+      className={cn('relative inline-block text-left', className)}
+      ref={dropdownRef}
+    >
       <button
+        type="button"
         onClick={handleToggle}
         className={cn(
-          'flex items-center justify-between w-40 px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 focus:outline-none transition-colors',
+          'flex items-center justify-between w-36 mobile:w-40 px-3.5 mobile:px-4 py-2 text-14-regular text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 focus:outline-none transition-colors',
         )}
       >
-        <span>{selectedOption.label}</span>
-
-        <Image src={iconToggleDown} alt="toggle arrow" width={24} height={24} />
+        <span className="truncate">{selectedOption.label}</span>
+        <Image
+          src={iconToggleDown}
+          alt="toggle arrow"
+          width={20}
+          height={20}
+          className="w-5 h-5 ml-1"
+        />
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 z-10 w-40 mt-2 bg-white border border-[#E5E5E5] rounded-md shadow-sm overflow-hidden">
+        <div className="absolute left-0 z-dropdown w-36 mobile:w-40 mt-2 bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden">
           <ul className="flex flex-col">
             {challengeSortOptions.map((option, index) => {
               const isNotLast = index !== challengeSortOptions.length - 1;
@@ -94,8 +97,8 @@ export default function SortDropdown({ onSelect }) {
                   key={option.id}
                   onClick={() => handleOptionClick(option)}
                   className={cn(
-                    'px-4 py-3 text-sm text-[#555555] cursor-pointer bg-white hover:bg-gray-50 transition-colors',
-                    isNotLast && 'border-b border-[#E5E5E5]',
+                    'px-3.5 mobile:px-4 py-2.5 mobile:py-3 text-14-regular text-gray-700 cursor-pointer bg-white hover:bg-gray-50 transition-colors',
+                    isNotLast && 'border-b border-gray-200',
                   )}
                 >
                   {option.label}
