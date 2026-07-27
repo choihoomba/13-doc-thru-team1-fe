@@ -22,6 +22,7 @@ import {
 
 import useDebounce from '@/hooks/common/useDebounce';
 import { useModal } from '@/hooks/modal/useModal';
+import useResizablePanel from '@/hooks/submission/useResizablePanel';
 import useSubmissionEditor from '@/hooks/submission/useSubmissionEditor';
 
 import { cn } from '@/utils/cn';
@@ -35,10 +36,6 @@ import Toast from '@/components/ui/Toast';
 
 // 임시 originalUrl
 const ORIGINAL_URL = 'https://github.com/choihoomba/13-doc-thru-team1-fe/pulls';
-
-const MIN_PANEL_WIDTH = 320; // 원문 최소 폭(px)
-const MIN_EDITOR_WIDTH = 320; // 에디터 최소 폭(px)
-const DEFAULT_PANEL_WIDTH_CSS = `clamp(${MIN_PANEL_WIDTH}px, 50vw, calc(100vw - ${MIN_EDITOR_WIDTH}px))`;
 
 const SAVE_DEBOUNCE_MS = 500;
 
@@ -152,39 +149,8 @@ export default function NewSubmissionPage() {
     },
   });
   const [isOriginalOpen, setIsOriginalOpen] = useState(false);
-  const [panelWidth, setPanelWidth] = useState(null);
-  const [isResizing, setIsResizing] = useState(false);
   const [isToastOpen, setIsToastOpen] = useState(false);
-
-  const handleResizeStart = (e) => {
-    e.preventDefault();
-    setIsResizing(true);
-  };
-
-  // 화면 리사이징
-  useEffect(() => {
-    if (!isResizing) return;
-
-    const handleMouseMove = (e) => {
-      const nextWidth = window.innerWidth - e.clientX;
-      const maxWidth = window.innerWidth - MIN_EDITOR_WIDTH;
-      setPanelWidth(Math.min(Math.max(nextWidth, MIN_PANEL_WIDTH), maxWidth));
-    };
-
-    const handleMouseUp = () => setIsResizing(false);
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-  }, [isResizing]);
+  const { isResizing, panelWidthCss, handleResizeStart } = useResizablePanel();
 
   const { openModal, closeModal } = useModal();
 
@@ -322,10 +288,7 @@ export default function NewSubmissionPage() {
       )}
       <div
         className={cn('flex w-full flex-col', 'tablet:flex-row')}
-        style={{
-          '--panel-width':
-            panelWidth !== null ? `${panelWidth}px` : DEFAULT_PANEL_WIDTH_CSS,
-        }}
+        style={{ '--panel-width': panelWidthCss }}
       >
         <OriginalUrlPanel
           key={originalUrl ?? ORIGINAL_URL}
