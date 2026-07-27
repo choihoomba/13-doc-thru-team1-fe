@@ -2,63 +2,62 @@
 
 import { useState } from 'react';
 
-import Header from '@/components/ui/Header';
+import {
+  HEADER_EXAMPLE_ADMIN,
+  HEADER_EXAMPLE_MEMBER,
+  HEADER_EXAMPLE_NOTIFICATIONS,
+} from '@/app/example/_data/headerNotifications';
 
-const EXAMPLE_NOTIFICATIONS = [
-  {
-    id: 1,
-    targetType: 'CHALLENGE',
-    targetId: 12,
-    message: '신청한 챌린지가 승인되어 전달될 예정입니다.',
-    isRead: false,
-    createdAt: '2024-04-01T09:05:00Z',
-  },
-  {
-    id: 2,
-    targetType: 'CHALLENGE',
-    targetId: 14,
-    message: '신청한 챌린지가 승인되었습니다.',
-    isRead: true,
-    createdAt: '2024-04-01T09:05:00Z',
-  },
-  {
-    id: 3,
-    targetType: 'CHALLENGE',
-    targetId: 15,
-    message: '신청한 챌린지가 거절되었습니다.',
-    isRead: true,
-    createdAt: '2024-04-01T09:05:00Z',
-  },
-  {
-    id: 4,
-    targetType: 'CHALLENGE',
-    targetId: 6,
-    message: '챌린지의 도전한 작업물에 피드백이 추가되었습니다.',
-    isRead: true,
-    createdAt: '2024-04-01T09:05:00Z',
-  },
-  {
-    id: 5,
-    targetType: 'CHALLENGE',
-    targetId: 9,
-    message: '신청한 챌린지가 마감되었습니다.',
-    isRead: true,
-    createdAt: '2024-04-01T09:05:00Z',
-  },
-  {
-    // Header에서 CHALLENGE가 아닌 알림을 제외하는지 확인하는 예시입니다.
-    id: 6,
-    targetType: 'FEEDBACK',
-    targetId: 40,
-    message: '작업물에 새로운 피드백이 등록되었습니다.',
-    isRead: false,
-    createdAt: '2024-04-01T09:05:00Z',
-  },
-];
+import { cn } from '@/utils/cn';
 
-function ExampleSection({ title, description, children }) {
+import Header from '@/components/ui/Header/Header';
+
+/*
+@ Header 예제 페이지 레이아웃
+
+Header는 viewport 전체를 기준으로 좌표를 검수해야 하므로 main에 좌우 padding을 넣지 않습니다.
+내부 최대 너비만 1200px로 제한하면:
+- desktop 1920px: 좌우 360px
+- iPad mini 744px: 전체 744px
+- mobile 375px: 전체 375px
+규격으로 각 Header를 확인할 수 있습니다.
+*/
+const HEADER_EXAMPLE_PAGE_STYLE = [
+  'min-h-screen',
+  'bg-white',
+  'py-[32px]',
+].join(' ');
+
+const HEADER_EXAMPLE_CONTENT_STYLE = [
+  'mx-auto',
+  'flex',
+  'w-full',
+  'max-w-[1200px]',
+  'flex-col',
+  'gap-[32px]',
+].join(' ');
+
+const HEADER_EXAMPLE_INTRO_STYLE = [
+  'px-[16px]',
+  'min-[600px]:px-[24px]',
+  'min-[1248px]:px-0',
+].join(' ');
+
+/**
+ * Header 상태 하나와 설명을 묶는 예제 카드입니다.
+ *
+ * children에는 guest/member/admin Header를 전달합니다.
+ * 카드 자체는 max-width를 줄이지 않아 Header 좌표 검수를 방해하지 않습니다.
+ * border 대신 ring을 사용해 카드 선 1px이 Header의 실제 콘텐츠 너비를 줄이지 않게 합니다.
+ */
+function ExampleSection({ title, description, children, className = '' }) {
   return (
-    <section className="overflow-visible rounded-[12px] border border-gray-200">
+    <section
+      className={cn(
+        'overflow-visible rounded-[12px] ring-1 ring-gray-200',
+        className,
+      )}
+    >
       <div className="bg-gray-50 px-[20px] py-[16px]">
         <h2 className="text-18-bold text-gray-800">{title}</h2>
         <p className="mt-[6px] text-14-regular text-gray-500">{description}</p>
@@ -69,7 +68,9 @@ function ExampleSection({ title, description, children }) {
 }
 
 export default function HeaderExamplePage() {
-  const [notifications, setNotifications] = useState(EXAMPLE_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState(
+    HEADER_EXAMPLE_NOTIFICATIONS,
+  );
 
   function handleNotificationRead(notificationId) {
     setNotifications((currentNotifications) =>
@@ -82,9 +83,9 @@ export default function HeaderExamplePage() {
   }
 
   return (
-    <main className="min-h-screen bg-white px-[16px] py-[32px] tablet:px-[24px]">
-      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-[32px]">
-        <div>
+    <main className={HEADER_EXAMPLE_PAGE_STYLE}>
+      <div className={HEADER_EXAMPLE_CONTENT_STYLE}>
+        <div className={HEADER_EXAMPLE_INTRO_STYLE}>
           <h1 className="text-24-bold text-gray-900">공통 Header 컴포넌트</h1>
           <p className="mt-[8px] text-14-regular text-gray-500">
             브라우저 너비를 모바일, iPad mini, 데스크톱으로 바꾸어 반응형 규격을
@@ -109,20 +110,45 @@ export default function HeaderExamplePage() {
         <ExampleSection
           title="회원 Header"
           description="종 아이콘을 누르면 챌린지 알림 패널이 열립니다."
+          /*
+           * 예제에는 같은 z-header 값을 가진 Header가 여러 개 있습니다.
+           * 동일한 z-index에서는 뒤에 렌더링된 관리자 Header가 위에 그려지므로,
+           * 알림 검수용 회원 카드 전체를 별도 stacking context로 올립니다.
+           * 공통 Header와 실제 서비스 페이지의 z-index는 변경하지 않습니다.
+           */
+          className="relative z-[200]"
         >
           <Header
             variant="member"
+            profileUser={HEADER_EXAMPLE_MEMBER}
             notifications={notifications}
             onNotificationRead={handleNotificationRead}
-            className="z-[81]"
+            onLogout={() => undefined}
           />
         </ExampleSection>
 
         <ExampleSection
-          title="관리자 Header"
-          description="activeAdminNav로 현재 관리자 메뉴를 표시합니다."
+          title="관리자 Header - 챌린지 관리 선택"
+          description="activeAdminNav='manage'이므로 챌린지 관리는 검은색, 목록은 회색입니다."
         >
-          <Header variant="admin" activeAdminNav="manage" />
+          <Header
+            variant="admin"
+            activeAdminNav="manage"
+            profileUser={HEADER_EXAMPLE_ADMIN}
+            onLogout={() => undefined}
+          />
+        </ExampleSection>
+
+        <ExampleSection
+          title="관리자 Header - 챌린지 목록 선택"
+          description="activeAdminNav='list'이므로 챌린지 목록은 검은색, 관리는 회색입니다."
+        >
+          <Header
+            variant="admin"
+            activeAdminNav="list"
+            profileUser={HEADER_EXAMPLE_ADMIN}
+            onLogout={() => undefined}
+          />
         </ExampleSection>
       </div>
     </main>
