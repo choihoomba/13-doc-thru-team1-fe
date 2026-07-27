@@ -28,7 +28,7 @@ export default function ChipStatus({
   ...props
 }) {
   const label = STATUS_LABELS[status] ?? STATUS_LABELS['PENDING'];
-  const statusStyle = STATUS_STYLES[status] ?? STATUS_LABELS['PENDING'];
+  const statusStyle = STATUS_STYLES[status] ?? STATUS_STYLES['PENDING'];
 
   return (
     <span
@@ -45,6 +45,3 @@ export default function ChipStatus({
     </span>
   );
 }
-// 컴포넌트 사용 예시 (데이터 없음)
-// <ChipStatus />
-// <ChipStatus status="" />

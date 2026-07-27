@@ -11,8 +11,8 @@ const DOCTYPE_LABELS = {
 //문서 카테고리를 표시하는 Chip입니다.
 
 //사용 예시:
-//<ChipCategory>공식 문서</ChipCategory>
-//<ChipCategory>블로그</ChipCategory>
+//<ChipCategory variant="OFFICIAL" />
+//<ChipCategory variant="BLOG" />
 
 export default function ChipCategory({
   className = '',
@@ -35,6 +35,3 @@ export default function ChipCategory({
     </span>
   );
 }
-// 컴포넌트 사용 예시 (데이터 없음)
-// <ChipCategory />
-// <ChipCategory variant="" />

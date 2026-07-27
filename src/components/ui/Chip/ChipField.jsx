@@ -26,17 +26,13 @@ const FIELD_LABELS = {
 
 //챌린지 분야를 표시하는 Chip입니다.
 
-//사용 예시:
-// <ChipField variant="NEXTJS" />
-//<ChipField variant="API" />
-
 export default function ChipField({
   className = '',
   variant = 'WEB',
   ...props
 }) {
   const label = FIELD_LABELS[variant] ?? FIELD_LABELS['WEB'];
-  const fieldStyle = FIELD_STYLES[variant] ?? FIELD_LABELS['WEB'];
+  const fieldStyle = FIELD_STYLES[variant] ?? FIELD_STYLES['WEB'];
 
   return (
     <span
@@ -53,6 +49,3 @@ export default function ChipField({
     </span>
   );
 }
-// 컴포넌트 사용 예시 (데이터 없음)
-//  <ChipField />
-//  <ChipField variant="" />

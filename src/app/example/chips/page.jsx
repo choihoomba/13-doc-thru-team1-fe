@@ -17,8 +17,9 @@ export default function ChipsExPage() {
           flex="row"
           description="문서 카테고리를 표시하는 Chip입니다."
         >
-          <ChipCategory>공식 문서</ChipCategory>
-          <ChipCategory>블로그</ChipCategory>
+          <ChipCategory variant="OFFICIAL" />
+          <ChipCategory variant="BLOG" />
+          <ChipCategory />
         </ExContainer>
       </ExLayout>
 
@@ -28,10 +29,12 @@ export default function ChipsExPage() {
           description="variant에 따라 분야와 배경색이 변경됩니다."
         >
           <ChipField variant="NEXTJS" />
-          <ChipField variant="API" />
-          <ChipField variant="CAREER" />
+          <ChipField variant="REACT" />
           <ChipField variant="MODERNJS" />
+          <ChipField variant="TYPESCRIPT" />
+          <ChipField variant="API" />
           <ChipField variant="WEB" />
+          <ChipField variant="CAREER" />
         </ExContainer>
       </ExLayout>
 
