@@ -66,29 +66,23 @@ export default function SortDropdown({ onSelect, className }) {
 
   return (
     <div
-      className={cn('relative inline-block text-left', className)}
+      className={cn('relative w-fit text-left text-gray-400', className)}
       ref={dropdownRef}
     >
       <button
         type="button"
         onClick={handleToggle}
         className={cn(
-          'flex items-center justify-between w-[154px]; h-10 px-4 py-2 text-14-regular text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 focus:outline-none transition-colors cursor-pointer',
-          'tablet:px-5 desktop:px-6',
+          'flex items-center justify-between w-25.75 h-10 pl-3 pr-2 py-2 text-14-regular bg-white border border-gray-300 rounded-4xl hover:bg-gray-50 focus:outline-none transition-colors cursor-pointer',
+          'tablet:w-35',
         )}
       >
         <span className="truncate">{selectedOption.label}</span>
-        <Image
-          src={iconToggleDown}
-          alt="toggle arrow"
-          width={20}
-          height={20}
-          className="w-5 h-5 ml-1"
-        />
+        <Image src={iconToggleDown} alt="toggle arrow" />
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 mt-2 w-[140px]; z-dropdown bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden">
+        <div className="absolute right-0 mt-2 w-35 z-dropdown bg-white border border-gray-300 rounded-md shadow-sm overflow-hidden">
           <ul className="flex flex-col">
             {challengeSortOptions.map((option, index) => {
               const isNotLast = index !== challengeSortOptions.length - 1;
@@ -98,8 +92,8 @@ export default function SortDropdown({ onSelect, className }) {
                   key={option.id}
                   onClick={() => handleOptionClick(option)}
                   className={cn(
-                    'px-3.5 py-2.5 text-14-regular text-gray-700 cursor-pointer bg-white hover:bg-gray-50 transition-colors',
-                    isNotLast && 'border-b border-gray-200',
+                    'px-3.5 py-2.5 text-14-regular cursor-pointer bg-white hover:bg-gray-50 transition-colors',
+                    isNotLast && 'border-b border-gray-300',
                   )}
                 >
                   {option.label}

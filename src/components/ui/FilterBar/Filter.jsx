@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useMediaQuery } from 'react-responsive';
 
 import Image from 'next/image';
 
@@ -46,6 +47,7 @@ export default function Filter({
   className,
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const isMobile = useMediaQuery({ maxWidth: 743 });
 
   const safeAppliedFilters = {
     categories: appliedFilters?.categories ?? [],
@@ -57,6 +59,17 @@ export default function Filter({
   const filterRef = useRef(null);
 
   useOutsideClick(filterRef, () => setIsOpen(false), { closeOnEscape: true });
+
+  useEffect(() => {
+    if (isOpen && isMobile) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, isMobile]);
 
   const handleToggle = () =>
     setIsOpen((prev) => {
@@ -105,11 +118,12 @@ export default function Filter({
         type="button"
         onClick={handleToggle}
         className={cn(
-          'flex items-center justify-between min-w-[112px]; h-10 py-2 px-4 border rounded-full transition-colors text-14-medium cursor-pointer',
-          'tablet:px-5 desktop:px-5',
+          'flex items-center justify-between w-24.75 h-10 py-2 px-3 border rounded-full transition-colors text-14-medium cursor-pointer hover:text-gray-800 focus:outline-none,',
+          'tablet:w-26.5',
+          'desktop:w-28',
           activeCount > 0
             ? 'bg-brand-black text-white border-brand-black'
-            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50',
+            : 'bg-white text-gray-400 border-gray-300 hover:bg-gray-50',
         )}
       >
         <span>{activeCount > 0 ? `필터(${activeCount})` : '필터'}</span>
@@ -125,30 +139,26 @@ export default function Filter({
       {isOpen && (
         <div
           className={cn(
-            'absolute left-0 mt-2 z-dropdown bg-white border border-gray-200 shadow-lg rounded-xl overflow-hidden flex flex-col text-gray-800',
-            'w-72 tablet:w-80',
+            'fixed inset-0 z-dropdown bg-white border-2 border-gray-200 shadow-lg overflow-hidden flex flex-col text-gray-800',
+            'tablet:absolute tablet:inset-auto tablet:left-0 tablet:mt-2 tablet:w-85.75 tablet:rounded-xl',
           )}
         >
-          <div className="flex items-center justify-between p-4 tablet:p-5 pb-2">
-            <h3 className="text-16-bold">필터</h3>
+          <div className="flex items-center justify-between p-4 tablet:p-5 pb-2 shrink-0">
+            <h3 className="text-16-bold text-gray-800">필터</h3>
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="text-gray-500 hover:text-gray-800 focus:outline-none transition-colors cursor-pointer"
+              className="cursor-pointer"
             >
-              <Image
-                src={iconOut}
-                alt="out_icon"
-                width={20}
-                height={20}
-                className="w-5 h-5 ml-2"
-              />
+              <Image src={iconOut} alt="닫기" />
             </button>
           </div>
 
-          <div className="overflow-y-auto max-h-[50vh] tablet:max-h-[60vh] flex flex-col">
+          <div className="overflow-y-auto flex-1 tablet:flex-none tablet:max-h-[60vh] flex flex-col">
             <div className="p-4 tablet:p-5 pt-3">
-              <h4 className="mb-3 tablet:mb-4 text-14-bold">분야</h4>
+              <h4 className="mb-3 tablet:mb-4 text-14-bold text-gray-800">
+                분야
+              </h4>
               <div className="space-y-2.5 tablet:space-y-3">
                 {filterOptions.categories.map((cat) => (
                   <label
@@ -159,7 +169,7 @@ export default function Filter({
                       type="checkbox"
                       checked={localFilters.categories.includes(cat.id)}
                       onChange={() => handleCategoryChange(cat.id)}
-                      className="w-4 h-4 tablet:w-5 tablet:h-5 text-brand-black bg-gray-50 border-gray-300 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                      className="w-4 h-4 tablet:w-5 tablet:h-5 text-brand-black bg-gray-50 border-gray-800 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer"
                     />
                     <span className="ml-2.5 tablet:ml-3 text-14-regular text-gray-700">
                       {cat.label}
@@ -169,8 +179,10 @@ export default function Filter({
               </div>
             </div>
 
-            <div className="p-4 tablet:p-5 border-t border-gray-100">
-              <h4 className="mb-3 tablet:mb-4 text-14-bold">문서 타입</h4>
+            <div className="p-4 tablet:p-5 border-t border-gray-200">
+              <h4 className="mb-3 tablet:mb-4 text-14-bold text-gray-800">
+                문서 타입
+              </h4>
               <div className="space-y-2.5 tablet:space-y-3">
                 {filterOptions.docTypes.map((type) => (
                   <label
@@ -184,7 +196,7 @@ export default function Filter({
                       onChange={() =>
                         setLocalFilters({ ...localFilters, docType: type.id })
                       }
-                      className="w-4 h-4 tablet:w-5 tablet:h-5 text-brand-black bg-gray-50 border-gray-300 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                      className="w-4 h-4 tablet:w-5 tablet:h-5 text-brand-black bg-gray-50 border-gray-800 focus:ring-0 focus:ring-offset-0 cursor-pointer"
                     />
                     <span className="ml-2.5 tablet:ml-3 text-14-regular text-gray-700">
                       {type.label}
@@ -194,8 +206,10 @@ export default function Filter({
               </div>
             </div>
 
-            <div className="p-4 tablet:p-5 border-t border-gray-100">
-              <h4 className="mb-3 tablet:mb-4 text-14-bold">상태</h4>
+            <div className="p-4 tablet:p-5 border-t border-gray-200">
+              <h4 className="mb-3 tablet:mb-4 text-14-bold text-gray-800">
+                상태
+              </h4>
               <div className="space-y-2.5 tablet:space-y-3">
                 {filterOptions.statuses.map((status) => (
                   <label
@@ -209,7 +223,7 @@ export default function Filter({
                       onChange={() =>
                         setLocalFilters({ ...localFilters, status: status.id })
                       }
-                      className="w-4 h-4 tablet:w-5 tablet:h-5 text-brand-black bg-gray-50 border-gray-300 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                      className="w-4 h-4 tablet:w-5 tablet:h-5 text-brand-black bg-gray-50 border-gray-800 focus:ring-0 focus:ring-offset-0 cursor-pointer"
                     />
                     <span className="ml-2.5 tablet:ml-3 text-14-regular text-gray-700">
                       {status.label}
@@ -220,7 +234,7 @@ export default function Filter({
             </div>
           </div>
 
-          <div className="flex p-4 tablet:p-5 border-t border-gray-100 gap-2.5 tablet:gap-3">
+          <div className="flex p-4 tablet:p-5 border-t border-gray-200 gap-2.5 tablet:gap-3 shrink-0">
             <button
               type="button"
               onClick={handleReset}
