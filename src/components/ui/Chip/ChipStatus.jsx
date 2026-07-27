@@ -19,12 +19,12 @@ const STATUS_LABELS = {
 //챌린지 신청 상태를 표시하는 Chip입니다.
 
 //사용 예시:
-//<ChipStatus status="pending" />
-//<ChipStatus status="rejected" />
+//<ChipStatus status="PENDING" />
+//<ChipStatus status="REJECTED" />
 
 export default function ChipStatus({
   className = '',
-  status = 'pending',
+  status = 'PENDING',
   children,
   ...props
 }) {
