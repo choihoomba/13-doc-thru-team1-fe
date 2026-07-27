@@ -73,7 +73,8 @@ export default function SortDropdown({ onSelect, className }) {
         type="button"
         onClick={handleToggle}
         className={cn(
-          'flex items-center justify-between w-36 mobile:w-40 px-3.5 mobile:px-4 py-2 text-14-regular text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 focus:outline-none transition-colors',
+          'flex items-center justify-between w-[154px]; h-10 px-4 py-2 text-14-regular text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 focus:outline-none transition-colors cursor-pointer',
+          'tablet:px-5 desktop:px-6',
         )}
       >
         <span className="truncate">{selectedOption.label}</span>
@@ -87,7 +88,7 @@ export default function SortDropdown({ onSelect, className }) {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 z-dropdown w-36 mobile:w-40 mt-2 bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden">
+        <div className="absolute left-0 mt-2 w-[140px]; z-dropdown bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden">
           <ul className="flex flex-col">
             {challengeSortOptions.map((option, index) => {
               const isNotLast = index !== challengeSortOptions.length - 1;
@@ -97,7 +98,7 @@ export default function SortDropdown({ onSelect, className }) {
                   key={option.id}
                   onClick={() => handleOptionClick(option)}
                   className={cn(
-                    'px-3.5 mobile:px-4 py-2.5 mobile:py-3 text-14-regular text-gray-700 cursor-pointer bg-white hover:bg-gray-50 transition-colors',
+                    'px-3.5 py-2.5 text-14-regular text-gray-700 cursor-pointer bg-white hover:bg-gray-50 transition-colors',
                     isNotLast && 'border-b border-gray-200',
                   )}
                 >

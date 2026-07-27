@@ -41,7 +41,8 @@ export default function InputSearch({
   return (
     <div
       className={cn(
-        'relative flex-1 w-full max-w-full tablet:max-w-211.5 h-10 flex items-center',
+        'relative w-full h-10 flex items-center max-w-full',
+        'tablet:max-w-[744px]; desktop:max-w-[1024px];',
         className,
       )}
     >
@@ -68,7 +69,7 @@ export default function InputSearch({
         <button
           type="button"
           onClick={handleClear}
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 flex items-center justify-center focus:outline-none"
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 flex items-center justify-center focus:outline-none cursor-pointer"
         >
           <Image
             src={iconOut}

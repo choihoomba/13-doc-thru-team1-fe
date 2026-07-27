@@ -1,4 +1,3 @@
-// [my-app\src\app\test-page\page.js]
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -83,13 +82,13 @@ export default function FilterTestPage() {
         챌린지 필터 및 검색 테스트
       </h1>
 
-      <div className="flex items-center justify-between gap-4 mb-8 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+      <div className="flex flex-col gap-4 mb-8 bg-white py-4 px-2 tablet:px-4 desktop:px-6 rounded-xl shadow-sm border border-gray-200">
         <InputSearch
           placeholder="챌린지 이름을 검색해보세요"
           onSearch={handleSearch}
         />
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3">
           <Filter appliedFilters={appliedFilters} onApply={handleApplyFilter} />
           <SortDropdown onSelect={handleSelectSort} />
         </div>

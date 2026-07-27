@@ -15,7 +15,9 @@ import { cn } from '@/utils/cn';
 const filterOptions = {
   categories: [
     { id: 'NEXTJS', label: 'Next.js' },
+    { id: 'REACT', label: 'REACT' },
     { id: 'MODERNJS', label: 'Modern JS' },
+    { id: 'TYPESCRIPT', label: 'TYPESCRIPT' },
     { id: 'API', label: 'API' },
     { id: 'WEB', label: 'Web' },
     { id: 'CAREER', label: 'Career' },
@@ -23,6 +25,8 @@ const filterOptions = {
   docTypes: [
     { id: 'OFFICIAL', label: '공식문서' },
     { id: 'BLOG', label: '블로그' },
+    { id: 'BOOK', label: '도서' },
+    { id: 'ETC', label: '기타' },
   ],
   statuses: [
     { id: 'IN_PROGRESS', label: '진행중' },
@@ -101,7 +105,8 @@ export default function Filter({
         type="button"
         onClick={handleToggle}
         className={cn(
-          'flex items-center justify-between px-3.5 py-2 mobile:px-4 border rounded-full transition-colors text-14-medium',
+          'flex items-center justify-between min-w-[112px]; h-10 py-2 px-4 border rounded-full transition-colors text-14-medium cursor-pointer',
+          'tablet:px-5 desktop:px-5',
           activeCount > 0
             ? 'bg-brand-black text-white border-brand-black'
             : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50',
@@ -121,15 +126,15 @@ export default function Filter({
         <div
           className={cn(
             'absolute left-0 mt-2 z-dropdown bg-white border border-gray-200 shadow-lg rounded-xl overflow-hidden flex flex-col text-gray-800',
-            'w-70 mobile:w-80',
+            'w-72 tablet:w-80',
           )}
         >
-          <div className="flex items-center justify-between p-4 mobile:p-5 pb-2">
+          <div className="flex items-center justify-between p-4 tablet:p-5 pb-2">
             <h3 className="text-16-bold">필터</h3>
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="text-gray-500 hover:text-gray-800 focus:outline-none transition-colors"
+              className="text-gray-500 hover:text-gray-800 focus:outline-none transition-colors cursor-pointer"
             >
               <Image
                 src={iconOut}
@@ -141,10 +146,10 @@ export default function Filter({
             </button>
           </div>
 
-          <div className="overflow-y-auto max-h-[50vh] mobile:max-h-[60vh] flex flex-col">
-            <div className="p-4 mobile:p-5 pt-3">
-              <h4 className="mb-3 mobile:mb-4 text-14-bold">분야</h4>
-              <div className="space-y-2.5 mobile:space-y-3">
+          <div className="overflow-y-auto max-h-[50vh] tablet:max-h-[60vh] flex flex-col">
+            <div className="p-4 tablet:p-5 pt-3">
+              <h4 className="mb-3 tablet:mb-4 text-14-bold">분야</h4>
+              <div className="space-y-2.5 tablet:space-y-3">
                 {filterOptions.categories.map((cat) => (
                   <label
                     key={cat.id}
@@ -154,9 +159,9 @@ export default function Filter({
                       type="checkbox"
                       checked={localFilters.categories.includes(cat.id)}
                       onChange={() => handleCategoryChange(cat.id)}
-                      className="w-4 h-4 mobile:w-5 mobile:h-5 text-brand-black bg-gray-50 border-gray-300 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                      className="w-4 h-4 tablet:w-5 tablet:h-5 text-brand-black bg-gray-50 border-gray-300 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer"
                     />
-                    <span className="ml-2.5 mobile:ml-3 text-14-regular text-gray-700">
+                    <span className="ml-2.5 tablet:ml-3 text-14-regular text-gray-700">
                       {cat.label}
                     </span>
                   </label>
@@ -164,9 +169,9 @@ export default function Filter({
               </div>
             </div>
 
-            <div className="p-4 mobile:p-5 border-t border-gray-100">
-              <h4 className="mb-3 mobile:mb-4 text-14-bold">문서 타입</h4>
-              <div className="space-y-2.5 mobile:space-y-3">
+            <div className="p-4 tablet:p-5 border-t border-gray-100">
+              <h4 className="mb-3 tablet:mb-4 text-14-bold">문서 타입</h4>
+              <div className="space-y-2.5 tablet:space-y-3">
                 {filterOptions.docTypes.map((type) => (
                   <label
                     key={type.id}
@@ -179,9 +184,9 @@ export default function Filter({
                       onChange={() =>
                         setLocalFilters({ ...localFilters, docType: type.id })
                       }
-                      className="w-4 h-4 mobile:w-5 mobile:h-5 text-brand-black bg-gray-50 border-gray-300 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                      className="w-4 h-4 tablet:w-5 tablet:h-5 text-brand-black bg-gray-50 border-gray-300 focus:ring-0 focus:ring-offset-0 cursor-pointer"
                     />
-                    <span className="ml-2.5 mobile:ml-3 text-14-regular text-gray-700">
+                    <span className="ml-2.5 tablet:ml-3 text-14-regular text-gray-700">
                       {type.label}
                     </span>
                   </label>
@@ -189,9 +194,9 @@ export default function Filter({
               </div>
             </div>
 
-            <div className="p-4 mobile:p-5 border-t border-gray-100">
-              <h4 className="mb-3 mobile:mb-4 text-14-bold">상태</h4>
-              <div className="space-y-2.5 mobile:space-y-3">
+            <div className="p-4 tablet:p-5 border-t border-gray-100">
+              <h4 className="mb-3 tablet:mb-4 text-14-bold">상태</h4>
+              <div className="space-y-2.5 tablet:space-y-3">
                 {filterOptions.statuses.map((status) => (
                   <label
                     key={status.id}
@@ -204,9 +209,9 @@ export default function Filter({
                       onChange={() =>
                         setLocalFilters({ ...localFilters, status: status.id })
                       }
-                      className="w-4 h-4 mobile:w-5 mobile:h-5 text-brand-black bg-gray-50 border-gray-300 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                      className="w-4 h-4 tablet:w-5 tablet:h-5 text-brand-black bg-gray-50 border-gray-300 focus:ring-0 focus:ring-offset-0 cursor-pointer"
                     />
-                    <span className="ml-2.5 mobile:ml-3 text-14-regular text-gray-700">
+                    <span className="ml-2.5 tablet:ml-3 text-14-regular text-gray-700">
                       {status.label}
                     </span>
                   </label>
@@ -215,18 +220,18 @@ export default function Filter({
             </div>
           </div>
 
-          <div className="flex p-4 mobile:p-5 border-t border-gray-100 gap-2.5 mobile:gap-3">
+          <div className="flex p-4 tablet:p-5 border-t border-gray-100 gap-2.5 tablet:gap-3">
             <button
               type="button"
               onClick={handleReset}
-              className="flex-1 py-2.5 mobile:py-3 text-14-semibold text-gray-800 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+              className="flex-1 py-2.5 tablet:py-3 text-14-semibold text-gray-800 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
             >
               초기화
             </button>
             <button
               type="button"
               onClick={handleApply}
-              className="flex-1 py-2.5 mobile:py-3 text-14-semibold text-white bg-brand-black rounded-xl hover:bg-black transition-colors"
+              className="flex-1 py-2.5 tablet:py-3 text-14-semibold text-white bg-brand-black rounded-xl hover:bg-black transition-colors cursor-pointer"
             >
               적용하기
             </button>
