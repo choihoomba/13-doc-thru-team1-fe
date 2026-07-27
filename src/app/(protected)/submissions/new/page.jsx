@@ -68,10 +68,6 @@ function ToolbarButton({ label, icon, onClick, className }) {
   );
 }
 
-/**
- * - 편집 중 새로고침: 로컬에 남아있는 값을 묻지 않고 바로 복원 (같은 세션 연속)
- * - 새로 진입(로컬 비어있음): 저장된 임시글이 있는지는 서버 기준 Toast로 물어봄
- */
 const LOCAL_DRAFT_KEY = 'submissionNew:draft';
 
 function saveDraftToLocal({ title, content }) {
@@ -147,7 +143,10 @@ export default function NewSubmissionPage() {
     const { title: debouncedTitle, content: debouncedContent } =
       JSON.parse(debouncedSnapshot);
 
-    // 로컬엔 항상 즉시 저장
+    // content가 비어있으면 로컬/서버 둘 다 저장 안 함
+    if (!debouncedContent.trim()) return;
+
+    // content 가 있으면 로컬엔 항상 즉시 저장
     saveDraftToLocal({ title: debouncedTitle, content: debouncedContent });
 
     if (!submissionId) return;
@@ -471,6 +470,8 @@ export default function NewSubmissionPage() {
                 className={cn(isOriginalOpen && 'rounded-[10px]')}
                 onClick={() => {
                   if (!submissionId) return;
+                  // content가 비어있으면 서버(draft) 저장은 항상 400(내용을 입력해주세요)이라 아예 시도 안 함
+                  if (!editorContent.trim()) return;
                   saveDraft(submissionId, {
                     title,
                     content: editorContent,
