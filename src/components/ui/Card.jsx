@@ -57,7 +57,7 @@ export default function Card({
     deadline,
     maxParticipants,
     currentParticipants,
-    Field,
+    field,
     docType,
     status,
   } = challenge;
@@ -137,7 +137,7 @@ export default function Card({
           'tablet:mb-[16px]',
         )}
       >
-        {Field && <ChipField variant={Field} />}
+        {field && <ChipField variant={field} />}
         {docType && <ChipCategory>{docType}</ChipCategory>}
       </div>
 

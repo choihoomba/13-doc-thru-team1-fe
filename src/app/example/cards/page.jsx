@@ -12,7 +12,7 @@ const SAMPLE_CHALLENGE = {
   deadline: '2024-03-03',
   maxParticipants: 5,
   currentParticipants: 5,
-  Field: 'Next.js',
+  field: 'Next.js',
   docType: '공식문서',
 };
 
