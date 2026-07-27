@@ -21,7 +21,9 @@
   --color-gray-800: #262626;
   --color-gray-700: #404040;
   --color-gray-600: #525252;
+  --color-gray-550: #676767; /* 랜딩페이지 '중요한 건 ~~' 텍스트 적용 색상, 근사치로 550으로 정의*/
   --color-gray-500: #737373;
+  --color-gray-450: #b1b1b1; /* 구분선 적용 색상 */
   --color-gray-400: #a3a3a3;
   --color-gray-300: #d4d4d4;
   --color-gray-200: #e5e5e5;

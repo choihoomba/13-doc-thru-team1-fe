@@ -1,21 +1,42 @@
-import defaultFetch from './serverFetchClient';
+import serverFetchClient from '@/lib/services/serverFetchClient';
 
-/**
- * 서버 전용 로직
- * httpOnly 쿠키 등 브라우저 접근 불가 영역
- * signin/signup/signout, Set-Cookie 파싱
- */
+const BACKEND_URL = process.env.BACKEND_URL;
 
-// TODO: 예시 코드입니다.
-export async function signin(credentials) {
-  const response = await defaultFetch('/api/auth/signin', {
+async function signup(credentials) {
+  await serverFetchClient(`${BACKEND_URL}/auth/signup`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials),
+  });
+}
+
+async function signin(credentials) {
+  const response = await serverFetchClient(`${BACKEND_URL}/auth/signin`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(credentials),
   });
 
-  return parseSetCookie(response);
+  const { data: user } = await response.json();
+  const setCookieHeaders = response.headers.getSetCookie?.() ?? [];
+
+  return { user, setCookieHeaders };
 }
 
-function parseSetCookie(response) {
-  return response.headers.getSetCookie?.() ?? [];
+async function signout(cookieHeader) {
+  await serverFetchClient(`${BACKEND_URL}/auth/signout`, {
+    method: 'POST',
+    headers: { cookie: cookieHeader },
+  });
 }
+
+async function getMe(cookieHeader) {
+  const response = await serverFetchClient(`${BACKEND_URL}/auth/me`, {
+    headers: { cookie: cookieHeader },
+  });
+
+  const { data: user } = await response.json();
+  return user;
+}
+
+export const authService = { signup, signin, signout, getMe };
