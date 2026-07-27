@@ -53,7 +53,6 @@ const MIN_EDITOR_WIDTH = 320; // 에디터 최소 폭(px)
 const DEFAULT_PANEL_WIDTH_CSS = `clamp(${MIN_PANEL_WIDTH}px, 50vw, calc(100vw - ${MIN_EDITOR_WIDTH}px))`;
 
 const SAVE_DEBOUNCE_MS = 500;
-const TITLE_MAX_LENGTH = 50; // challenge.title 제한은 BE에서 100자인데 draft는 그렇게까지? 싶어서 50으로..
 
 function ToolbarButton({ label, icon, onClick, className }) {
   return (
@@ -95,15 +94,14 @@ export default function NewSubmissionPage() {
   const searchParams = useSearchParams();
   const submissionId = searchParams.get('id');
 
-  const [title, setTitle] = useState('');
   const [editorContent, setEditorContent] = useState('');
-  const titleTextareaRef = useRef(null);
 
   const router = useRouter();
 
-  // originalUrl 가져오기
+  // originalUrl, challenge.title
   const [originalUrl, setOriginalUrl] = useState(null);
   const [challengeId, setChallengeId] = useState(null);
+  const [challengeTitle, setChallengeTitle] = useState('');
   useEffect(() => {
     if (!submissionId) return;
 
@@ -115,9 +113,9 @@ export default function NewSubmissionPage() {
         return getChallenge(submission.challengeId);
       })
       .then((challenge) => {
-        if (!cancelled && challenge?.originalUrl) {
-          setOriginalUrl(challenge.originalUrl);
-        }
+        if (cancelled) return;
+        if (challenge?.originalUrl) setOriginalUrl(challenge.originalUrl);
+        if (challenge?.title) setChallengeTitle(challenge.title);
       })
       .catch((error) => {
         console.error('원문 링크 조회 실패:', error);
@@ -129,8 +127,7 @@ export default function NewSubmissionPage() {
   }, [submissionId]);
 
   // debounce
-  const draftSnapshot = JSON.stringify({ title, content: editorContent });
-  const debouncedSnapshot = useDebounce(draftSnapshot, SAVE_DEBOUNCE_MS);
+  const debouncedContent = useDebounce(editorContent, SAVE_DEBOUNCE_MS);
   const [hasSaveError, setHasSaveError] = useState(false); // 서버 저장 실패 여부 판단
 
   const hasMountedRef = useRef(false);
@@ -140,18 +137,15 @@ export default function NewSubmissionPage() {
       return;
     }
 
-    const { title: debouncedTitle, content: debouncedContent } =
-      JSON.parse(debouncedSnapshot);
-
     // content가 비어있으면 로컬/서버 둘 다 저장 안 함
     if (!debouncedContent.trim()) return;
 
     // content 가 있으면 로컬엔 항상 즉시 저장
-    saveDraftToLocal({ title: debouncedTitle, content: debouncedContent });
+    saveDraftToLocal({ title: challengeTitle, content: debouncedContent });
 
     if (!submissionId) return;
     saveDraft(submissionId, {
-      title: debouncedTitle,
+      title: challengeTitle,
       content: debouncedContent,
     })
       .then(() => setHasSaveError(false))
@@ -159,7 +153,7 @@ export default function NewSubmissionPage() {
         setHasSaveError(true);
         console.error('임시저장(서버) 실패:', error);
       });
-  }, [debouncedSnapshot, submissionId]);
+  }, [debouncedContent, submissionId, challengeTitle]);
 
   const editor = useEditor({
     extensions: [
@@ -192,7 +186,6 @@ export default function NewSubmissionPage() {
     onCreate: ({ editor }) => {
       const local = getDraftFromLocal();
       if (local) {
-        setTitle(local.title ?? '');
         setEditorContent(local.content ?? '');
         editor.commands.setContent(local.content ?? '');
         return;
@@ -243,21 +236,6 @@ export default function NewSubmissionPage() {
     };
   }, [isResizing]);
 
-  // 제목 textarea -> title, isOriginalOpen, panelWidth에 따라서 wrap
-  useEffect(() => {
-    const el = titleTextareaRef.current;
-    if (!el) return;
-
-    function resizeToFitContent() {
-      el.style.height = 'auto';
-      el.style.height = `${el.scrollHeight}px`;
-    }
-
-    resizeToFitContent();
-    window.addEventListener('resize', resizeToFitContent);
-    return () => window.removeEventListener('resize', resizeToFitContent);
-  }, [title, isOriginalOpen, panelWidth]);
-
   // 글자 색상 변경 함수
   function changeTextColor(color) {
     if (!color) {
@@ -286,7 +264,7 @@ export default function NewSubmissionPage() {
           onConfirm={async () => {
             try {
               await saveDraft(submissionId, {
-                title,
+                title: challengeTitle,
                 content: editorContent,
               });
               setHasSaveError(false);
@@ -304,7 +282,14 @@ export default function NewSubmissionPage() {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [hasSaveError, submissionId, title, editorContent, openModal, closeModal]);
+  }, [
+    hasSaveError,
+    submissionId,
+    challengeTitle,
+    editorContent,
+    openModal,
+    closeModal,
+  ]);
 
   // - 로컬은 비었고, 서버에는 draft가 있을때 Toast띄워서 임시저장 불러오기
   // - 서버 실패 시 로컬로 폴백 -> TODO: 일단 주석으로 남겨둠
@@ -319,29 +304,12 @@ export default function NewSubmissionPage() {
         onConfirm={async () => {
           try {
             const submission = await getSubmission(submissionId);
-            const loadedTitle = submission?.draft?.title ?? '';
             const loadedContent = submission?.draft?.content ?? '';
-            setTitle(loadedTitle);
             setEditorContent(loadedContent);
             editor?.commands.setContent(loadedContent);
-            saveDraftToLocal({ title: loadedTitle, content: loadedContent });
-            // if (submission?.draft) {
-            //   setTitle(submission.draft.title ?? '');
-            //   editor?.commands.setContent(submission.draft.content ?? '');
-            //   saveDraftToLocal({
-            //     title: submission.draft.title ?? '',
-            //     content: submission.draft.content ?? '',
-            //   });
-            //   return;
-            // }
-            // const local = getDraftFromLocal();
-            // setTitle(local?.title ?? '');
-            // editor?.commands.setContent(local?.content ?? '');
+            saveDraftToLocal({ title: challengeTitle, content: loadedContent });
           } catch (error) {
             console.error('임시저장 불러오기(서버) 실패:', error);
-            // const local = getDraftFromLocal();
-            // setTitle(local?.title ?? '');
-            // editor?.commands.setContent(local?.content ?? '');
           } finally {
             closeModal();
           }
@@ -473,7 +441,7 @@ export default function NewSubmissionPage() {
                   // content가 비어있으면 서버(draft) 저장은 항상 400(내용을 입력해주세요)이라 아예 시도 안 함
                   if (!editorContent.trim()) return;
                   saveDraft(submissionId, {
-                    title,
+                    title: challengeTitle,
                     content: editorContent,
                   })
                     .then(() => {
@@ -497,25 +465,10 @@ export default function NewSubmissionPage() {
               </ButtonSecondary>
             </div>
           </div>
-          <textarea
-            ref={titleTextareaRef}
-            value={title}
-            onChange={(e) =>
-              setTitle(e.target.value.slice(0, TITLE_MAX_LENGTH))
-            }
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') e.preventDefault();
-            }}
-            placeholder="제목을 입력해주세요"
-            maxLength={TITLE_MAX_LENGTH}
-            rows={1}
-            className={cn(
-              'w-full resize-none overflow-hidden break-words text-20-semibold text-gray-900 outline-none',
-              'placeholder:text-gray-400',
-            )}
-          />
-          <p className={cn('text-right text-12-regular text-gray-400')}>
-            {title.length}/{TITLE_MAX_LENGTH}
+          <p
+            className={cn('w-full break-words text-20-semibold text-gray-900')}
+          >
+            {challengeTitle}
           </p>
           {!isOriginalOpen && (
             <button
