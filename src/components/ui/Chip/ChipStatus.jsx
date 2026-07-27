@@ -25,11 +25,10 @@ const STATUS_LABELS = {
 export default function ChipStatus({
   className = '',
   status = 'PENDING',
-  children,
   ...props
 }) {
-  const label = children ?? STATUS_LABELS[status] ?? status;
-  const statusStyle = STATUS_STYLES[status] ?? 'bg-gray-200 text-gray-500';
+  const label = STATUS_LABELS[status] ?? STATUS_LABELS['PENDING'];
+  const statusStyle = STATUS_STYLES[status] ?? STATUS_LABELS['PENDING'];
 
   return (
     <span
@@ -46,3 +45,6 @@ export default function ChipStatus({
     </span>
   );
 }
+// 컴포넌트 사용 예시 (데이터 없음)
+// <ChipStatus />
+// <ChipStatus status="" />

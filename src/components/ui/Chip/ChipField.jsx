@@ -6,18 +6,22 @@ import { CHIP_BASE_STYLE } from './chipStyles';
 
 const FIELD_STYLES = {
   NEXTJS: 'bg-[#79E16A]',
-  API: 'bg-[#FF905E]',
-  CAREER: 'bg-[#7EB2EE]',
+  REACT: 'bg-[#D271FF]',
   MODERNJS: 'bg-[#F66E6B]',
+  TYPESCRIPT: 'bg-[#FF4288]',
+  API: 'bg-[#FF905E]',
   WEB: 'bg-[#F7EA5D]',
+  CAREER: 'bg-[#7EB2EE]',
 };
 
 const FIELD_LABELS = {
   NEXTJS: 'Next.js',
-  API: 'API',
-  CAREER: 'Career',
+  REACT: 'React',
   MODERNJS: 'Modern JS',
+  TYPESCRIPT: 'TypeScript',
+  API: 'API',
   WEB: 'Web',
+  CAREER: 'Career',
 };
 
 //챌린지 분야를 표시하는 Chip입니다.
@@ -28,12 +32,11 @@ const FIELD_LABELS = {
 
 export default function ChipField({
   className = '',
-  variant = 'NEXTJS',
-  children,
+  variant = 'WEB',
   ...props
 }) {
-  const label = children ?? FIELD_LABELS[variant] ?? variant;
-  const fieldStyle = FIELD_STYLES[variant] ?? 'bg-gray-200';
+  const label = FIELD_LABELS[variant] ?? FIELD_LABELS['WEB'];
+  const fieldStyle = FIELD_STYLES[variant] ?? FIELD_LABELS['WEB'];
 
   return (
     <span
@@ -50,3 +53,6 @@ export default function ChipField({
     </span>
   );
 }
+// 컴포넌트 사용 예시 (데이터 없음)
+//  <ChipField />
+//  <ChipField variant="" />

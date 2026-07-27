@@ -2,13 +2,25 @@ import { cn } from '@/utils/cn';
 
 import { CHIP_BASE_STYLE } from './chipStyles';
 
+const DOCTYPE_LABELS = {
+  OFFICIAL: '공식문서',
+  BLOG: '블로그',
+  BOOK: '도서',
+  ETC: '기타',
+};
 //문서 카테고리를 표시하는 Chip입니다.
 
 //사용 예시:
 //<ChipCategory>공식 문서</ChipCategory>
 //<ChipCategory>블로그</ChipCategory>
 
-export default function ChipCategory({ className = '', children, ...props }) {
+export default function ChipCategory({
+  className = '',
+  variant = 'ETC',
+  ...props
+}) {
+  const label = DOCTYPE_LABELS[variant] ?? DOCTYPE_LABELS['ETC'];
+
   return (
     <span
       className={cn(
@@ -19,7 +31,10 @@ export default function ChipCategory({ className = '', children, ...props }) {
       )}
       {...props}
     >
-      {children}
+      {label}
     </span>
   );
 }
+// 컴포넌트 사용 예시 (데이터 없음)
+// <ChipCategory />
+// <ChipCategory variant="" />
