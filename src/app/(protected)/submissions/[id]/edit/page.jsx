@@ -2,12 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 
-import Color from '@tiptap/extension-color';
-import Placeholder from '@tiptap/extension-placeholder';
-import TextAlign from '@tiptap/extension-text-align';
-import { TextStyle } from '@tiptap/extension-text-style';
-import { EditorContent, useEditor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
+import { EditorContent } from '@tiptap/react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 
@@ -26,6 +21,7 @@ import {
 
 import useDebounce from '@/hooks/common/useDebounce';
 import { useModal } from '@/hooks/modal/useModal';
+import useSubmissionEditor from '@/hooks/submission/useSubmissionEditor';
 
 import { cn } from '@/utils/cn';
 
@@ -132,31 +128,7 @@ export default function SubmissionEditPage() {
       });
   }, [debouncedContent, submissionId, challengeTitle]);
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      TextStyle,
-      Color,
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Placeholder.configure({ placeholder: '번역 내용을 적어주세요.' }),
-    ],
-    content: '',
-    editorProps: {
-      attributes: {
-        class: cn(
-          'min-h-[200px] outline-none break-words',
-          'text-body-16-160 text-gray-800',
-          '[&_ul]:list-disc [&_ul]:pl-5',
-          '[&_ol]:list-decimal [&_ol]:pl-5',
-          '[&_li]:my-1',
-          '[&_p.is-editor-empty:first-child]:before:content-[attr(data-placeholder)]',
-          '[&_p.is-editor-empty:first-child]:before:pointer-events-none',
-          '[&_p.is-editor-empty:first-child]:before:float-left',
-          '[&_p.is-editor-empty:first-child]:before:h-0',
-          '[&_p.is-editor-empty:first-child]:before:text-gray-400',
-        ),
-      },
-    },
+  const editor = useSubmissionEditor({
     onUpdate: ({ editor }) => setEditorContent(editor.getHTML()),
     // - 로컬에 있으면 묻지 않고 바로 채움 -> 적다가 모르고 새로고침함
     // - 로컬이 비어있으면 submission.content(현재 제출된 내용)를 기본값으로 채우고,
@@ -182,7 +154,6 @@ export default function SubmissionEditPage() {
           console.error('작업물 조회 실패:', error);
         });
     },
-    immediatelyRender: false,
   });
   const [isOriginalOpen, setIsOriginalOpen] = useState(false);
   const [panelWidth, setPanelWidth] = useState(null);
