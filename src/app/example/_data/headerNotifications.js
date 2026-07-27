@@ -48,8 +48,32 @@ export const HEADER_EXAMPLE_NOTIFICATIONS = [
     createdAt: '2024-04-01T09:05:00Z',
   },
   {
-    // Header가 CHALLENGE 이외의 알림을 제외하는지 확인합니다.
     id: 6,
+    targetType: 'CHALLENGE',
+    targetId: 10,
+    message: "'챌린지 이름'에 새로운 작업물이 등록되었어요",
+    isRead: true,
+    createdAt: '2024-04-01T09:05:00Z',
+  },
+  {
+    id: 7,
+    targetType: 'CHALLENGE',
+    targetId: 11,
+    message: "'챌린지 이름'의 모집이 곧 마감돼요",
+    isRead: true,
+    createdAt: '2024-04-01T09:05:00Z',
+  },
+  {
+    id: 8,
+    targetType: 'CHALLENGE',
+    targetId: 13,
+    message: "'챌린지 이름'의 상태가 변경되었어요",
+    isRead: true,
+    createdAt: '2024-04-01T09:05:00Z',
+  },
+  {
+    // Header가 CHALLENGE 이외의 알림을 제외하는지 확인합니다.
+    id: 9,
     targetType: 'FEEDBACK',
     targetId: 40,
     message: '작업물에 새로운 피드백이 등록되었습니다.',
@@ -60,7 +84,7 @@ export const HEADER_EXAMPLE_NOTIFICATIONS = [
 
 /*
 프로필 패널을 백엔드 실행 없이 확인하기 위한 Auth API 응답 형태의 목 사용자입니다.
-실제 페이지에서는 Header의 profileUser prop을 생략하고 AuthProvider의 /auth/me
+실제 페이지에서는 Header의 user prop을 생략하고 AuthProvider의 /auth/me
 응답(nickname, grade, role)을 그대로 사용합니다.
 */
 export const HEADER_EXAMPLE_MEMBER = {

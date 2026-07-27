@@ -4,4 +4,5 @@ export const ENDPOINTS = {
     me: '/api/auth/me',
     refresh: '/api/auth/refresh',
   },
+  notifications: '/api/notifications',
 };

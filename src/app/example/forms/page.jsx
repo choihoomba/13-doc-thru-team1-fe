@@ -55,21 +55,20 @@ const DEADLINE_ERROR_MESSAGE =
 /*
 @ Header + Form 결합 예제 레이아웃
 
-- Header는 599px 이하에서 56px, 600px 이상에서 60px입니다.
-- main의 min-height에서 Header 높이를 제외해 짧은 화면에서도 배경이 viewport를 채웁니다.
-- mobile 상단 간격은 20px, standard 상단 간격은 36px입니다.
+- Header는 fixed이며 599px 이하에서 56px, 600px 이상에서 60px입니다.
+- main의 padding-top에 Header 높이와 콘텐츠 여백을 함께 반영합니다.
+- mobile 콘텐츠 여백은 20px, standard 콘텐츠 여백은 36px입니다.
   따라서 제목의 절대 Y 좌표는 mobile 76px(56 + 20),
   iPad mini/desktop 96px(60 + 36)으로 Figma와 일치합니다.
 - 좌우 16px은 375px 화면에서 Form 너비 343px(375 - 32)을 만듭니다.
 */
 const FORM_EXAMPLE_PAGE_STYLE = [
-  'min-h-[calc(100vh-56px)]',
+  'min-h-screen',
   'bg-white',
   'px-[16px]',
-  'pt-[20px]',
+  'pt-[76px]',
   'pb-[37px]',
-  'min-[600px]:min-h-[calc(100vh-60px)]',
-  'min-[600px]:pt-[36px]',
+  'min-[600px]:pt-[96px]',
 ].join(' ');
 
 /*
@@ -265,15 +264,13 @@ export default function FormsExPage() {
   return (
     <div className={FORM_EXAMPLE_CANVAS_STYLE}>
       {/*
-        신규 챌린지 신청은 회원 화면이므로 예제에서는 member 상태를 고정해
+        신규 챌린지 신청은 회원 화면이므로 예제에서는 목 user를 전달해
         피그마의 종 아이콘/프로필 Header를 즉시 확인할 수 있게 합니다.
-        실제 권한 페이지에서는 variant를 생략하면 Auth API의 USER/ADMIN 역할을 사용합니다.
+        실제 권한 페이지에서는 user를 생략하면 Auth API의 USER/ADMIN 역할을 사용합니다.
       */}
       <Header
-        // 이 페이지는 회원 신규 챌린지 신청 Figma를 검수하므로 member UI를 고정합니다.
-        variant="member"
         // Auth API 응답과 같은 목 사용자로 회원 프로필 패널의 이름/등급을 확인합니다.
-        profileUser={HEADER_EXAMPLE_MEMBER}
+        user={HEADER_EXAMPLE_MEMBER}
         // 목 데이터를 전달하면 Header 내부 Notification API query는 enabled=false가 됩니다.
         notifications={notifications}
         // 알림 선택 시 이 페이지의 목 state도 읽음 상태로 맞춥니다.

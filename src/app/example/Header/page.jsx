@@ -43,6 +43,13 @@ const HEADER_EXAMPLE_INTRO_STYLE = [
   'min-[1248px]:px-0',
 ].join(' ');
 
+/*
+실제 Header는 fixed가 기본값입니다.
+예제 페이지에서는 여러 권한 상태를 한 화면에서 비교해야 하므로
+각 예제 인스턴스만 relative로 덮어써 문서 흐름 안에 배치합니다.
+*/
+const PREVIEW_HEADER_CLASS_NAME = 'relative';
+
 /**
  * Header 상태 하나와 설명을 묶는 예제 카드입니다.
  *
@@ -95,16 +102,16 @@ export default function HeaderExamplePage() {
 
         <ExampleSection
           title="Auth API 자동 판별 Header"
-          description="variant를 전달하지 않아 현재 로그인 사용자의 USER/ADMIN 역할을 자동으로 반영합니다."
+          description="user를 전달하지 않아 현재 로그인 사용자의 USER/ADMIN 역할을 자동으로 반영합니다."
         >
-          <Header />
+          <Header className={PREVIEW_HEADER_CLASS_NAME} />
         </ExampleSection>
 
         <ExampleSection
           title="비회원 Header"
           description="공통 ButtonSecondary의 로그인 버튼을 사용합니다."
         >
-          <Header variant="guest" />
+          <Header user={null} className={PREVIEW_HEADER_CLASS_NAME} />
         </ExampleSection>
 
         <ExampleSection
@@ -119,11 +126,11 @@ export default function HeaderExamplePage() {
           className="relative z-[200]"
         >
           <Header
-            variant="member"
-            profileUser={HEADER_EXAMPLE_MEMBER}
+            user={HEADER_EXAMPLE_MEMBER}
             notifications={notifications}
             onNotificationRead={handleNotificationRead}
             onLogout={() => undefined}
+            className={PREVIEW_HEADER_CLASS_NAME}
           />
         </ExampleSection>
 
@@ -132,10 +139,10 @@ export default function HeaderExamplePage() {
           description="activeAdminNav='manage'이므로 챌린지 관리는 검은색, 목록은 회색입니다."
         >
           <Header
-            variant="admin"
+            user={HEADER_EXAMPLE_ADMIN}
             activeAdminNav="manage"
-            profileUser={HEADER_EXAMPLE_ADMIN}
             onLogout={() => undefined}
+            className={PREVIEW_HEADER_CLASS_NAME}
           />
         </ExampleSection>
 
@@ -144,10 +151,10 @@ export default function HeaderExamplePage() {
           description="activeAdminNav='list'이므로 챌린지 목록은 검은색, 관리는 회색입니다."
         >
           <Header
-            variant="admin"
+            user={HEADER_EXAMPLE_ADMIN}
             activeAdminNav="list"
-            profileUser={HEADER_EXAMPLE_ADMIN}
             onLogout={() => undefined}
+            className={PREVIEW_HEADER_CLASS_NAME}
           />
         </ExampleSection>
       </div>
