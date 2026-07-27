@@ -41,7 +41,7 @@ export default function InputSearch({
   return (
     <div
       className={cn(
-        'relative flex-1 w-full max-w-full tablet:max-w-52.5 h-10 flex items-center',
+        'relative flex-1 w-full max-w-full tablet:max-w-211.5 h-10 flex items-center',
         className,
       )}
     >
@@ -54,7 +54,6 @@ export default function InputSearch({
           className="w-5 h-5 object-contain"
         />
       </div>
-
       <input
         type="text"
         placeholder={placeholder}
@@ -65,7 +64,6 @@ export default function InputSearch({
           'focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-all placeholder-gray-400',
         )}
       />
-
       {inputValue && (
         <button
           type="button"
