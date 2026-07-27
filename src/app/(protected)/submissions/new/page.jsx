@@ -444,10 +444,7 @@ export default function NewSubmissionPage() {
                     title: challengeTitle,
                     content: editorContent,
                   })
-                    .then(() => {
-                      setHasSaveError(false);
-                      router.push(`/submissions/${submissionId}`);
-                    })
+                    .then(() => setHasSaveError(false))
                     .catch((error) => {
                       setHasSaveError(true);
                       console.error('임시저장(수동) 실패:', error);
