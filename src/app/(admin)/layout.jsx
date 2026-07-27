@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-import * as authService from '@/lib/services/authService';
+import { authService } from '@/lib/services/authService';
 
 export default async function AdminLayout({ children }) {
   const cookieStore = await cookies();

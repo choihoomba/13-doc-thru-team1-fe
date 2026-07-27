@@ -2,7 +2,7 @@ import serverFetchClient from '@/lib/services/serverFetchClient';
 
 const BACKEND_URL = process.env.BACKEND_URL;
 
-export async function signup(credentials) {
+async function signup(credentials) {
   await serverFetchClient(`${BACKEND_URL}/auth/signup`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -10,7 +10,7 @@ export async function signup(credentials) {
   });
 }
 
-export async function signin(credentials) {
+async function signin(credentials) {
   const response = await serverFetchClient(`${BACKEND_URL}/auth/signin`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -23,14 +23,14 @@ export async function signin(credentials) {
   return { user, setCookieHeaders };
 }
 
-export async function signout(cookieHeader) {
+async function signout(cookieHeader) {
   await serverFetchClient(`${BACKEND_URL}/auth/signout`, {
     method: 'POST',
     headers: { cookie: cookieHeader },
   });
 }
 
-export async function getMe(cookieHeader) {
+async function getMe(cookieHeader) {
   const response = await serverFetchClient(`${BACKEND_URL}/auth/me`, {
     headers: { cookie: cookieHeader },
   });
@@ -38,3 +38,5 @@ export async function getMe(cookieHeader) {
   const { data: user } = await response.json();
   return user;
 }
+
+export const authService = { signup, signin, signout, getMe };

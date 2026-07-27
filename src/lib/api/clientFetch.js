@@ -35,10 +35,18 @@ export default async function clientFetch(input, init = {}) {
       .catch(() => null);
 
     if (errorBody?.code === 'TOKEN_EXPIRED' && !init._retried) {
-      const refreshResponse = await requestRefresh();
+      try {
+        const refreshResponse = await requestRefresh();
 
-      if (refreshResponse.ok) {
-        return clientFetch(input, { ...init, _retried: true });
+        if (refreshResponse.ok) {
+          return clientFetch(input, { ...init, _retried: true });
+        }
+      } catch {
+        const error = new Error(
+          '세션 갱신에 실패했습니다. 다시 로그인해주세요.',
+        );
+        error.code = 'REFRESH_FAILED';
+        throw error;
       }
     }
   }

@@ -3,7 +3,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-import * as authService from '@/lib/services/authService';
+import { authService } from '@/lib/services/authService';
 
 export async function signupAction(prevState, formData) {
   const email = formData.get('email');
