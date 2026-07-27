@@ -138,7 +138,7 @@ export default function Card({
         )}
       >
         {field && <ChipField variant={field} />}
-        {docType && <ChipCategory>{docType}</ChipCategory>}
+        {docType && <ChipCategory variant={docType} />}
       </div>
 
       <hr className={cn('border-gray-200')} />
