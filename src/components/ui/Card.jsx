@@ -11,7 +11,7 @@ import { cn } from '@/utils/cn';
 import ButtonChallenge from '@/components/ui/Button/ButtonChallenge';
 import ButtonKebab from '@/components/ui/Button/ButtonKebab';
 import ChipCategory from '@/components/ui/Chip/ChipCategory';
-import ChipFiled from '@/components/ui/Chip/ChipFiled';
+import ChipField from '@/components/ui/Chip/ChipField';
 
 function formatDeadline(date) {
   const d = new Date(date);
@@ -137,8 +137,8 @@ export default function Card({
           'tablet:mb-[16px]',
         )}
       >
-        {Field && <ChipFiled label={Field} />}
-        {docType && <ChipCategory label={docType} />}
+        {Field && <ChipField variant={Field} />}
+        {docType && <ChipCategory>{docType}</ChipCategory>}
       </div>
 
       <hr className={cn('border-gray-200')} />
