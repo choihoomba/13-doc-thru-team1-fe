@@ -10,10 +10,8 @@ import iconList from '@/app/assets/icons/ic_list.svg';
 import logo from '@/app/assets/images/img_logo.svg';
 
 import {
-  deleteDraft,
   getChallenge,
   getSubmission,
-  saveDraft,
   updateSubmission,
 } from '@/lib/api/submissionNew';
 
@@ -35,11 +33,9 @@ export default function AdminSubmissionEditPage() {
   const params = useParams();
   const submissionId = params?.id;
 
-  const [editorContent, setEditorContent] = useState('');
-
   const router = useRouter();
 
-  // 원문 링크 / 챌린지 제목 / 기존 제출 내용 가져오기
+  // originalUrl / challengeTitle / 기존 제출 내용 가져오기
   const [originalUrl, setOriginalUrl] = useState(null);
   const [challengeTitle, setChallengeTitle] = useState('');
   const [initialContent, setInitialContent] = useState(null);
@@ -70,14 +66,9 @@ export default function AdminSubmissionEditPage() {
     };
   }, [submissionId]);
 
-  const [hasSaveError, setHasSaveError] = useState(false); // 서버 저장 실패 여부 판단
-
-  const editor = useSubmissionEditor({
-    onUpdate: ({ editor }) => setEditorContent(editor.getHTML()),
-  });
+  const editor = useSubmissionEditor();
 
   // 기존 작업물 내용을 에디터에 최초 1회 채워넣기
-  // setContent는 기본적으로 update 이벤트를 emit하므로 onUpdate가 editorContent를 채워줌
   useEffect(() => {
     if (!editor || initialContent === null) return;
     editor.commands.setContent(initialContent);
@@ -88,74 +79,24 @@ export default function AdminSubmissionEditPage() {
 
   const { openModal, closeModal } = useModal();
 
-  // 서버 저장 실패한 채로 브라우저 뒤로가기를 시도하면 ModalConfirm으로 임시저장 여부 확인
-  useEffect(() => {
-    if (!hasSaveError) return;
-    window.history.pushState(null, '', window.location.href);
-
-    function handlePopState() {
-      openModal(
-        <ModalConfirm
-          message="수정 중인 내용이 있습니다. 임시저장하시겠습니까?"
-          cancelButtonText="아니오"
-          confirmButtonText="네"
-          onCancel={() => {
-            window.history.pushState(null, '', window.location.href);
-            closeModal();
-          }}
-          onConfirm={async () => {
-            try {
-              await saveDraft(submissionId, {
-                title: challengeTitle,
-                content: editorContent,
-              });
-              setHasSaveError(false);
-              closeModal();
-              window.history.back(); // 저장 성공했을 때만 실제로 이전 페이지로 이동
-            } catch (error) {
-              console.error('임시저장(뒤로가기 시) 실패:', error);
-              window.history.pushState(null, '', window.location.href);
-              closeModal();
-            }
-          }}
-        />,
-      );
-    }
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [
-    hasSaveError,
-    submissionId,
-    challengeTitle,
-    editorContent,
-    openModal,
-    closeModal,
-  ]);
-
-  // 임시저장 버튼 누르면:
-  function handleSaveDraft() {
-    if (!submissionId) return;
-    if (!editorContent.trim()) return; // content가 비어있으면 서버(draft) 저장은 항상 400이라 아예 시도 안 함
-
-    saveDraft(submissionId, {
-      title: challengeTitle,
-      content: editorContent,
-    })
-      .then(() => {
-        setHasSaveError(false);
-        router.push(`/admin/submissions/${submissionId}`);
-      })
-      .catch((error) => {
-        setHasSaveError(true);
-        console.error('임시저장 실패:', error);
-      });
+  // 취소하기 버튼 누르면:
+  function handleCancel() {
+    openModal(
+      <ModalConfirm
+        message={'작성 중인 내용이 있습니다.\n 정말 취소하시겠습니까?'}
+        cancelButtonText="아니오"
+        confirmButtonText="네"
+        onCancel={closeModal}
+        onConfirm={() => {
+          closeModal();
+          router.push(`/admin/submissions/${submissionId}`);
+        }}
+      />,
+    );
   }
 
   // 수정하기 버튼 누르면:
-  function handleSubmit() {
-    if (!submissionId) return;
-
+  function handleEdit() {
     openModal(
       <ModalConfirm
         message="작업물을 수정하시겠어요?"
@@ -165,9 +106,6 @@ export default function AdminSubmissionEditPage() {
         onConfirm={async () => {
           try {
             await updateSubmission(submissionId, editor?.getHTML() ?? '');
-            deleteDraft(submissionId).catch((error) => {
-              console.error('임시저장 삭제 실패:', error);
-            });
             router.push(`/admin/submissions/${submissionId}`);
           } catch (error) {
             console.error('수정 실패:', error);
@@ -232,14 +170,14 @@ export default function AdminSubmissionEditPage() {
                 variant="secondary"
                 size={isOriginalOpen ? 'sm' : 'md'}
                 className={cn(isOriginalOpen && 'rounded-[10px]')}
-                onClick={handleSaveDraft}
+                onClick={handleCancel}
               >
-                임시저장
+                취소하기
               </ButtonSecondary>
               <ButtonSecondary
                 size={isOriginalOpen ? 'sm' : 'md'}
                 className={cn(isOriginalOpen && 'rounded-[10px]')}
-                onClick={handleSubmit}
+                onClick={handleEdit}
               >
                 수정하기
               </ButtonSecondary>
