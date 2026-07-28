@@ -2,12 +2,15 @@
 
 import { use } from 'react';
 
+import { useRouter } from 'next/navigation';
+
 import { useAuth } from '@/lib/providers/AuthProvider';
 
 import { useModal } from '@/hooks/modal/useModal';
 import {
   useCreateFeedback,
   useDeleteFeedback,
+  useDeleteSubmission,
   useToggleLike,
   useUpdateFeedback,
 } from '@/hooks/queries/submissions/mutations';
@@ -24,6 +27,8 @@ export default function SubmissionDetailPage({ params }) {
   // Next.js 15+ 에서 params는 Promise이므로 use()로 값을 꺼낸다
   const { id } = use(params);
 
+  const router = useRouter();
+
   const { user: authRes } = useAuth();
   // 백엔드 공통 응답이 { success, data } 형태라 data를 한 겹 벗긴다
   const currentUser = authRes?.data ?? null;
@@ -36,6 +41,7 @@ export default function SubmissionDetailPage({ params }) {
   const createFeedback = useCreateFeedback(id);
   const updateFeedback = useUpdateFeedback(id);
   const deleteFeedback = useDeleteFeedback(id);
+  const deleteSubmission = useDeleteSubmission(id);
   const toggleLike = useToggleLike(id);
 
   if (isLoading) {
@@ -63,6 +69,27 @@ export default function SubmissionDetailPage({ params }) {
     deleteFeedback.error?.message ??
     null;
 
+  // 작업물 삭제: 본인은 content가 초기화되며 페이지에 남고, 어드민은 soft delete되어 목록으로 이동한다
+  const handleDeleteSubmission = () => {
+    openModal(
+      <ModalConfirm
+        message="정말 삭제하시겠어요?"
+        cancelButtonText="아니오"
+        confirmButtonText="네"
+        onConfirm={() => {
+          deleteSubmission.mutate(undefined, {
+            onSuccess: () => {
+              closeModal();
+              if (currentUser?.role === 'ADMIN') {
+                router.push('/challenges');
+              }
+            },
+          });
+        }}
+      />,
+    );
+  };
+
   // 피드백 삭제: 되돌릴 수 없으므로 확인 모달을 거친다
   const handleDeleteFeedback = (feedback) => {
     openModal(
@@ -88,7 +115,7 @@ export default function SubmissionDetailPage({ params }) {
       feedbackErrorMessage={feedbackErrorMessage}
       onToggleLike={(isLiked) => toggleLike.mutate(isLiked)}
       onEdit={(s) => console.log('작업물 수정:', s)}
-      onDelete={(s) => console.log('작업물 삭제:', s)}
+      onDelete={handleDeleteSubmission}
       onFeedbackSubmit={(content) => createFeedback.mutate(content)}
       onFeedbackLoadMore={() => fetchNextPage()}
       onFeedbackEdit={(feedback, content) =>

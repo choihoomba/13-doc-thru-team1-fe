@@ -5,6 +5,7 @@ import {
   createLike,
   deleteFeedback,
   deleteLike,
+  deleteSubmission,
   updateFeedback,
 } from '@/lib/api/submissions';
 
@@ -49,6 +50,20 @@ export function useDeleteFeedback(submissionId) {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: submissionKeys.feedbacks(submissionId),
+      });
+    },
+  });
+}
+
+/** 작업물 삭제 (본인: content 초기화 / 어드민: soft delete는 백엔드가 role로 분기) */
+export function useDeleteSubmission(submissionId) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => deleteSubmission(submissionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: submissionKeys.all,
       });
     },
   });

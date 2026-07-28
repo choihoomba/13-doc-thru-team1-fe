@@ -10,6 +10,13 @@ export async function getSubmission(submissionId) {
   return clientFetch(ENDPOINTS.submissions.detail(submissionId));
 }
 
+/** 작업물 삭제 (본인: content 초기화 / 어드민: soft delete) */
+export async function deleteSubmission(submissionId) {
+  return clientFetch(ENDPOINTS.submissions.detail(submissionId), {
+    method: 'DELETE',
+  });
+}
+
 /** 피드백 목록 조회 (커서 페이지네이션) */
 export async function getFeedbacks(submissionId, { cursor, take } = {}) {
   const params = new URLSearchParams();
