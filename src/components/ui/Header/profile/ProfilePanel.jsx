@@ -70,7 +70,7 @@ export default function ProfilePanel({ id, user, onLogout, isLogoutPending }) {
           'text-gray-400 tracking-[0.289px] hover:bg-gray-50',
           'focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand-yellow',
           'disabled:cursor-wait',
-          isAdmin ? 'mb-[8px] h-[32px]' : 'h-[36px]',
+          isAdmin ? 'h-[40px]' : 'h-[36px]',
         )}
       >
         {isLogoutPending ? '로그아웃 중' : '로그아웃'}
