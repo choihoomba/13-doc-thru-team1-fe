@@ -24,17 +24,19 @@ export default function LandingPage() {
   return (
     <main className={cn('bg-gray-100')}>
       {/* 히어로 섹션 */}
-      <section className={cn('relative')}>
+      <header className={cn('relative')}>
         {/*화면 크기 감지 훅 대신 CSS로 반응형 전환 
         LandingPage 서버 컴포넌트 상태 유지 목적 */}
         <Image
           src={ImgLandingBgSm}
           alt=""
+          priority
           className={cn('w-full h-auto', 'tablet:hidden')}
         />
         <Image
           src={ImgLandingBgMd}
           alt=""
+          priority
           className={cn(
             'hidden w-full h-auto',
             'tablet:block',
@@ -44,6 +46,7 @@ export default function LandingPage() {
         <Image
           src={ImgLandingBgLg}
           alt=""
+          priority
           className={cn('hidden w-full h-auto', 'desktop:block')}
         />
         <div
@@ -55,13 +58,14 @@ export default function LandingPage() {
             src={ImgLandingLogo}
             alt="Docthru"
             width={126}
-            height={28.35}
+            height={29}
+            priority
             className={cn(
               'translate-x-[-8.5px] mb-2.75',
               'tablet:translate-x-0 tablet:mb-[15.65px]',
             )}
           />
-          <p
+          <h1
             className={cn(
               'text-20-semibold text-white text-center leading-7 mb-[23.65px]',
               'tablet:text-24-semibold tablet:mb-6.5',
@@ -70,18 +74,16 @@ export default function LandingPage() {
             함께 번역하며 성장하는
             <br />
             개발자의 새로운 영어 습관
-          </p>
+          </h1>
           <CtaLinkButton className="bg-white text-brand-black" />
         </div>
-      </section>
+      </header>
 
       {/* 섹션2 */}
       <section
         className={cn(
           'mt-9.5',
           'desktop:mt-22.25 desktop:flex desktop:items-start desktop:gap-16 desktop:w-235.75 desktop:mx-auto',
-          // w-235.75는 1920px 시안 기준 고정폭, desktop(1024px) 이상 전체에서 동일 적용
-          // 브레이크포인트~시안 사이 화면은 중앙 정렬로 흡수
         )}
       >
         <div
@@ -98,10 +100,10 @@ export default function LandingPage() {
             height={24}
             className={cn('mb-2')}
           />
-          <p className={cn('text-20-bold text-black mb-3 leading-7')}>
+          <h2 className={cn('text-20-bold text-black mb-3 leading-7')}>
             혼자서는 막막했던 번역,
             <br /> 챌린지로 함께 완성하기
-          </p>
+          </h2>
           <p className={cn('text-16-regular text-gray-550')}>
             중요한 건 꺾이지 않는 마음! 동료들과 함께
             <br />
@@ -147,11 +149,11 @@ export default function LandingPage() {
             height={24}
             className={cn('mb-2')}
           />
-          <p className={cn('text-20-bold text-black mb-3 leading-7')}>
+          <h2 className={cn('text-20-bold text-black mb-3 leading-7')}>
             내가 좋아하는 기술 번역,
             <br />
             내가 필요한 기술 번역
-          </p>
+          </h2>
           <p className={cn('text-16-regular text-gray-550')}>
             이미 진행 중인 번역 챌린지에 참여하거나,
             <br />
@@ -197,9 +199,9 @@ export default function LandingPage() {
             height={24}
             className={cn('mb-2')}
           />
-          <p className={cn('text-20-bold text-black mb-3 leading-7')}>
+          <h2 className={cn('text-20-bold text-black mb-3 leading-7')}>
             피드백으로 함께 성장하기
-          </p>
+          </h2>
           <p className={cn('text-16-regular text-gray-550')}>
             번역 작업물에 대해 피드백을 주고 받으며
             <br />
@@ -231,9 +233,9 @@ export default function LandingPage() {
           'desktop:pb-30.75',
         )}
       >
-        <p className={cn('text-18-semibold text-black text-center')}>
+        <h2 className={cn('text-18-semibold text-black text-center')}>
           함께 번역하고 성장하세요!
-        </p>
+        </h2>
         <CtaLinkButton />
       </section>
     </main>
