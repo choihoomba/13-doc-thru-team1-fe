@@ -26,9 +26,6 @@ import SubmissionEditorToolbar from '@/components/submissions/SubmissionEditorTo
 import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 import ModalConfirm from '@/components/ui/Modal/ModalConfirm';
 
-// TODO: 지우기 임시 originalUrl
-const ORIGINAL_URL = 'https://github.com/choihoomba/13-doc-thru-team1-fe/pulls';
-
 export default function AdminSubmissionEditPage() {
   const params = useParams();
   const submissionId = params?.id;
@@ -46,9 +43,7 @@ export default function AdminSubmissionEditPage() {
     getSubmission(submissionId)
       .then((submission) => {
         if (cancelled) return null;
-        setInitialContent(
-          submission?.draft?.content ?? submission?.content ?? '',
-        );
+        setInitialContent(submission?.content ?? '');
         if (!submission?.challengeId) return null;
         return getChallenge(submission.challengeId);
       })
@@ -127,9 +122,9 @@ export default function AdminSubmissionEditPage() {
         style={{ '--panel-width': panelWidthCss }}
       >
         <OriginalUrlPanel
-          key={originalUrl ?? ORIGINAL_URL}
+          key={originalUrl}
           isOpen={isOriginalOpen}
-          url={originalUrl ?? ORIGINAL_URL}
+          url={originalUrl}
           onClose={() => setIsOriginalOpen(false)}
           onResizeStart={handleResizeStart}
         />

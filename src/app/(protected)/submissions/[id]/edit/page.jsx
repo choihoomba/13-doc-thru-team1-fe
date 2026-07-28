@@ -14,7 +14,6 @@ import {
   deleteDraft,
   getChallenge,
   getSubmission,
-  getSubmissionDetail,
   saveDraft,
   updateSubmission,
 } from '@/lib/api/submissionNew';
@@ -33,25 +32,24 @@ import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 import ModalConfirm from '@/components/ui/Modal/ModalConfirm';
 import Toast from '@/components/ui/Toast';
 
-// 임시 originalUrl
-const ORIGINAL_URL = 'https://github.com/choihoomba/13-doc-thru-team1-fe/pulls';
-
 const SAVE_DEBOUNCE_MS = 500;
 
-const LOCAL_DRAFT_KEY = 'submissionNew:draft';
+function getLocalDraftKey(submissionId) {
+  return `submissionNew:draft:${submissionId}`;
+}
 
-function saveDraftToLocal({ title, content }) {
-  if (typeof window === 'undefined') return;
+function saveDraftToLocal(submissionId, { title, content }) {
+  if (typeof window === 'undefined' || !submissionId) return;
 
   localStorage.setItem(
-    LOCAL_DRAFT_KEY,
+    getLocalDraftKey(submissionId),
     JSON.stringify({ title, content, updatedAt: new Date().toISOString() }),
   );
 }
 
-function getDraftFromLocal() {
-  if (typeof window === 'undefined') return null;
-  const raw = localStorage.getItem(LOCAL_DRAFT_KEY);
+function getDraftFromLocal(submissionId) {
+  if (typeof window === 'undefined' || !submissionId) return null;
+  const raw = localStorage.getItem(getLocalDraftKey(submissionId));
   if (!raw) return null;
   try {
     return JSON.parse(raw);
@@ -111,7 +109,10 @@ export default function SubmissionEditPage() {
     if (!debouncedContent.trim()) return;
 
     // content 가 있으면 로컬엔 항상 즉시 저장
-    saveDraftToLocal({ title: challengeTitle, content: debouncedContent });
+    saveDraftToLocal(submissionId, {
+      title: challengeTitle,
+      content: debouncedContent,
+    });
 
     if (!submissionId) return;
     saveDraft(submissionId, {
@@ -131,7 +132,7 @@ export default function SubmissionEditPage() {
     // - 로컬이 비어있으면 submission.content(현재 제출된 내용)를 기본값으로 채우고,
     //   그 위에 이어서 수정하던 임시저장(draft)이 있으면 Toast로 불러오기 제안
     onCreate: ({ editor }) => {
-      const local = getDraftFromLocal();
+      const local = getDraftFromLocal(submissionId);
       if (local) {
         setEditorContent(local.content ?? '');
         editor.commands.setContent(local.content ?? '');
@@ -203,8 +204,33 @@ export default function SubmissionEditPage() {
     closeModal,
   ]);
 
-  // - 로컬은 비었고, 서버에는 draft가 있을때 Toast띄워서 임시저장 불러오기
-  // - 서버 실패 시 로컬로 폴백 -> TODO: 일단 주석으로 남겨둠
+  // 작업물 불러오기 Modal로 '네' 클릭시:
+  async function attemptLoadDraft() {
+    try {
+      const submission = await getSubmission(submissionId);
+      const loadedContent = submission?.draft?.content ?? '';
+      setEditorContent(loadedContent);
+      editor?.commands.setContent(loadedContent);
+      saveDraftToLocal(submissionId, {
+        title: challengeTitle,
+        content: loadedContent,
+      });
+      closeModal();
+    } catch (error) {
+      console.error('임시저장 불러오기(서버) 실패:', error);
+      openModal(
+        <ModalConfirm
+          message={'불러오기가 실패하였습니다.\n다시 시도하시겠습니까?'}
+          cancelButtonText="아니오"
+          confirmButtonText="네"
+          onCancel={closeModal}
+          onConfirm={attemptLoadDraft}
+        />,
+      );
+    }
+  }
+
+  // 로컬은 비었을때, 서버에 draft가 있음 -> 불러오기 버튼 누르면:
   function handleLoadDraft() {
     setIsToastOpen(false);
     openModal(
@@ -213,19 +239,7 @@ export default function SubmissionEditPage() {
         cancelButtonText="아니오"
         confirmButtonText="네"
         onCancel={closeModal}
-        onConfirm={async () => {
-          try {
-            const submission = await getSubmission(submissionId);
-            const loadedContent = submission?.draft?.content ?? '';
-            setEditorContent(loadedContent);
-            editor?.commands.setContent(loadedContent);
-            saveDraftToLocal({ title: challengeTitle, content: loadedContent });
-          } catch (error) {
-            console.error('임시저장 불러오기(서버) 실패:', error);
-          } finally {
-            closeModal();
-          }
-        }}
+        onConfirm={attemptLoadDraft}
       />,
     );
   }
@@ -242,7 +256,7 @@ export default function SubmissionEditPage() {
         onCancel={closeModal}
         onConfirm={async () => {
           try {
-            const submission = await getSubmissionDetail(submissionId);
+            const submission = await getSubmission(submissionId);
             if (!submission?.participationId) return;
             await cancelParticipation(submission.participationId);
             router.push(
@@ -295,9 +309,9 @@ export default function SubmissionEditPage() {
         style={{ '--panel-width': panelWidthCss }}
       >
         <OriginalUrlPanel
-          key={originalUrl ?? ORIGINAL_URL}
+          key={originalUrl}
           isOpen={isOriginalOpen}
-          url={originalUrl ?? ORIGINAL_URL}
+          url={originalUrl}
           onClose={() => setIsOriginalOpen(false)}
           onResizeStart={handleResizeStart}
         />
@@ -347,7 +361,6 @@ export default function SubmissionEditPage() {
                 className={cn(isOriginalOpen && 'rounded-[10px]')}
                 onClick={() => {
                   if (!submissionId) return;
-                  // content가 비어있으면 서버(draft) 저장은 항상 400(내용을 입력해주세요)이라 아예 시도 안 함
                   if (!editorContent.trim()) return;
                   saveDraft(submissionId, {
                     title: challengeTitle,

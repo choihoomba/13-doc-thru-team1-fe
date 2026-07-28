@@ -29,11 +29,7 @@ export async function saveDraft(id, { title, content }) {
 }
 
 /* 포기하기 버튼 클릭시: */
-/* 1. GET participationId */
-export async function getSubmissionDetail(id) {
-  const { data } = await clientFetch(`/api/submissions/${id}`);
-  return data;
-}
+/* 1. GET participationId -> getSubmission 사용 */
 /* 2. 포기하기로 상태 변경 */
 export async function cancelParticipation(participationId) {
   const { data } = await clientFetch(`/api/participations/${participationId}`, {

@@ -24,7 +24,7 @@ const TEXT_COLOR_OPTIONS = [
   { label: '회색', value: '#737373' },
   { label: '빨간색', value: '#EB3E3E' },
   { label: '주황색', value: '#F97316' },
-  { label: '노란색', value: '##FFC117' },
+  { label: '노란색', value: '#FFC117' },
   { label: '초록색', value: '#22C55E' },
   { label: '파란색', value: '#3B82F6' },
   { label: '보라색', value: '#A855F7' },

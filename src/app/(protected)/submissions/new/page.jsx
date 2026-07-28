@@ -15,7 +15,6 @@ import {
   deleteDraft,
   getChallenge,
   getSubmission,
-  getSubmissionDetail,
   saveDraft,
   updateSubmission,
 } from '@/lib/api/submissionNew';
@@ -34,25 +33,24 @@ import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 import ModalConfirm from '@/components/ui/Modal/ModalConfirm';
 import Toast from '@/components/ui/Toast';
 
-// TODO: 임시 originalUrl 지우기
-const ORIGINAL_URL = 'https://github.com/choihoomba/13-doc-thru-team1-fe/pulls';
-
 const SAVE_DEBOUNCE_MS = 500;
 
-const LOCAL_DRAFT_KEY = 'submissionNew:draft';
+function getLocalDraftKey(submissionId) {
+  return `submissionNew:draft:${submissionId}`;
+}
 
-function saveDraftToLocal({ title, content }) {
-  if (typeof window === 'undefined') return;
+function saveDraftToLocal(submissionId, { title, content }) {
+  if (typeof window === 'undefined' || !submissionId) return;
 
   localStorage.setItem(
-    LOCAL_DRAFT_KEY,
+    getLocalDraftKey(submissionId),
     JSON.stringify({ title, content, updatedAt: new Date().toISOString() }),
   );
 }
 
-function getDraftFromLocal() {
-  if (typeof window === 'undefined') return null;
-  const raw = localStorage.getItem(LOCAL_DRAFT_KEY);
+function getDraftFromLocal(submissionId) {
+  if (typeof window === 'undefined' || !submissionId) return null;
+  const raw = localStorage.getItem(getLocalDraftKey(submissionId));
   if (!raw) return null;
   try {
     return JSON.parse(raw);
@@ -62,10 +60,9 @@ function getDraftFromLocal() {
 }
 
 export default function NewSubmissionPage() {
-  // TODO: 챌린지 상세페이지에서 도전하기버튼을 누르면 route로 submissionId받으면? 이렇게 구현?
   const searchParams = useSearchParams();
   const submissionId = searchParams.get('id');
-
+  // 챌린지 상세페이지에서 ?id= 형식으로 받기
   const [editorContent, setEditorContent] = useState('');
 
   const router = useRouter();
@@ -112,8 +109,11 @@ export default function NewSubmissionPage() {
     // content가 비어있으면 로컬/서버 둘 다 저장 안 함
     if (!debouncedContent.trim()) return;
 
-    // content 가 있으면 로컬엔 항상 즉시 저장
-    saveDraftToLocal({ title: challengeTitle, content: debouncedContent });
+    // content가 있으면 로컬엔 항상 즉시 저장
+    saveDraftToLocal(submissionId, {
+      title: challengeTitle,
+      content: debouncedContent,
+    });
 
     if (!submissionId) return;
     saveDraft(submissionId, {
@@ -132,7 +132,7 @@ export default function NewSubmissionPage() {
     // - 로컬에 있으면 묻지 않고 바로 채움 -> 적다가 모르고 새로고침함
     // - 로컬이 비어있으면 서버 기준으로 Toast 노출
     onCreate: ({ editor }) => {
-      const local = getDraftFromLocal();
+      const local = getDraftFromLocal(submissionId);
       if (local) {
         setEditorContent(local.content ?? '');
         editor.commands.setContent(local.content ?? '');
@@ -199,8 +199,31 @@ export default function NewSubmissionPage() {
     closeModal,
   ]);
 
-  // - 로컬은 비었고, 서버에는 draft가 있을때 Toast띄워서 임시저장 불러오기
-  // - 서버 실패 시 로컬로 폴백은 없음 -> TODO: ?
+  async function attemptLoadDraft() {
+    try {
+      const submission = await getSubmission(submissionId);
+      const loadedContent = submission?.draft?.content ?? '';
+      setEditorContent(loadedContent);
+      editor?.commands.setContent(loadedContent);
+      saveDraftToLocal(submissionId, {
+        title: challengeTitle,
+        content: loadedContent,
+      });
+      closeModal();
+    } catch (error) {
+      console.error('임시저장 불러오기(서버) 실패:', error);
+      openModal(
+        <ModalConfirm
+          message={'불러오기가 실패하였습니다.\n다시 시도하시겠습니까?'}
+          cancelButtonText="아니오"
+          confirmButtonText="네"
+          onCancel={closeModal}
+          onConfirm={attemptLoadDraft}
+        />,
+      );
+    }
+  }
+
   function handleLoadDraft() {
     setIsToastOpen(false);
     openModal(
@@ -209,19 +232,7 @@ export default function NewSubmissionPage() {
         cancelButtonText="아니오"
         confirmButtonText="네"
         onCancel={closeModal}
-        onConfirm={async () => {
-          try {
-            const submission = await getSubmission(submissionId);
-            const loadedContent = submission?.draft?.content ?? '';
-            setEditorContent(loadedContent);
-            editor?.commands.setContent(loadedContent);
-            saveDraftToLocal({ title: challengeTitle, content: loadedContent });
-          } catch (error) {
-            console.error('임시저장 불러오기(서버) 실패:', error);
-          } finally {
-            closeModal();
-          }
-        }}
+        onConfirm={attemptLoadDraft}
       />,
     );
   }
@@ -238,7 +249,7 @@ export default function NewSubmissionPage() {
         onCancel={closeModal}
         onConfirm={async () => {
           try {
-            const submission = await getSubmissionDetail(submissionId);
+            const submission = await getSubmission(submissionId);
             if (!submission?.participationId) return;
             await cancelParticipation(submission.participationId);
             router.push(
@@ -291,9 +302,9 @@ export default function NewSubmissionPage() {
         style={{ '--panel-width': panelWidthCss }}
       >
         <OriginalUrlPanel
-          key={originalUrl ?? ORIGINAL_URL}
+          key={originalUrl}
           isOpen={isOriginalOpen}
-          url={originalUrl ?? ORIGINAL_URL}
+          url={originalUrl}
           onClose={() => setIsOriginalOpen(false)}
           onResizeStart={handleResizeStart}
         />
