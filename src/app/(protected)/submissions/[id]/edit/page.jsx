@@ -36,7 +36,7 @@ import Toast from '@/components/ui/Toast';
 const SAVE_DEBOUNCE_MS = 500;
 
 function getLocalDraftKey(submissionId) {
-  return `submissionNew:draft:${submissionId}`;
+  return `submissionEdit:draft:${submissionId}`;
 }
 
 function saveDraftToLocal(submissionId, { title, content }) {
@@ -57,6 +57,11 @@ function getDraftFromLocal(submissionId) {
   } catch {
     return null;
   }
+}
+
+function removeDraftFromLocal(submissionId) {
+  if (typeof window === 'undefined' || !submissionId) return;
+  localStorage.removeItem(getLocalDraftKey(submissionId));
 }
 
 // TipTap가 완전히 빈 상태에서도 getHTML()이 ''가 아니라 '<p></p>'를 반환해서 쓰는함수
@@ -261,6 +266,7 @@ export default function SubmissionEditPage() {
 
           try {
             await updateSubmission(submissionId, content);
+            removeDraftFromLocal(submissionId);
             deleteDraft(submissionId).catch((error) => {
               console.error('임시저장 삭제 실패:', error);
             });

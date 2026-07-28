@@ -60,6 +60,11 @@ function getDraftFromLocal(submissionId) {
   }
 }
 
+function removeDraftFromLocal(submissionId) {
+  if (typeof window === 'undefined' || !submissionId) return;
+  localStorage.removeItem(getLocalDraftKey(submissionId));
+}
+
 // TipTap가 완전히 빈 상태에서도 getHTML()이 ''가 아니라 '<p></p>'를 반환해서 만든 함수
 function isEditorContentEmpty(html) {
   return !html || html.trim() === '<p></p>';
@@ -254,6 +259,7 @@ export default function NewSubmissionPage() {
 
           try {
             await updateSubmission(submissionId, content);
+            removeDraftFromLocal(submissionId);
             deleteDraft(submissionId).catch((error) => {
               console.error('임시저장 삭제 실패:', error);
             });
