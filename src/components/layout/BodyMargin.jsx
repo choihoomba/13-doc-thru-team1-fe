@@ -7,7 +7,6 @@ import { cn } from '@/utils/cn';
 import Header from '@/components/ui/Header/Header';
 
 const EXCLUDED_PATHS = [
-  '/',
   '/signin',
   '/signup',
   '/submissions/new',
