@@ -27,6 +27,7 @@ export default function NotificationItem({
     <li>
       <button
         type="button"
+        aria-label={`${notification.isRead ? '읽은 알림' : '읽지 않은 알림'}: ${notification.message}`}
         onClick={() => onSelect(notification)}
         className={cn(
           'flex w-full cursor-pointer flex-col items-start border-b border-gray-200',
@@ -38,7 +39,8 @@ export default function NotificationItem({
       >
         <span
           className={cn(
-            'text-14-regular text-gray-800',
+            'text-14-regular transition-colors',
+            notification.isRead ? 'text-gray-400' : 'text-gray-800',
             isFirst ? 'line-clamp-3' : 'line-clamp-2',
           )}
         >
@@ -48,10 +50,6 @@ export default function NotificationItem({
         <span className="text-14-regular text-gray-400">
           {formatNotificationDate(notification.createdAt)}
         </span>
-
-        {!notification.isRead && (
-          <span className="sr-only">읽지 않은 알림</span>
-        )}
       </button>
     </li>
   );
