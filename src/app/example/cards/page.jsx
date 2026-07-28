@@ -10,7 +10,7 @@ import Card from '@/components/ui/Card';
 const SAMPLE_CHALLENGE = {
   title: 'Next.js - App Router: Routing Fundamentals',
   deadline: '2024-03-03',
-  maxParticipants: 5,
+  maxParticipants: 9,
   currentParticipants: 5,
   field: 'Next.js',
   docType: '공식문서',
@@ -18,10 +18,14 @@ const SAMPLE_CHALLENGE = {
 
 const SAMPLE_CHALLENGE_CLOSED = {
   ...SAMPLE_CHALLENGE,
+  maxParticipants: 5,
+  currentParticipants: 5,
   status: 'CLOSED',
 };
 const SAMPLE_CHALLENGE_COMPLETED = {
   ...SAMPLE_CHALLENGE,
+  maxParticipants: 5,
+  currentParticipants: 5,
   status: 'APPROVED',
 };
 

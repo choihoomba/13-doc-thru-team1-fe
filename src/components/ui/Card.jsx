@@ -13,6 +13,7 @@ import ButtonKebab from '@/components/ui/Button/ButtonKebab';
 import ChipCategory from '@/components/ui/Chip/ChipCategory';
 import ChipField from '@/components/ui/Chip/ChipField';
 
+// TODO: formatDate으로 수정
 function formatDeadline(date) {
   const d = new Date(date);
   if (isNaN(d.getTime())) return '';
@@ -40,17 +41,17 @@ const STATUS_MAP = {
  * - 상세페이지 이동은 제목 클릭으로만 처리 (ButtonChallenge 자체가 Link라 카드 전체를 Link로 감싸면 <a> 중첩이 발생)
  */
 export default function Card({
-  challenge,
-  detailHref,
-  showStatusChip = true,
-  showKebab = false,
-  onEdit,
-  onDelete,
-  showContinueButton = false,
-  continueHref,
-  showSubmissionButton = false,
-  submissionHref,
-  className = '',
+  challenge = {}, // 챌린지 응답 데이터
+  detailHref = '', // 챌린지 상세 페이지 링크
+  showStatusChip = true, // 상태 칩(모집완료/마감) 노출 여부
+  showKebab = false, // 케밥 메뉴(수정/삭제) 노출 여부
+  onEdit = () => {}, // 케밥 메뉴 수정 클릭 핸들러
+  onDelete = () => {}, // 케밥 메뉴 삭제 클릭 핸들러
+  showContinueButton, // '도전 계속하기' 버튼 노출 여부
+  continueHref = '', // 있으면 '도전 계속하기' 버튼 노출 + 이동 경로
+  showSubmissionButton = false, // '내 작업물 보기' 버튼 노출 여부
+  submissionHref = '', // '내 작업물 보기' 버튼 이동 경로
+  className = '', // 카드 래퍼에 합칠 추가 클래스
 }) {
   const {
     title,
@@ -102,7 +103,7 @@ export default function Card({
           <Link
             href={detailHref}
             className={cn(
-              'w-fit text-20-semibold text-gray-700',
+              'w-fit text-20-semibold text-gray-700 transition-colors hover:text-gray-500',
               'tablet:text-22-semibold',
             )}
           >
@@ -123,7 +124,7 @@ export default function Card({
         <Link
           href={detailHref}
           className={cn(
-            'w-fit mb-[14px] text-20-semibold text-gray-700',
+            'w-fit mb-[14px] text-20-semibold text-gray-700 transition-colors hover:text-gray-500',
             'tablet:text-22-semibold',
           )}
         >
@@ -143,12 +144,14 @@ export default function Card({
 
       <hr className={cn('border-gray-200')} />
 
-      <div className={cn('flex items-center justify-between')}>
+      <div
+        className={cn('flex items-center justify-between', 'tablet:mt-[16px]')}
+      >
         <div
           className={cn(
             'flex items-start mt-[12px] flex-col gap-[2px] text-13-regular text-gray-600',
-            'tablet:flex-row tablet:items-center tablet:mt-[20.5px] tablet:gap-[8px]',
-            'desktop:mt-[16px] desktop:gap-[12px]',
+            'tablet:flex-row tablet:items-center tablet:gap-[8px]',
+            'desktop:gap-[12px]',
           )}
         >
           <span className={cn('flex items-center gap-[4px]')}>
@@ -157,18 +160,29 @@ export default function Card({
           </span>
           <span className={cn('flex items-center gap-[4px]')}>
             <Image src={IcPerson} alt="" width={24} height={24} unoptimized />
-            {currentParticipants}/{maxParticipants} 참여 완료
+            {currentParticipants}/{maxParticipants}
+            {currentParticipants >= maxParticipants || status === 'CLOSED'
+              ? '참여 완료'
+              : '참여중'}
           </span>
         </div>
 
         {showContinueButton && (
-          <div className={cn('flex mt-auto')}>
-            <ButtonChallenge variant="challenge" href={continueHref} />
+          <div className={cn('flex mt-auto', 'tablet:mb-auto')}>
+            <ButtonChallenge
+              variant="challenge"
+              href={continueHref}
+              className={cn('transition-colors hover:bg-gray-100')}
+            />
           </div>
         )}
         {showSubmissionButton && (
           <div className={cn('flex mt-auto')}>
-            <ButtonChallenge variant="submission" href={submissionHref} />
+            <ButtonChallenge
+              variant="submission"
+              href={submissionHref}
+              className={cn('transition-colors hover:bg-gray-200')}
+            />
           </div>
         )}
       </div>
