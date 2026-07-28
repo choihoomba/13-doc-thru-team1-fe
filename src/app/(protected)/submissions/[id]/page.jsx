@@ -114,7 +114,7 @@ export default function SubmissionDetailPage({ params }) {
       isSubmitting={createFeedback.isPending}
       feedbackErrorMessage={feedbackErrorMessage}
       onToggleLike={(isLiked) => toggleLike.mutate(isLiked)}
-      onEdit={(s) => console.log('작업물 수정:', s)}
+      onEdit={() => router.push(`/submissions/${id}/edit`)}
       onDelete={handleDeleteSubmission}
       onFeedbackSubmit={(content) => createFeedback.mutate(content)}
       onFeedbackLoadMore={() => fetchNextPage()}
