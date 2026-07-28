@@ -1,5 +1,5 @@
 /**
- * 알림의 로딩·오류·빈 목록 상태는 같은 레이아웃을 사용하고 문구만 달라집니다.
+ * Header 알림의 로딩·오류·빈 목록 상태는 같은 레이아웃을 사용하고 문구만 달라집니다.
  */
 export default function NotificationState({ text }) {
   return (

@@ -16,8 +16,8 @@ import Header from '@/components/ui/Header/Header';
 @ Header 예제 페이지 레이아웃
 
 Header는 viewport 전체를 기준으로 좌표를 검수해야 하므로 main에 좌우 padding을 넣지 않습니다.
-내부 최대 너비만 1200px로 제한하면:
-- desktop 1920px: 좌우 360px
+내부 최대 너비는 Header와 동일한 1248px(콘텐츠 1200px + 좌우 padding 24px)입니다.
+- desktop 1920px: 실제 Header 콘텐츠 좌우 360px
 - iPad mini 744px: 전체 744px
 - mobile 375px: 전체 375px
 규격으로 각 Header를 확인할 수 있습니다.
@@ -32,16 +32,12 @@ const HEADER_EXAMPLE_CONTENT_STYLE = [
   'mx-auto',
   'flex',
   'w-full',
-  'max-w-[1200px]',
+  'max-w-[1248px]',
   'flex-col',
   'gap-[32px]',
 ].join(' ');
 
-const HEADER_EXAMPLE_INTRO_STYLE = [
-  'px-[16px]',
-  'min-[600px]:px-[24px]',
-  'min-[1248px]:px-0',
-].join(' ');
+const HEADER_EXAMPLE_INTRO_STYLE = ['px-[16px]', 'tablet:px-[24px]'].join(' ');
 
 /*
 실제 Header는 fixed가 기본값입니다.

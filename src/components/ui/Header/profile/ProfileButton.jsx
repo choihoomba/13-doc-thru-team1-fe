@@ -4,7 +4,7 @@ import ImgProfileAdmin from '@/app/assets/images/img_profile_admin.svg';
 import ImgProfileMember from '@/app/assets/images/img_profile_member.svg';
 
 /**
- * 회원과 관리자가 공통으로 사용하는 프로필 패널 토글 버튼입니다.
+ * Header에서 회원과 관리자가 공통으로 사용하는 프로필 패널 토글 버튼입니다.
  * 사용자 role에서 파생한 isAdmin만 받아 variant 중복을 만들지 않습니다.
  */
 export default function ProfileButton({

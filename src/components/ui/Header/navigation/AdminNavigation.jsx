@@ -16,7 +16,7 @@ const ADMIN_NAV_ITEMS = [
 ];
 
 /**
- * pathname을 기준으로 관리자 메뉴의 활성 상태를 계산합니다.
+ * Header의 pathname을 기준으로 관리자 메뉴의 활성 상태를 계산합니다.
  * 예제 페이지는 activeAdminNav를 전달해 특정 상태를 고정할 수 있습니다.
  */
 export function getActiveAdminNav(activeAdminNav, pathname) {
@@ -39,7 +39,7 @@ export default function AdminNavigation({ activeAdminNav }) {
           aria-current={activeAdminNav === item.key ? 'page' : undefined}
           className={cn(
             'flex w-[76px] items-center justify-center whitespace-nowrap text-center text-13-bold',
-            'min-[600px]:w-[103px] min-[600px]:text-[15px] min-[600px]:leading-[18px] min-[600px]:font-bold',
+            'tablet:w-[103px] tablet:text-[15px] tablet:leading-[18px] tablet:font-bold',
             activeAdminNav === item.key ? 'text-gray-800' : 'text-gray-500',
           )}
         >

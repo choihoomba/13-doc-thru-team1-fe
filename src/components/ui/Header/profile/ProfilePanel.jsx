@@ -5,20 +5,10 @@ import ImgProfileAdmin from '@/app/assets/images/img_profile_admin.svg';
 import ImgProfileMember from '@/app/assets/images/img_profile_member.svg';
 
 import { cn } from '@/utils/cn';
-
-const GRADE_LABELS = {
-  GENERAL: '일반',
-  EXPERT: '전문가',
-};
-
-function getGradeLabel(user) {
-  if (user?.role === 'ADMIN') return '어드민';
-
-  return GRADE_LABELS[user?.grade] ?? '일반';
-}
+import getGradeLabel from '@/utils/getGradeLabel';
 
 /**
- * user.role로 회원/관리자 패널을 파생해 별도 variant prop을 받지 않습니다.
+ * Header의 user.role로 회원/관리자 패널을 파생해 별도 variant prop을 받지 않습니다.
  * 나의 챌린지 경로도 서비스에서 고정된 값이므로 컴포넌트 내부에서 관리합니다.
  */
 export default function ProfilePanel({ id, user, onLogout, isLogoutPending }) {
@@ -29,9 +19,8 @@ export default function ProfilePanel({ id, user, onLogout, isLogoutPending }) {
       id={id}
       aria-label={isAdmin ? '관리자 계정 메뉴' : '회원 계정 메뉴'}
       className={cn(
-        'absolute right-0 top-[calc(100%+12px)] z-dropdown flex w-[152px] flex-col',
+        'absolute right-0 top-[36px] z-dropdown flex w-[152px] flex-col',
         'overflow-hidden rounded-[8px] border-2 border-[#F5F5F5] bg-white',
-        'min-[600px]:top-[calc(100%+14px)]',
         isAdmin ? 'h-[105px]' : 'h-[137px]',
       )}
     >

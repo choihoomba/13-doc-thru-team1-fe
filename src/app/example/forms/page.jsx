@@ -55,7 +55,7 @@ const DEADLINE_ERROR_MESSAGE =
 /*
 @ Header + Form 결합 예제 레이아웃
 
-- Header는 fixed이며 599px 이하에서 56px, 600px 이상에서 60px입니다.
+- Header는 fixed이며 모바일에서 56px, tablet 이상에서 60px입니다.
 - main의 padding-top에 Header 높이와 콘텐츠 여백을 함께 반영합니다.
 - mobile 콘텐츠 여백은 20px, standard 콘텐츠 여백은 36px입니다.
   따라서 제목의 절대 Y 좌표는 mobile 76px(56 + 20),
@@ -68,7 +68,7 @@ const FORM_EXAMPLE_PAGE_STYLE = [
   'px-[16px]',
   'pt-[76px]',
   'pb-[37px]',
-  'min-[600px]:pt-[96px]',
+  'tablet:pt-[96px]',
 ].join(' ');
 
 /*

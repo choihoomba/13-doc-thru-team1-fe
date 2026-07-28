@@ -18,13 +18,13 @@ import { cn } from '@/utils/cn';
 
 import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 
-import AdminNavigation, { getActiveAdminNav } from './AdminNavigation';
-import HeaderLogo from './HeaderLogo';
-import NotificationPanel from './NotificationPanel';
-import ProfileButton from './ProfileButton';
-import ProfilePanel from './ProfilePanel';
-
-const COMPACT_HEADER_MAX_WIDTH = 599;
+import AdminNavigation, {
+  getActiveAdminNav,
+} from './navigation/AdminNavigation';
+import HeaderLogo from './navigation/HeaderLogo';
+import NotificationPanel from './notification/NotificationPanel';
+import ProfileButton from './profile/ProfileButton';
+import ProfilePanel from './profile/ProfilePanel';
 
 function getHeaderVariant(user) {
   if (!user) return 'guest';
@@ -38,7 +38,7 @@ function getHeaderVariant(user) {
  *
  * 실제 페이지에서는 user를 생략하면 AuthProvider의 현재 사용자를 사용합니다.
  * 예제에서는 user에 null 또는 목 사용자를 전달해 API와 무관하게 권한별 UI를 검수합니다.
- * 고정 Header 아래 본문에는 56px, 600px 이상에서는 60px의 상단 여백이 필요합니다.
+ * 고정 Header 아래 본문에는 모바일 56px, tablet 이상에서는 60px의 상단 여백이 필요합니다.
  */
 export default function Header({
   user: providedUser,
@@ -104,15 +104,17 @@ export default function Header({
   });
 
   /**
-   * 모바일 알림은 viewport 전체를 사용하므로 html과 body의 스크롤을 함께 잠급니다.
-   * 패널 내부 목록에는 overscroll-contain을 적용해 목록 끝에서도 배경으로 전달되지 않습니다.
+   * globals.css의 tablet breakpoint가 NotificationPanel을 fixed에서 absolute로 전환합니다.
+   * 같은 수치를 JavaScript에 중복하지 않고 실제 position을 읽어 전체 화면 패널일 때만
+   * html과 body의 배경 스크롤을 잠급니다.
    */
   useEffect(() => {
-    const isCompact = window.matchMedia(
-      `(max-width: ${COMPACT_HEADER_MAX_WIDTH}px)`,
-    ).matches;
+    const notificationPanel = document.getElementById(notificationPanelId);
+    const isFullScreenPanel =
+      notificationPanel &&
+      window.getComputedStyle(notificationPanel).position === 'fixed';
 
-    if (!isNotificationOpen || !isCompact) return undefined;
+    if (!isNotificationOpen || !isFullScreenPanel) return undefined;
 
     const originalHtmlOverflow = document.documentElement.style.overflow;
     const originalBodyOverflow = document.body.style.overflow;
@@ -124,7 +126,7 @@ export default function Header({
       document.documentElement.style.overflow = originalHtmlOverflow;
       document.body.style.overflow = originalBodyOverflow;
     };
-  }, [isNotificationOpen]);
+  }, [isNotificationOpen, notificationPanelId]);
 
   async function handleNotificationSelect(notification) {
     if (!notification.isRead) {
@@ -175,19 +177,18 @@ export default function Header({
     <header
       className={cn(
         'fixed inset-x-0 top-0 z-header h-[56px] w-full border-b border-gray-100 bg-white',
-        'min-[600px]:h-[60px]',
+        'tablet:h-[60px]',
         className,
       )}
     >
       <div
         className="
-          mx-auto flex h-full w-full max-w-[1200px] items-center
-          justify-between px-[16px] min-[600px]:px-[24px]
-          min-[1248px]:px-0
+          mx-auto flex h-full w-full max-w-[1248px] items-center
+          justify-between px-[16px] tablet:px-[24px]
         "
       >
         {isAdmin ? (
-          <div className="flex min-w-0 items-center gap-[13px] min-[600px]:gap-[24px]">
+          <div className="flex min-w-0 items-center gap-[13px] tablet:gap-[24px]">
             <HeaderLogo />
             <AdminNavigation activeAdminNav={activeAdminMenu} />
           </div>
@@ -202,9 +203,9 @@ export default function Header({
             color="black"
             size="md"
             className="
-              cursor-pointer min-[600px]:h-[40px]
-              min-[600px]:min-w-[90px] min-[600px]:rounded-[12px]
-              min-[600px]:text-16-semibold
+              cursor-pointer tablet:h-[40px]
+              tablet:min-w-[90px] tablet:rounded-[12px]
+              tablet:text-16-semibold
             "
           >
             로그인
