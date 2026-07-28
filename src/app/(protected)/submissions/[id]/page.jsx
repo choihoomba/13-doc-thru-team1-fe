@@ -56,6 +56,13 @@ export default function SubmissionDetailPage({ params }) {
   const feedbacks =
     feedbackRes?.pages.flatMap((page) => page.data.feedbacks) ?? [];
 
+  // 피드백 관련 요청 중 실패한 사유를 화면에 노출한다
+  const feedbackErrorMessage =
+    createFeedback.error?.message ??
+    updateFeedback.error?.message ??
+    deleteFeedback.error?.message ??
+    null;
+
   // 피드백 삭제: 되돌릴 수 없으므로 확인 모달을 거친다
   const handleDeleteFeedback = (feedback) => {
     openModal(
@@ -78,7 +85,8 @@ export default function SubmissionDetailPage({ params }) {
       feedbacks={feedbacks}
       hasNext={!!hasNextPage}
       isSubmitting={createFeedback.isPending}
-      onToggleLike={() => toggleLike.mutate(submission.isLiked)}
+      feedbackErrorMessage={feedbackErrorMessage}
+      onToggleLike={(isLiked) => toggleLike.mutate(isLiked)}
       onEdit={(s) => console.log('작업물 수정:', s)}
       onDelete={(s) => console.log('작업물 삭제:', s)}
       onFeedbackSubmit={(content) => createFeedback.mutate(content)}

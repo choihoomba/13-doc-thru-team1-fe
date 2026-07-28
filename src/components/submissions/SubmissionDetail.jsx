@@ -3,12 +3,15 @@
 import Image from 'next/image';
 
 import IcProfile from '@/app/assets/icons/ic_profile.png';
+import ImgEmptySubmission from '@/app/assets/images/img_empty_submission.svg';
 
 import { cn } from '@/utils/cn';
 import formatDate from '@/utils/formatDate';
 
 import ButtonKebab from '@/components/ui/Button/ButtonKebab';
 import ButtonLike from '@/components/ui/Button/ButtonLike';
+import ChipCategory from '@/components/ui/Chip/ChipCategory';
+import ChipField from '@/components/ui/Chip/ChipField';
 import FeedbackList from '@/components/ui/Feedback/FeedbackList';
 
 /** 챌린지 마감 여부. 크론이 아직 status를 바꾸지 않았을 수 있어 deadline도 함께 확인 */
@@ -24,18 +27,19 @@ function isChallengeClosed(challenge) {
  * 데이터와 동작을 prop으로 받아 화면만 구성한다.
  * API 호출은 이 컴포넌트를 사용하는 페이지에서 처리한다.
  *
- * @param submission          작업물 데이터 { id, content, createdAt, isLiked, user, challenge, _count }
- * @param currentUser         로그인 사용자 { id, role }
- * @param feedbacks           피드백 배열
- * @param hasNext             피드백 다음 페이지 존재 여부
- * @param isSubmitting        피드백 전송 중 여부
- * @param onToggleLike        하트 클릭 시 실행
- * @param onEdit              작업물 수정하기 클릭 시 실행
- * @param onDelete            작업물 삭제하기 클릭 시 실행
- * @param onFeedbackSubmit    피드백 작성 시 실행
- * @param onFeedbackLoadMore  피드백 더보기 클릭 시 실행
- * @param onFeedbackEdit      피드백 수정하기 클릭 시 실행
- * @param onFeedbackDelete    피드백 삭제하기 클릭 시 실행
+ * @param submission            작업물 데이터 { id, content, createdAt, isLiked, user, challenge, _count }
+ * @param currentUser           로그인 사용자 { id, role }
+ * @param feedbacks             피드백 배열
+ * @param hasNext               피드백 다음 페이지 존재 여부
+ * @param isSubmitting          피드백 전송 중 여부
+ * @param feedbackErrorMessage  피드백 작성·수정·삭제 실패 시 표시할 메시지
+ * @param onToggleLike          하트 클릭 시 실행
+ * @param onEdit                작업물 수정하기 클릭 시 실행
+ * @param onDelete              작업물 삭제하기 클릭 시 실행
+ * @param onFeedbackSubmit      피드백 작성 시 실행
+ * @param onFeedbackLoadMore    피드백 더보기 클릭 시 실행
+ * @param onFeedbackEdit        피드백 수정하기 클릭 시 실행
+ * @param onFeedbackDelete      피드백 삭제하기 클릭 시 실행
  */
 export default function SubmissionDetail({
   submission,
@@ -43,6 +47,7 @@ export default function SubmissionDetail({
   feedbacks = [],
   hasNext = false,
   isSubmitting = false,
+  feedbackErrorMessage,
   onToggleLike,
   onEdit,
   onDelete,
@@ -52,15 +57,8 @@ export default function SubmissionDetail({
   onFeedbackDelete,
   className,
 }) {
-  const { content, createdAt, isLiked, user, challenge, _count } = submission;
-  const likeCount = _count.likes;
+  const { content, createdAt, user, challenge, _count, isLiked } = submission;
   const isClosed = isChallengeClosed(challenge);
-
-  // 하트 상태는 서버(React Query 캐시) 값을 그대로 그린다.
-  // 낙관적 업데이트는 useToggleLike 뮤테이션이 캐시를 직접 갱신하는 방식으로 처리한다.
-  const handleToggleLike = () => {
-    onToggleLike?.(isLiked);
-  };
 
   // 작업물 수정/삭제 권한: 작성자 본인 또는 어드민
   // 마감된 챌린지의 작업물은 수정/삭제 불가 (요구사항)
@@ -68,6 +66,7 @@ export default function SubmissionDetail({
     !isClosed &&
     !!currentUser &&
     (currentUser.id === user.id || currentUser.role === 'ADMIN');
+
   return (
     <div
       className={cn(
@@ -92,21 +91,11 @@ export default function SubmissionDetail({
           )}
         </div>
 
-        {/* 칩 크기는 피그마 기준 radius 8 / padding 3·12 */}
         {/* 현재 Submission API 응답에 field/docType이 없어 값이 있을 때만 렌더 */}
-        {/* TODO: ChipCategory / ChipFiled 구현되면 교체 */}
         {(challenge.field || challenge.docType) && (
           <div className="flex gap-2">
-            {challenge.field && (
-              <span className="rounded-[8px] bg-brand-black px-[12px] py-[3px] text-14-medium text-white">
-                {challenge.field}
-              </span>
-            )}
-            {challenge.docType && (
-              <span className="rounded-[8px] bg-brand-light px-[12px] py-[3px] text-14-medium text-gray-600">
-                {challenge.docType}
-              </span>
-            )}
+            {challenge.field && <ChipField variant={challenge.field} />}
+            {challenge.docType && <ChipCategory variant={challenge.docType} />}
           </div>
         )}
 
@@ -123,11 +112,12 @@ export default function SubmissionDetail({
             <span className="text-14-medium text-gray-700">
               {user.nickname}
             </span>
+            {/* 낙관적 업데이트는 mutation에서 캐시를 갱신하는 방식으로 처리한다 */}
             <ButtonLike
               size="sm"
-              count={likeCount}
+              count={_count.likes}
               status={isLiked ? 'active' : 'inactive'}
-              onClick={handleToggleLike}
+              onClick={() => onToggleLike?.(isLiked)}
             />
           </div>
 
@@ -137,18 +127,40 @@ export default function SubmissionDetail({
         </div>
       </header>
 
-      {/* 번역 본문 — 작성자가 입력한 줄바꿈 보존 */}
-      <article
-        className={cn(
-          'mt-6 whitespace-pre-wrap break-words',
-          'text-body-14-160 text-gray-700 tablet:text-body-16-160',
-        )}
-      >
-        {content}
-      </article>
+      {/* 번역 본문. content는 제출 전까지 빈 문자열이므로 빈 화면으로 분기한다 */}
+      {content ? (
+        <article
+          className={cn(
+            'mt-6 whitespace-pre-wrap break-words',
+            'text-body-14-160 text-gray-700 tablet:text-body-16-160',
+          )}
+        >
+          {content}
+        </article>
+      ) : (
+        <div className="flex flex-col items-center gap-4 py-20">
+          <Image
+            src={ImgEmptySubmission}
+            alt=""
+            width={320}
+            height={168}
+            unoptimized
+          />
+          <p className="text-14-regular text-gray-500">
+            아직 아무런 번역을 진행하지 않았어요!
+          </p>
+        </div>
+      )}
 
       {/* 피드백 영역 */}
       <section className="mt-10">
+        {/* 작성·수정·삭제 실패 사유를 사용자에게 노출 (예: 마감된 챌린지) */}
+        {feedbackErrorMessage && (
+          <p className="mb-3 text-14-regular text-red-error">
+            {feedbackErrorMessage}
+          </p>
+        )}
+
         <FeedbackList
           feedbacks={feedbacks}
           currentUser={currentUser}
