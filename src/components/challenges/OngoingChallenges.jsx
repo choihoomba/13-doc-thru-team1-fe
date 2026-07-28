@@ -1,18 +1,41 @@
 'use client';
 
-import { CHALLENGE_TABS } from '@/lib/constants/constants';
+import { useEffect, useState } from 'react';
 
-import { useMyChallenges } from '@/hooks/queries/challenges/queries';
+import { getMyChallenges } from '@/lib/api/challengeMine';
+import { CHALLENGE_TABS } from '@/lib/constants/constants';
 
 import Card from '@/components/ui/Card';
 import LoadingDisplay from '@/components/ui/LoadingDisplay';
 
 /** 참여중인 챌린지 목록 */
 export default function OngoingChallenges({ search }) {
-  const { data, isLoading, isError } = useMyChallenges({
-    tab: CHALLENGE_TABS.ONGOING,
-    search,
-  });
+  const [challenges, setChallenges] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getMyChallenges({ tab: CHALLENGE_TABS.ONGOING, search })
+      .then((data) => {
+        if (cancelled) return;
+        setChallenges(data?.challenges ?? []);
+        setIsError(false);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error('참여중인 챌린지 조회 실패:', error);
+        setIsError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [search]);
 
   if (isLoading) return <LoadingDisplay />;
   if (isError) {
@@ -22,8 +45,6 @@ export default function OngoingChallenges({ search }) {
       </p>
     );
   }
-
-  const challenges = data?.challenges ?? [];
 
   if (challenges.length === 0) {
     return (
@@ -44,10 +65,10 @@ export default function OngoingChallenges({ search }) {
             challenge={challenge}
             detailHref={`/challenges/${challenge.id}`}
             showStatusChip={false}
-            showSubmissionButton={Boolean(submissionId)}
-            submissionHref={submissionId ? `/submissions/${submissionId}` : ''}
-            showContinueButton={!submissionId}
-            continueHref={`/submissions/new?challengeId=${challenge.id}`}
+            showContinueButton={Boolean(submissionId)}
+            continueHref={
+              submissionId ? `/submissions/new?id=${submissionId}` : ''
+            }
           />
         );
       })}

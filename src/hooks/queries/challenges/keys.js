@@ -5,5 +5,4 @@ export const challengeKeys = {
   detail: (id) => [...challengeKeys.all, 'detail', id],
   participations: () => [...challengeKeys.all, 'participations'],
   myOwned: () => [...challengeKeys.all, 'myOwned'],
-  mine: (tab, params) => [...challengeKeys.all, 'mine', tab, params],
 };

@@ -1,7 +1,5 @@
+import clientFetch from '@/lib/api/clientFetch';
 import { CHALLENGE_TAB_TO_VIEW } from '@/lib/constants/constants';
-
-import clientFetch from './clientFetch';
-import { ENDPOINTS } from './endpoints';
 
 /**
  * 나의 챌린지(참여중/완료/신청) 목록을 조회합니다.
@@ -27,8 +25,6 @@ export async function getMyChallenges({
   if (search) params.set('search', search);
   if (status && tab === 'applied') params.set('status', status);
 
-  const response = await clientFetch(`${ENDPOINTS.challenges}?${params}`);
-
-  // 백엔드 공통 응답 { success, data: { challenges, pagination } }
-  return response.data;
+  const { data } = await clientFetch(`/api/challenges?${params}`);
+  return data;
 }

@@ -1,18 +1,41 @@
 'use client';
 
-import { CHALLENGE_TABS } from '@/lib/constants/constants';
+import { useEffect, useState } from 'react';
 
-import { useMyChallenges } from '@/hooks/queries/challenges/queries';
+import { getMyChallenges } from '@/lib/api/challengeMine';
+import { CHALLENGE_TABS } from '@/lib/constants/constants';
 
 import Card from '@/components/ui/Card';
 import LoadingDisplay from '@/components/ui/LoadingDisplay';
 
 /** 완료한 챌린지 목록 */
 export default function CompletedChallenges({ search }) {
-  const { data, isLoading, isError } = useMyChallenges({
-    tab: CHALLENGE_TABS.COMPLETED,
-    search,
-  });
+  const [challenges, setChallenges] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getMyChallenges({ tab: CHALLENGE_TABS.COMPLETED, search })
+      .then((data) => {
+        if (cancelled) return;
+        setChallenges(data?.challenges ?? []);
+        setIsError(false);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error('완료한 챌린지 조회 실패:', error);
+        setIsError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [search]);
 
   if (isLoading) return <LoadingDisplay />;
   if (isError) {
@@ -22,8 +45,6 @@ export default function CompletedChallenges({ search }) {
       </p>
     );
   }
-
-  const challenges = data?.challenges ?? [];
 
   if (challenges.length === 0) {
     return (
