@@ -169,8 +169,8 @@ export default function Card({
             <Image src={IcPerson} alt="" width={24} height={24} unoptimized />
             {currentParticipants}/{maxParticipants}
             {currentParticipants >= maxParticipants || status === 'CLOSED'
-              ? '참여 완료'
-              : '참여중'}
+              ? ' 참여 완료'
+              : ' 참여중'}
           </span>
         </div>
 
