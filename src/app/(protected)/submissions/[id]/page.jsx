@@ -1,38 +1,92 @@
 'use client';
 
+import { use } from 'react';
+
+import { useAuth } from '@/lib/providers/AuthProvider';
+
+import { useModal } from '@/hooks/modal/useModal';
+import {
+  useCreateFeedback,
+  useDeleteFeedback,
+  useToggleLike,
+  useUpdateFeedback,
+} from '@/hooks/queries/submissions/mutations';
+import {
+  useFeedbacks,
+  useSubmission,
+} from '@/hooks/queries/submissions/queries';
+
 import SubmissionDetail from '@/components/submissions/SubmissionDetail';
+import LoadingDisplay from '@/components/ui/LoadingDisplay';
+import ModalConfirm from '@/components/ui/Modal/ModalConfirm';
 
-// TODO: Submission 조회 API(GET /submissions/:id) 연동 시 제거
-// challenge의 field/docType/status/deadline은 현재 응답에 없어 추가 요청한 상태
-const mockSubmission = {
-  id: 1,
-  content: `일반적으로 개발자는 일련의 하드 스킬을 가지고 있어야 커리어에서 경력과 전문성을 쌓을 수 있습니다. 하지만 이에 못지 않게 개인 브랜드 구축도 만족스럽고 성취감 있는 경력을 쌓기 위해 중요하며 이를 쌓기는 더 어려울 수 있습니다.
+export default function SubmissionDetailPage({ params }) {
+  // Next.js 15+ 에서 params는 Promise이므로 use()로 값을 꺼낸다
+  const { id } = use(params);
 
-이렇게 개인 브랜드는 경력을 결정짓는 수많은 중요한 방법으로 여러분을 도울 수 있습니다. 하지만 본인의 실력을 뽐내는 데 익숙치 않거나 마케팅 개념에 한 번도 접해보지 않은 사람은 브랜드 구축을 부담스럽거나 어렵게 느낄 수 있습니다.`,
-  createdAt: '2026-02-28T10:00:00Z',
-  isLiked: false,
-  user: { id: 2, nickname: '햄프트로' },
-  challenge: {
-    title: '개발자로써 자신만의 브랜드를 구축하는 방법(dailydev)',
-    field: 'Career',
-    docType: '블로그',
-    status: 'APPROVED',
-    deadline: '2026-08-25T00:00:00Z',
-  },
-  _count: { likes: 1934, feedbacks: 50 },
-};
+  const { user: authRes } = useAuth();
+  // 백엔드 공통 응답이 { success, data } 형태라 data를 한 겹 벗긴다
+  const currentUser = authRes?.data ?? null;
 
-// TODO: 로그인 사용자 정보는 AuthProvider에서 가져온다
-const mockCurrentUser = { id: 2, role: 'USER' };
+  const { openModal, closeModal } = useModal();
 
-export default function SubmissionDetailPage() {
+  const { data: submissionRes, isLoading, isError, error } = useSubmission(id);
+  const { data: feedbackRes, fetchNextPage, hasNextPage } = useFeedbacks(id);
+
+  const createFeedback = useCreateFeedback(id);
+  const updateFeedback = useUpdateFeedback(id);
+  const deleteFeedback = useDeleteFeedback(id);
+  const toggleLike = useToggleLike(id);
+
+  if (isLoading) {
+    return <LoadingDisplay className="min-h-screen" />;
+  }
+
+  if (isError) {
+    return (
+      <p className="py-20 text-center text-14-regular text-gray-500">
+        {error?.message ?? '작업물을 불러오지 못했습니다.'}
+      </p>
+    );
+  }
+
+  const submission = submissionRes.data;
+
+  // useInfiniteQuery는 페이지 배열로 쌓이므로 하나로 펼친다
+  const feedbacks =
+    feedbackRes?.pages.flatMap((page) => page.data.feedbacks) ?? [];
+
+  // 피드백 삭제: 되돌릴 수 없으므로 확인 모달을 거친다
+  const handleDeleteFeedback = (feedback) => {
+    openModal(
+      <ModalConfirm
+        message="정말 삭제하시겠어요?"
+        cancelButtonText="아니오"
+        confirmButtonText="네"
+        onConfirm={() => {
+          deleteFeedback.mutate(feedback.id);
+          closeModal();
+        }}
+      />,
+    );
+  };
+
   return (
     <SubmissionDetail
-      submission={mockSubmission}
-      currentUser={mockCurrentUser}
-      onToggleLike={(liked) => console.log('하트:', liked)}
+      submission={submission}
+      currentUser={currentUser}
+      feedbacks={feedbacks}
+      hasNext={!!hasNextPage}
+      isSubmitting={createFeedback.isPending}
+      onToggleLike={() => toggleLike.mutate(submission.isLiked)}
       onEdit={(s) => console.log('작업물 수정:', s)}
       onDelete={(s) => console.log('작업물 삭제:', s)}
+      onFeedbackSubmit={(content) => createFeedback.mutate(content)}
+      onFeedbackLoadMore={() => fetchNextPage()}
+      onFeedbackEdit={(feedback, content) =>
+        updateFeedback.mutate({ feedbackId: feedback.id, content })
+      }
+      onFeedbackDelete={handleDeleteFeedback}
     />
   );
 }

@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-
 import Image from 'next/image';
 
 import IcProfile from '@/app/assets/icons/ic_profile.png';
@@ -11,6 +9,7 @@ import formatDate from '@/utils/formatDate';
 
 import ButtonKebab from '@/components/ui/Button/ButtonKebab';
 import ButtonLike from '@/components/ui/Button/ButtonLike';
+import FeedbackList from '@/components/ui/Feedback/FeedbackList';
 
 /** 챌린지 마감 여부. 크론이 아직 status를 바꾸지 않았을 수 있어 deadline도 함께 확인 */
 function isChallengeClosed(challenge) {
@@ -25,31 +24,42 @@ function isChallengeClosed(challenge) {
  * 데이터와 동작을 prop으로 받아 화면만 구성한다.
  * API 호출은 이 컴포넌트를 사용하는 페이지에서 처리한다.
  *
- * @param submission   작업물 데이터 { id, content, createdAt, isLiked, user, challenge, _count }
- * @param currentUser  로그인 사용자 { id, role }
- * @param onToggleLike 하트 클릭 시 실행
- * @param onEdit       작업물 수정하기 클릭 시 실행
- * @param onDelete     작업물 삭제하기 클릭 시 실행
+ * @param submission          작업물 데이터 { id, content, createdAt, isLiked, user, challenge, _count }
+ * @param currentUser         로그인 사용자 { id, role }
+ * @param feedbacks           피드백 배열
+ * @param hasNext             피드백 다음 페이지 존재 여부
+ * @param isSubmitting        피드백 전송 중 여부
+ * @param onToggleLike        하트 클릭 시 실행
+ * @param onEdit              작업물 수정하기 클릭 시 실행
+ * @param onDelete            작업물 삭제하기 클릭 시 실행
+ * @param onFeedbackSubmit    피드백 작성 시 실행
+ * @param onFeedbackLoadMore  피드백 더보기 클릭 시 실행
+ * @param onFeedbackEdit      피드백 수정하기 클릭 시 실행
+ * @param onFeedbackDelete    피드백 삭제하기 클릭 시 실행
  */
 export default function SubmissionDetail({
   submission,
   currentUser,
+  feedbacks = [],
+  hasNext = false,
+  isSubmitting = false,
   onToggleLike,
   onEdit,
   onDelete,
+  onFeedbackSubmit,
+  onFeedbackLoadMore,
+  onFeedbackEdit,
+  onFeedbackDelete,
   className,
 }) {
-  const { content, createdAt, user, challenge, _count } = submission;
+  const { content, createdAt, isLiked, user, challenge, _count } = submission;
+  const likeCount = _count.likes;
   const isClosed = isChallengeClosed(challenge);
 
-  // 하트는 서버 값으로 시작하고, 클릭 시 응답을 기다리지 않고 화면에 먼저 반영한다
-  const [isLiked, setIsLiked] = useState(submission.isLiked);
-  const [likeCount, setLikeCount] = useState(_count.likes);
-
+  // 하트 상태는 서버(React Query 캐시) 값을 그대로 그린다.
+  // 낙관적 업데이트는 useToggleLike 뮤테이션이 캐시를 직접 갱신하는 방식으로 처리한다.
   const handleToggleLike = () => {
-    setIsLiked((prev) => !prev);
-    setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
-    onToggleLike?.(!isLiked);
+    onToggleLike?.(isLiked);
   };
 
   // 작업물 수정/삭제 권한: 작성자 본인 또는 어드민
@@ -58,17 +68,17 @@ export default function SubmissionDetail({
     !isClosed &&
     !!currentUser &&
     (currentUser.id === user.id || currentUser.role === 'ADMIN');
-
   return (
     <div
       className={cn(
-        'mx-auto w-full max-w-[826px] px-4 py-6 tablet:py-8',
+        'mx-auto w-full max-w-[866px] px-4 py-6 tablet:py-8',
         className,
       )}
     >
-      <header className="flex flex-col gap-3">
+      {/* gap-4(16px)는 피그마 제목 영역 간격 기준 */}
+      <header className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-2">
-          <h1 className="text-18-bold text-gray-800 tablet:text-20-bold">
+          <h1 className="text-20-semibold text-gray-800 tablet:text-24-semibold">
             {challenge.title}
           </h1>
 
@@ -82,15 +92,23 @@ export default function SubmissionDetail({
           )}
         </div>
 
+        {/* 칩 크기는 피그마 기준 radius 8 / padding 3·12 */}
+        {/* 현재 Submission API 응답에 field/docType이 없어 값이 있을 때만 렌더 */}
         {/* TODO: ChipCategory / ChipFiled 구현되면 교체 */}
-        <div className="flex gap-2">
-          <span className="rounded-full bg-brand-black px-3 py-1 text-12-medium text-white">
-            {challenge.field}
-          </span>
-          <span className="rounded-full bg-brand-light px-3 py-1 text-12-medium text-gray-600">
-            {challenge.docType}
-          </span>
-        </div>
+        {(challenge.field || challenge.docType) && (
+          <div className="flex gap-2">
+            {challenge.field && (
+              <span className="rounded-[8px] bg-brand-black px-[12px] py-[3px] text-14-medium text-white">
+                {challenge.field}
+              </span>
+            )}
+            {challenge.docType && (
+              <span className="rounded-[8px] bg-brand-light px-[12px] py-[3px] text-14-medium text-gray-600">
+                {challenge.docType}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* 작성자 · 하트 · 작성일 */}
         <div className="flex items-center justify-between gap-2 border-b border-gray-200 pb-4">
@@ -102,7 +120,7 @@ export default function SubmissionDetail({
               height={24}
               className="h-6 w-6 flex-none rounded-full"
             />
-            <span className="text-13-medium text-gray-700">
+            <span className="text-14-medium text-gray-700">
               {user.nickname}
             </span>
             <ButtonLike
@@ -113,7 +131,7 @@ export default function SubmissionDetail({
             />
           </div>
 
-          <span className="text-13-regular text-gray-400">
+          <span className="text-14-medium text-gray-400">
             {formatDate(createdAt)}
           </span>
         </div>
@@ -129,17 +147,19 @@ export default function SubmissionDetail({
         {content}
       </article>
 
-      {/* TODO: 공통 컴포넌트 PR(#49) 머지 후 FeedbackList 연결
-          <FeedbackList
-            feedbacks={feedbacks}
-            currentUser={currentUser}
-            isClosed={isClosed}
-            hasNext={hasNext}
-            onSubmit={...} onLoadMore={...} onEdit={...} onDelete={...}
-          />
-      */}
-      <section className="mt-10 rounded-[12px] border border-dashed border-gray-300 p-8 text-center text-14-regular text-gray-400">
-        피드백 영역 (공통 컴포넌트 머지 후 연결 예정)
+      {/* 피드백 영역 */}
+      <section className="mt-10">
+        <FeedbackList
+          feedbacks={feedbacks}
+          currentUser={currentUser}
+          isClosed={isClosed}
+          hasNext={hasNext}
+          isSubmitting={isSubmitting}
+          onSubmit={onFeedbackSubmit}
+          onLoadMore={onFeedbackLoadMore}
+          onEdit={onFeedbackEdit}
+          onDelete={onFeedbackDelete}
+        />
       </section>
     </div>
   );
