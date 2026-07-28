@@ -26,6 +26,11 @@ import SubmissionEditorToolbar from '@/components/submissions/SubmissionEditorTo
 import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 import ModalConfirm from '@/components/ui/Modal/ModalConfirm';
 
+// TipTap이 완전히 빈 상태에서도 getHTML()이 ''가 아니라 '<p></p>'를 반환해서 쓰는함수
+function isEditorContentEmpty(html) {
+  return !html || html.trim() === '<p></p>';
+}
+
 export default function AdminSubmissionEditPage() {
   const params = useParams();
   const submissionId = params?.id;
@@ -99,8 +104,15 @@ export default function AdminSubmissionEditPage() {
         confirmButtonText="네"
         onCancel={closeModal}
         onConfirm={async () => {
+          const content = editor?.getHTML() ?? '';
+          if (isEditorContentEmpty(content)) {
+            console.error('수정 실패: 에디터가 아직 준비되지 않았습니다.');
+            closeModal();
+            return;
+          }
+
           try {
-            await updateSubmission(submissionId, editor?.getHTML() ?? '');
+            await updateSubmission(submissionId, content);
             router.push(`/admin/submissions/${submissionId}`);
           } catch (error) {
             console.error('수정 실패:', error);
@@ -172,6 +184,7 @@ export default function AdminSubmissionEditPage() {
               <ButtonSecondary
                 size={isOriginalOpen ? 'sm' : 'md'}
                 className={cn(isOriginalOpen && 'rounded-[10px]')}
+                disabled={!editor}
                 onClick={handleEdit}
               >
                 수정하기

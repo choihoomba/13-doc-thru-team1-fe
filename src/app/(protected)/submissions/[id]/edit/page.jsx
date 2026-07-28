@@ -59,6 +59,11 @@ function getDraftFromLocal(submissionId) {
   }
 }
 
+// TipTap가 완전히 빈 상태에서도 getHTML()이 ''가 아니라 '<p></p>'를 반환해서 쓰는함수
+function isEditorContentEmpty(html) {
+  return !html || html.trim() === '<p></p>';
+}
+
 export default function SubmissionEditPage() {
   const params = useParams();
   const submissionId = params?.id;
@@ -107,7 +112,7 @@ export default function SubmissionEditPage() {
     }
 
     // content가 비어있으면 로컬/서버 둘 다 저장 안 함
-    if (!debouncedContent.trim()) return;
+    if (isEditorContentEmpty(debouncedContent)) return;
 
     // content 가 있으면 로컬엔 항상 즉시 저장
     saveDraftToLocal(submissionId, {
@@ -247,8 +252,15 @@ export default function SubmissionEditPage() {
         confirmButtonText="네"
         onCancel={closeModal}
         onConfirm={async () => {
+          const content = editor?.getHTML() ?? '';
+          if (isEditorContentEmpty(content)) {
+            console.error('제출 실패: 에디터가 아직 준비되지 않았습니다.');
+            closeModal();
+            return;
+          }
+
           try {
-            await updateSubmission(submissionId, editor?.getHTML() ?? '');
+            await updateSubmission(submissionId, content);
             deleteDraft(submissionId).catch((error) => {
               console.error('임시저장 삭제 실패:', error);
             });
@@ -323,9 +335,10 @@ export default function SubmissionEditPage() {
                 variant="secondary"
                 size={isOriginalOpen ? 'sm' : 'md'}
                 className={cn(isOriginalOpen && 'rounded-[10px]')}
+                disabled={!editor}
                 onClick={() => {
                   if (!submissionId) return;
-                  if (!editorContent.trim()) return;
+                  if (isEditorContentEmpty(editorContent)) return;
                   saveDraft(submissionId, {
                     title: challengeTitle,
                     content: editorContent,
@@ -342,6 +355,7 @@ export default function SubmissionEditPage() {
               <ButtonSecondary
                 size={isOriginalOpen ? 'sm' : 'md'}
                 className={cn(isOriginalOpen && 'rounded-[10px]')}
+                disabled={!editor}
                 onClick={handleSubmit}
               >
                 제출하기
