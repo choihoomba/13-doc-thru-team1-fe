@@ -15,4 +15,14 @@ export const ENDPOINTS = {
   feedbacks: {
     detail: (feedbackId) => `/api/feedbacks/${feedbackId}`,
   },
+  drafts: {
+    detail: (id) => `/api/drafts/${id}`,
+  },
+  participations: {
+    detail: (id) => `/api/participations/${id}`,
+  },
+  challenges: {
+    list: '/api/challenges',
+    detail: (id) => `/api/challenges/${id}`,
+  },
 };

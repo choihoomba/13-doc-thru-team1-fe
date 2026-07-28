@@ -3,6 +3,11 @@ export const challengeKeys = {
   all: ['challenges'],
   lists: () => [...challengeKeys.all, 'list'],
   detail: (id) => [...challengeKeys.all, 'detail', id],
-  participations: () => [...challengeKeys.all, 'participations'],
+  participations: (tab, params) => [
+    ...challengeKeys.all,
+    'participations',
+    tab,
+    params,
+  ],
   myOwned: () => [...challengeKeys.all, 'myOwned'],
 };
