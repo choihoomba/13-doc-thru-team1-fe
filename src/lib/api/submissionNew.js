@@ -21,7 +21,7 @@ export async function getSubmission(id) {
 
 /* 임시저장 버튼 클릭시: */
 export async function saveDraft(id, { title, content }) {
-  const { data } = await clientFetch(`/api/draft/${id}`, {
+  const { data } = await clientFetch(`/api/drafts/${id}`, {
     method: 'PUT',
     body: JSON.stringify({ title, content }),
   });
@@ -49,7 +49,7 @@ export async function updateSubmission(id, content) {
 }
 /* 2. 임시저장 삭제 */
 export async function deleteDraft(id) {
-  const { data } = await clientFetch(`/api/draft/${id}`, {
+  const { data } = await clientFetch(`/api/drafts/${id}`, {
     method: 'DELETE',
   });
   return data;

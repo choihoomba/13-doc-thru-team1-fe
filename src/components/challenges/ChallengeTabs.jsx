@@ -16,37 +16,37 @@ const TAB_ORDER = [
   CHALLENGE_TABS.APPLIED,
 ];
 
-/** 나의 챌린지 탭(참여중인/완료한/신청한) - ?tab= 쿼리로 전환 */
+/** 나의 챌린지 탭(참여중인/완료한/(신청한)) - ?tab= 쿼리로 전환 */
 export default function ChallengeTabs({ className = '' }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const activeTab = searchParams.get('tab') ?? CHALLENGE_TABS.ONGOING;
 
   return (
-    <nav
-      aria-label="나의 챌린지 탭"
-      className={cn('flex items-center gap-[8px]', className)}
-    >
-      {TAB_ORDER.map((tab) => {
-        const isActive = tab === activeTab;
+    <div className={cn('relative mb-[16px]', 'tablet:mb-[24px]', className)}>
+      <nav aria-label="나의 챌린지 탭" className={cn('flex items-center')}>
+        {TAB_ORDER.map((tab) => {
+          const isActive = tab === activeTab;
 
-        return (
-          <Link
-            key={tab}
-            href={`${pathname}?tab=${tab}`}
-            aria-current={isActive ? 'page' : undefined}
-            className={cn(
-              'flex items-center justify-center px-[16px] py-[8px] rounded-[24px] whitespace-nowrap',
-              'text-14-medium transition-colors',
-              isActive
-                ? 'bg-gray-800 text-white'
-                : 'text-gray-500 hover:text-gray-700',
-            )}
-          >
-            {CHALLENGE_TAB_LABELS[tab]}
-          </Link>
-        );
-      })}
-    </nav>
+          return (
+            <Link
+              key={tab}
+              href={`${pathname}?tab=${tab}`}
+              aria-current={isActive ? 'page' : undefined}
+              className={cn(
+                'flex items-center justify-center whitespace-nowrap px-[24px] py-[16px] border-b-[3px]',
+                'transition-colors',
+                isActive
+                  ? 'border-gray-800 text-gray-800 text-16-semibold'
+                  : 'border-transparent text-gray-500 text-16-semibold hover:text-gray-600',
+              )}
+            >
+              {CHALLENGE_TAB_LABELS[tab]}
+            </Link>
+          );
+        })}
+      </nav>
+      <div className="h-px w-full bg-gray-300" />
+    </div>
   );
 }

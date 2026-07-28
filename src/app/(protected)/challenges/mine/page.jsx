@@ -25,9 +25,9 @@ export default function MyChallengesPage() {
   return (
     <div
       className={cn(
-        'flex flex-col gap-[20px] pt-[23px] px-[16px]',
-        'tablet:px-[24px]',
-        'desktop:max-w-[996px]', // p-auto 가 좋나.?
+        'flex flex-col pt-[15px] px-[16px]',
+        'tablet:px-[24px] tablet:pt-[16px]',
+        'desktop:max-w-[996px] desktop:mx-auto desktop:pt-[24px]',
       )}
     >
       <div className={cn('flex justify-between items-center')}>
@@ -46,7 +46,7 @@ export default function MyChallengesPage() {
         <CompletedChallenges search={search} />
       )}
       {activeTab === CHALLENGE_TABS.APPLIED && (
-        // TODO: 신청한 챌린지 탭 - 다른 팀원 작업 영역
+        // TODO: 신청한 챌린지 탭
         <p className="py-[80px] text-center text-14-medium text-gray-500">
           준비 중이에요.
         </p>

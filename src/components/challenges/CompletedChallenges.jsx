@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import { getMyChallenges } from '@/lib/api/challengeMine';
 import { CHALLENGE_TABS } from '@/lib/constants/constants';
 
+import { cn } from '@/utils/cn';
+
 import Card from '@/components/ui/Card';
 import LoadingDisplay from '@/components/ui/LoadingDisplay';
 
@@ -40,7 +42,7 @@ export default function CompletedChallenges({ search }) {
   if (isLoading) return <LoadingDisplay />;
   if (isError) {
     return (
-      <p className="py-[80px] text-center text-14-medium text-gray-500">
+      <p className={cn('py-[80px] text-center text-14-medium text-gray-500')}>
         완료한 챌린지를 불러오지 못했어요.
       </p>
     );
@@ -48,14 +50,16 @@ export default function CompletedChallenges({ search }) {
 
   if (challenges.length === 0) {
     return (
-      <p className="py-[80px] text-center text-14-medium text-gray-500">
+      <p className={cn('py-[80px] text-center text-14-medium text-gray-500')}>
         완료한 챌린지가 없어요.
       </p>
     );
   }
 
   return (
-    <div className="flex flex-col gap-[16px]">
+    <div
+      className={cn('flex flex-col mt-[16px] gap-[24px]', 'tablet:mt-[24px]')}
+    >
       {challenges.map((challenge) => {
         const submissionId = challenge.participations?.[0]?.submission?.id;
 
