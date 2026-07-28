@@ -42,7 +42,7 @@ export default function InputSearch({
     <div
       className={cn(
         'relative w-full h-10 flex items-center max-w-full',
-        'tablet:max-w-[744px]; desktop:max-w-[1024px];',
+        'tablet:max-w-[744px] desktop:max-w-[1024px]',
         className,
       )}
     >
