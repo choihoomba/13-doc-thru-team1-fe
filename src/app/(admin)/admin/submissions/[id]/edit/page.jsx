@@ -13,7 +13,7 @@ import {
   getChallenge,
   getSubmission,
   updateSubmission,
-} from '@/lib/api/submissionNew';
+} from '@/lib/api/submissions';
 
 import { useModal } from '@/hooks/modal/useModal';
 import useResizablePanel from '@/hooks/submission/useResizablePanel';

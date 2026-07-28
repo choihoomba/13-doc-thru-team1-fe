@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 
-import { saveDraft } from '@/lib/api/submissionNew';
+import { saveDraft } from '@/lib/api/submissions';
 
 import { useModal } from '@/hooks/modal/useModal';
 

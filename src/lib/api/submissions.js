@@ -1,9 +1,16 @@
-/**
- * Submission TanStack Query 전용
- * 브라우저(클라이언트)에서 호출
- */
 import clientFetch from '@/lib/api/clientFetch';
 import { ENDPOINTS } from '@/lib/api/endpoints';
+
+/* originalUrl */
+export async function getChallenge(challengeId) {
+  const { data } = await clientFetch(ENDPOINTS.challenges.detail(challengeId));
+  return data;
+}
+
+/**
+ * 임시저장 불러오기:
+ * GET /submissions/:id
+ */
 
 /** 작업물 상세 조회 */
 export async function getSubmission(submissionId) {
@@ -64,4 +71,46 @@ export async function deleteLike(submissionId) {
   return clientFetch(ENDPOINTS.submissions.likes(submissionId), {
     method: 'DELETE',
   });
+export async function getSubmission(id) {
+  const { data } = await clientFetch(ENDPOINTS.submissions.detail(id));
+  return data;
+}
+
+/* 임시저장 버튼 클릭시: */
+export async function saveDraft(id, { title, content }) {
+  const { data } = await clientFetch(ENDPOINTS.drafts.detail(id), {
+    method: 'PUT',
+    body: JSON.stringify({ title, content }),
+  });
+  return data;
+}
+
+/* 포기하기 버튼 클릭시: */
+/* 1. GET participationId -> getSubmission 사용 */
+/* 2. 포기하기로 상태 변경 */
+export async function cancelParticipation(participationId) {
+  const { data } = await clientFetch(
+    ENDPOINTS.participations.detail(participationId),
+    {
+      method: 'PATCH',
+    },
+  );
+  return data;
+}
+
+/* 제출하기 버튼 클릭시: */
+/* 1. 작업물 최종 제출, submission.content로 들어감 */
+export async function updateSubmission(id, content) {
+  const { data } = await clientFetch(ENDPOINTS.submissions.detail(id), {
+    method: 'PATCH',
+    body: JSON.stringify({ content }),
+  });
+  return data;
+}
+/* 2. 임시저장 삭제 */
+export async function deleteDraft(id) {
+  const { data } = await clientFetch(ENDPOINTS.drafts.detail(id), {
+    method: 'DELETE',
+  });
+  return data;
 }

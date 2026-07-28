@@ -17,7 +17,7 @@ import {
   getSubmission,
   saveDraft,
   updateSubmission,
-} from '@/lib/api/submissionNew';
+} from '@/lib/api/submissions';
 
 import useDebounce from '@/hooks/common/useDebounce';
 import { useModal } from '@/hooks/modal/useModal';
