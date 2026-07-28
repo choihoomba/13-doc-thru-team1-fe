@@ -29,7 +29,7 @@ export default function NotificationItem({
         type="button"
         onClick={() => onSelect(notification)}
         className={cn(
-          'flex w-full cursor-pointer flex-col items-start border-b-2 border-gray-200',
+          'flex w-full cursor-pointer flex-col items-start border-b border-gray-200',
           'bg-white px-[16px] py-[12px] text-left transition-colors hover:bg-gray-50',
           'focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand-yellow',
           isFirst ? 'h-[100px] gap-[8px]' : 'h-[75px] gap-[17px]',
