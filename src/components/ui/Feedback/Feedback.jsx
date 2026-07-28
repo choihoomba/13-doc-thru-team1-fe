@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import Image from 'next/image';
 
 import IcProfile from '@/app/assets/icons/ic_profile.png';
@@ -8,23 +10,57 @@ import { cn } from '@/utils/cn';
 import formatDate from '@/utils/formatDate';
 
 import ButtonKebab from '@/components/ui/Button/ButtonKebab';
+import ButtonPrimary from '@/components/ui/Button/ButtonPrimary';
 
 /**
  * 피드백 1건 표시
  *
- * @param feedback   피드백 데이터 { id, content, createdAt, user: { id, nickname, grade } }
- * @param canManage  수정/삭제 권한 여부. 계산 결과만 받는다 (권한 판단은 부모 책임)
- * @param onEdit     수정하기 클릭 시 실행. 해당 feedback을 인자로 넘김
- * @param onDelete   삭제하기 클릭 시 실행. 해당 feedback을 인자로 넘김
+ * 편집 여부는 부모가 관리한다. 목록에서 한 번에 하나만 편집되도록
+ * 어느 피드백이 편집 중인지를 부모가 알아야 하기 때문이다.
+ *
+ * @param feedback      피드백 데이터 { id, content, createdAt, user: { id, nickname, grade } }
+ * @param canManage     수정/삭제 권한 여부. 계산 결과만 받는다 (권한 판단은 부모 책임)
+ * @param isEditing     편집 상태 여부
+ * @param onStartEdit   수정하기 클릭 시 실행
+ * @param onCancelEdit  취소 클릭 시 실행
+ * @param onSubmitEdit  수정 완료 시 실행. (feedback, 수정된 내용)을 인자로 넘김
+ * @param onDelete      삭제하기 클릭 시 실행. 해당 feedback을 인자로 넘김
  */
 export default function Feedback({
   feedback,
   canManage = false,
-  onEdit,
+  isEditing = false,
+  onStartEdit,
+  onCancelEdit,
+  onSubmitEdit,
   onDelete,
   className,
 }) {
   const { user, content, createdAt } = feedback;
+
+  // 입력 중인 값은 편집 중에만 쓰이는 임시 값이라 이 컴포넌트가 관리한다
+  const [draft, setDraft] = useState(content);
+
+  // 공백만 남은 경우도 빈 값으로 취급 (백엔드 zod의 .trim().min(1)과 동일 기준)
+  const isDraftEmpty = draft.trim().length === 0;
+
+  const handleStartEdit = () => {
+    setDraft(content); // 이전 편집 내용이 남지 않도록 원본으로 초기화
+    onStartEdit?.(feedback);
+  };
+
+  const handleSubmitEdit = () => {
+    if (isDraftEmpty) return;
+    onSubmitEdit?.(feedback, draft.trim());
+  };
+
+  // Enter = 저장, Shift+Enter = 줄바꿈 (작성 입력창과 동일한 규칙)
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmitEdit();
+    }
+  };
 
   return (
     <div
@@ -54,11 +90,10 @@ export default function Feedback({
             </p>
           </div>
 
-          {/* 권한이 있을 때만 노출 (기획: 권한 있는 경우에만 버튼 표시) */}
-          {/* 공통 ButtonKebab이 열림/닫힘·바깥클릭·z-index를 자체 처리 */}
-          {canManage && (
+          {/* 편집 중에는 메뉴를 숨긴다 (취소/수정 완료 버튼으로 대체) */}
+          {canManage && !isEditing && (
             <ButtonKebab
-              onEdit={() => onEdit?.(feedback)}
+              onEdit={handleStartEdit}
               onDelete={() => onDelete?.(feedback)}
               className="shrink-0"
             />
@@ -66,11 +101,45 @@ export default function Feedback({
         </div>
       </div>
 
-      {/* whitespace-pre-wrap: 사용자가 입력한 줄바꿈 보존 */}
-      {/* break-words: 띄어쓰기 없는 긴 문자열(URL 등)이 레이아웃을 넘치지 않게 */}
-      <p className="mt-[12px] whitespace-pre-wrap break-words text-14-regular text-gray-700 tablet:text-16-regular">
-        {content}
-      </p>
+      {isEditing ? (
+        <div className="mt-[12px] flex flex-col gap-2">
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={handleKeyDown}
+            rows={3}
+            autoFocus
+            className={cn(
+              'w-full resize-none rounded-[12px] border border-gray-200 bg-white p-[16px]',
+              'text-14-regular text-gray-800 tablet:text-16-regular',
+              'outline-none focus:border-brand-yellow',
+            )}
+          />
+          <div className="flex justify-end gap-2">
+            <ButtonPrimary
+              variant="secondary"
+              color="gray"
+              size="sm"
+              onClick={() => onCancelEdit?.()}
+            >
+              취소
+            </ButtonPrimary>
+            <ButtonPrimary
+              size="sm"
+              disabled={isDraftEmpty}
+              onClick={handleSubmitEdit}
+            >
+              수정 완료
+            </ButtonPrimary>
+          </div>
+        </div>
+      ) : (
+        /* whitespace-pre-wrap: 사용자가 입력한 줄바꿈 보존 */
+        /* break-words: 띄어쓰기 없는 긴 문자열(URL 등)이 레이아웃을 넘치지 않게 */
+        <p className="mt-[12px] whitespace-pre-wrap break-words text-14-regular text-gray-700 tablet:text-16-regular">
+          {content}
+        </p>
+      )}
     </div>
   );
 }
