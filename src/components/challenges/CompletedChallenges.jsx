@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
-import { getMyChallenges } from '@/lib/api/challengeMine';
 import { CHALLENGE_TABS } from '@/lib/constants/constants';
+
+import useMyChallengesList from '@/hooks/challenges/useMyChallengesList';
+import useInfiniteScroll from '@/hooks/common/useInfiniteScroll';
 
 import { cn } from '@/utils/cn';
 
@@ -12,32 +12,12 @@ import LoadingDisplay from '@/components/ui/LoadingDisplay';
 
 /** 완료한 챌린지 목록 */
 export default function CompletedChallenges({ search }) {
-  const [challenges, setChallenges] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState(false);
+  const { challenges, isLoading, isError, hasNext, isFetchingMore, loadMore } =
+    useMyChallengesList({ tab: CHALLENGE_TABS.COMPLETED, search });
 
-  useEffect(() => {
-    let cancelled = false;
-
-    getMyChallenges({ tab: CHALLENGE_TABS.COMPLETED, search })
-      .then((data) => {
-        if (cancelled) return;
-        setChallenges(data?.challenges ?? []);
-        setIsError(false);
-      })
-      .catch((error) => {
-        if (cancelled) return;
-        console.error('완료한 챌린지 조회 실패:', error);
-        setIsError(true);
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [search]);
+  const sentinelRef = useInfiniteScroll(loadMore, {
+    enabled: hasNext && !isFetchingMore,
+  });
 
   if (isLoading) return <LoadingDisplay />;
   if (isError) {
@@ -73,6 +53,11 @@ export default function CompletedChallenges({ search }) {
           />
         );
       })}
+
+      {hasNext && <div ref={sentinelRef} className="h-px" />}
+      {isFetchingMore && (
+        <LoadingDisplay size="32" fullHeight={false} className="mx-auto" />
+      )}
     </div>
   );
 }

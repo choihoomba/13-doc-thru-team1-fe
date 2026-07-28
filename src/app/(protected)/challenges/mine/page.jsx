@@ -25,14 +25,14 @@ export default function MyChallengesPage() {
   return (
     <div
       className={cn(
-        'flex flex-col pt-[15px] px-[16px]',
+        'flex flex-col pt-[15px] px-[16px] pb-[60px]',
         'tablet:px-[24px] tablet:pt-[16px]',
         'desktop:max-w-[996px] desktop:mx-auto desktop:pt-[24px]',
       )}
     >
       <div className={cn('flex justify-between items-center')}>
         <h1 className={cn('text-20-semibold')}>나의 챌린지</h1>
-        <ButtonChallengeApply href="/" />
+        <ButtonChallengeApply href="/challenges/new" />
       </div>
 
       <ChallengeTabs />
