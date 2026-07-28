@@ -1,8 +1,9 @@
 'use client';
 
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useEffect } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { usePathname } from 'next/navigation';
 
 import { getMe } from '@/lib/api/auth';
 
@@ -13,7 +14,10 @@ import LoadingDisplay from '@/components/ui/LoadingDisplay';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const { data: user, isLoading } = useQuery({
+  const pathname = usePathname();
+  const queryClient = useQueryClient();
+
+  const { data: user, isPending } = useQuery({
     queryKey: authKeys.me(),
     queryFn: async () => {
       try {
@@ -25,7 +29,11 @@ export function AuthProvider({ children }) {
     retry: false,
   });
 
-  if (isLoading) {
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: authKeys.me() });
+  }, [pathname, queryClient]);
+
+  if (isPending) {
     return <LoadingDisplay className="min-h-screen" />;
   }
 

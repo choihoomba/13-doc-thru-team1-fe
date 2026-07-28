@@ -1,5 +1,7 @@
 import localFont from 'next/font/local';
 
+import BodyMargin from '@/components/layout/BodyMargin';
+
 import './globals.css';
 import Providers from './providers';
 
@@ -19,7 +21,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko" className={pretendard.variable}>
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <BodyMargin>{children}</BodyMargin>
+        </Providers>
       </body>
     </html>
   );
