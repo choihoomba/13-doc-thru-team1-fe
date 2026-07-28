@@ -4,6 +4,19 @@ import { getChallenge } from '@/lib/api/challenges';
 
 import { challengeKeys } from './keys';
 
+// 검색 조건을 받아 챌린지 목록을 조회합니다.
+export function useChallenges(params) {
+  return useQuery({
+    queryKey: challengeKeys.list(params),
+    queryFn: () => getChallenges(params),
+    retry: false,
+
+    meta: {
+      name: '챌린지 목록 조회',
+    },
+  });
+}
+
 /**
  * [챌린지 수정 페이지] URL의 challengeId에 해당하는 상세 데이터를 조회합니다.
  *

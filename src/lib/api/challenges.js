@@ -3,65 +3,6 @@ import { ENDPOINTS } from '@/lib/api/endpoints';
 import { CHALLENGE_TAB_TO_VIEW } from '@/lib/constants/constants';
 
 /**
- * 챌린지 목록을 조회합니다.
- *
- * 기존 useChallenges가 사용하는 함수이며, query 값이 있을 때만 URLSearchParams로
- * 직렬화합니다. 응답의 공통 `{ success, data }` 껍질은 API 계층에서 벗겨 화면과
- * Query Hook이 실제 목록 데이터만 다루도록 합니다.
- */
-export async function getChallenges(params = {}) {
-  const query = new URLSearchParams(
-    Object.entries(params).filter(([, value]) => value != null && value !== ''),
-  ).toString();
-  const response = await clientFetch(
-    query ? `/api/challenges?${query}` : '/api/challenges',
-  );
-
-  return response.data;
-}
-
-/**
- * [챌린지 수정 페이지] 수정 폼의 초기값으로 사용할 챌린지 상세를 조회합니다.
- *
- * 팀 공통 clientFetch와 상대 경로를 사용하므로 인증 쿠키, 토큰 갱신,
- * 백엔드 `{ message, code }` 오류 변환은 clientFetch가 담당합니다.
- */
-export async function getChallenge(challengeId) {
-  const response = await clientFetch(`/api/challenges/${challengeId}`);
-
-  return response.data;
-}
-
-/**
- * 신규 챌린지를 신청합니다.
- *
- * 팀 공통 clientFetch와 상대 경로를 사용해 Next.js 프록시를 거칩니다.
- * userId, status, currentParticipants는 서버 관리 값이므로 payload에 포함하지 않습니다.
- */
-export function createChallenge(payload) {
-  return clientFetch('/api/challenges', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
-}
-
-/**
- * [챌린지 수정 페이지] 관리자 챌린지 정보와 수정 사유를 전달합니다.
- *
- * 백엔드는 같은 PATCH 경로에서 승인·거절·취소·정보 수정을 body로 구분합니다.
- * 이 함수에는 status나 action을 넣지 않고 변경된 Form 필드와 reason만 전달해
- * 정보 수정 분기로 안전하게 들어가도록 합니다.
- */
-export async function updateChallenge(challengeId, payload) {
-  const response = await clientFetch(`/api/challenges/${challengeId}`, {
-    method: 'PATCH',
-    body: JSON.stringify(payload),
-  });
-
-  return response.data;
-}
-
-/**
  * 나의 챌린지(참여중/완료/신청) 목록을 조회합니다.
  * BE: GET /challenges?view=participating|completed|applied
  *
@@ -88,6 +29,113 @@ export async function getMyChallenges({
   const { data } = await clientFetch(`${ENDPOINTS.challenges.list}?${params}`);
   return data;
 }
+
+/**
+ * 검색·필터 조건을 Query String으로 변환합니다.
+ *
+ * undefined, null, 빈 문자열, 빈 배열은 요청에서 제외합니다.
+ * 분야처럼 여러 값을 선택하는 조건은 같은 key를 반복해서 전달합니다.
+ * 예: field=NEXTJS&field=API
+ */
+function createSearchParams(params = {}) {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (
+      value === undefined ||
+      value === null ||
+      value === '' ||
+      (Array.isArray(value) && value.length === 0)
+    ) {
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        searchParams.append(key, String(item));
+      });
+
+      return;
+    }
+
+    searchParams.set(key, String(value));
+  });
+
+  return searchParams.toString();
+}
+
+/**
+ * 일반 목록, 관리자 신청 관리, 나의 챌린지가 공통으로 사용하는
+ * 챌린지 목록 조회 함수입니다.
+ */
+export async function getChallenges(params = {}) {
+  const queryString = createSearchParams(params);
+
+  const endpoint = queryString
+    ? `${ENDPOINTS.challenges.list}?${queryString}`
+    : ENDPOINTS.challenges.list;
+
+  const response = await clientFetch(endpoint);
+
+  // 백엔드 공통 응답 { success, data }에서 실제 데이터만 반환합니다.
+  return response.data;
+}
+
+/**
+ * 상세 페이지와 관리자 수정 페이지에서 사용할
+ * 챌린지 한 건을 조회합니다.
+ */
+export async function getChallenge(challengeId) {
+  const response = await clientFetch(ENDPOINTS.challenges.detail(challengeId));
+
+  return response.data;
+}
+
+/**
+ * 신규 챌린지를 신청합니다.
+ */
+export async function createChallenge(payload) {
+  const response = await clientFetch(ENDPOINTS.challenges.list, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+
+  return response.data;
+}
+
+/**
+ * 관리자 챌린지 수정 페이지에서 변경 정보와 수정 사유를 전달합니다.
+ */
+export async function updateChallenge(challengeId, payload) {
+  const response = await clientFetch(ENDPOINTS.challenges.detail(challengeId), {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+
+  return response.data;
+}
+//나의 챌린지 조회 api 랑 충돌이 나 우선 주선으로 처리 하였습니다.
+/**
+ * 나의 챌린지 화면의 탭 값을 백엔드 view 값으로 변환한 뒤
+ * 공통 getChallenges 함수를 재사용합니다.
+ */
+// export function getMyChallenges({
+//   tab,
+//   page = 1,
+//   limit = 10,
+//   search = '',
+//   status,
+// } = {}) {
+//   return getChallenges({
+//     view: CHALLENGE_TAB_TO_VIEW[tab],
+//     page,
+//     limit,
+//     search: search || undefined,
+
+//     // status 하위 필터는 신청한 챌린지 탭에서만 전달합니다.
+//     status: tab === 'applied' ? status : undefined,
+//   });
+// }
 
 /** 챌린지 상세 정보 조회
  * - GET /challenges/:id
