@@ -1,3 +1,5 @@
+//챌린지 신청하기 페이지
+
 'use client';
 
 import { useState } from 'react';
@@ -14,7 +16,6 @@ import InputBase from '@/components/ui/Form/InputBase';
 import InputCalendar from '@/components/ui/Form/InputCalendar';
 import Select from '@/components/ui/Form/Select';
 import Textarea from '@/components/ui/Form/Textarea';
-import Header from '@/components/ui/Header/Header';
 import ModalConfirm from '@/components/ui/Modal/ModalConfirm';
 
 const FIELD_OPTIONS = [
@@ -46,6 +47,7 @@ const INITIAL_FORM_VALUES = {
 
 const MINIMUM_DEADLINE_DAYS = 7;
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+const MAX_PARTICIPANTS = 15;
 
 // 선택한 날짜 전체를 마감일로 사용할 수 있도록 로컬 날짜의 마지막 시각으로 변환합니다.
 function toDeadlineISOString(dateValue) {
@@ -109,7 +111,9 @@ function validateForm(values) {
   if (!values.maxParticipants) {
     errors.maxParticipants = '* 최대 인원을 입력해주세요.';
   } else if (!Number.isInteger(participantCount) || participantCount < 1) {
-    errors.maxParticipants = '* 최대 인원은 1명 이상의 정수여야 합니다.';
+    errors.maxParticipants = '* 최대 인원은 1명 이상부터 지정 할 수 있습니다.';
+  } else if (participantCount > MAX_PARTICIPANTS) {
+    errors.maxParticipants = '* 최대 인원은 15명까지 지정할 수 있습니다.';
   }
 
   if (!trimmedContent) {
@@ -139,6 +143,19 @@ export default function ChallengeCreatePage() {
 
   function handleChange(event) {
     const { name, value } = event.target;
+
+    // number input의 max 속성은 직접 입력을 막지 않으므로 15명을 넘는 값은 상태에 반영하지 않습니다.
+    if (
+      name === 'maxParticipants' &&
+      value !== '' &&
+      Number(value) > MAX_PARTICIPANTS
+    ) {
+      setErrors((currentErrors) => ({
+        ...currentErrors,
+        maxParticipants: '* 최대 인원은 15명까지 지정할 수 있습니다.',
+      }));
+      return;
+    }
 
     setValues((currentValues) => ({
       ...currentValues,
@@ -188,13 +205,17 @@ export default function ChallengeCreatePage() {
 
     if (Object.keys(nextErrors).length > 0) return;
 
-    const confirmMessage = isAdmin
-      ? '챌린지를 신청하시겠습니까?'
-      : '신청한 챌린지는 수정할 수 없습니다.\n챌린지를 신청하시겠습니까?';
+    const confirmMessage = isAdmin ? (
+      '챌린지를 신청하시겠습니까?'
+    ) : (
+      <span className="flex flex-col gap-[8px] leading-[24px]">
+        <span>신청한 챌린지는 수정할 수 없습니다.</span>
+        <span>챌린지를 신청하시겠습니까?</span>
+      </span>
+    );
 
     openModal(
       <ModalConfirm
-        icon={null}
         message={confirmMessage}
         cancelButtonText="취소"
         confirmButtonText="신청"
@@ -204,10 +225,13 @@ export default function ChallengeCreatePage() {
   }
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-[1920px] bg-white">
-      <Header />
-
-      <main className="min-h-screen px-[16px] pb-[37px] pt-[76px] tablet:pt-[84px]">
+    <div
+      className="
+        mx-auto min-h-[calc(100vh-56px)] w-full max-w-[1920px] bg-white
+        tablet:min-h-[calc(100vh-60px)]
+      "
+    >
+      <main className="px-[16px] pb-[37px] pt-[20px] tablet:pt-[24px]">
         <form
           noValidate
           onSubmit={handleSubmit}
@@ -286,6 +310,7 @@ export default function ChallengeCreatePage() {
               name="maxParticipants"
               type="number"
               min="1"
+              max={MAX_PARTICIPANTS}
               step="1"
               borderRadius={8}
               value={values.maxParticipants}
