@@ -1,6 +1,3 @@
-import Link from 'next/link';
-
-import { cn } from '@/utils/cn';
 import formatDate from '@/utils/formatDate';
 
 import ChipStatus from '@/components/ui/Chip/ChipStatus';
@@ -21,20 +18,6 @@ const DOCUMENT_TYPE_LABELS = {
   BOOK: '도서',
   ETC: '기타',
 };
-
-// 현재 목록 페이지의 챌린지 ID들을 상세 URL에 함께 전달합니다.
-// 상세 페이지는 이 ID 배열을 이용해 이전·다음 챌린지를 찾습니다.
-function createChallengeDetailHref(applications, challengeId) {
-  const challengeIds = applications
-    .map((application) => application.id)
-    .join(',');
-
-  const searchParams = new URLSearchParams({
-    ids: challengeIds,
-  });
-
-  return `/admin/challenges/${challengeId}?${searchParams.toString()}`;
-}
 
 // 어드민 챌린지 신청 목록을 표 형태로 보여주는 컴포넌트입니다.
 export default function ApplicationTable({ applications = [] }) {
@@ -143,18 +126,9 @@ export default function ApplicationTable({ applications = [] }) {
                 </td>
 
                 <td className="box-border h-[48px] px-[16px] py-[15px] align-middle">
-                  <Link
-                    href={createChallengeDetailHref(
-                      applications,
-                      application.id,
-                    )}
-                    className={cn(
-                      'block truncate text-13-medium text-gray-700',
-                      'hover:underline focus-visible:underline',
-                    )}
-                  >
+                  <p className="truncate text-13-medium text-gray-700">
                     {application.title}
-                  </Link>
+                  </p>
                 </td>
 
                 <td className="box-border h-[48px] px-[16px] py-[15px] text-center align-middle text-13-regular text-gray-500">
