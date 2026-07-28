@@ -26,7 +26,7 @@ import SubmissionEditorToolbar from '@/components/submissions/SubmissionEditorTo
 import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 import ModalConfirm from '@/components/ui/Modal/ModalConfirm';
 
-// 임시 originalUrl
+// TODO: 지우기 임시 originalUrl
 const ORIGINAL_URL = 'https://github.com/choihoomba/13-doc-thru-team1-fe/pulls';
 
 export default function AdminSubmissionEditPage() {

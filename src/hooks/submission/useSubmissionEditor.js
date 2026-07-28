@@ -28,6 +28,7 @@ export default function useSubmissionEditor({ onUpdate, onCreate } = {}) {
           '[&_ul]:list-disc [&_ul]:pl-5',
           '[&_ol]:list-decimal [&_ol]:pl-5',
           '[&_li]:my-1',
+          '[&_code]:rounded [&_code]:bg-gray-100 [&_code]:px-[4px] [&_code]:py-[2px] [&_code]:text-gray-500',
           '[&_p.is-editor-empty:first-child]:before:content-[attr(data-placeholder)]',
           '[&_p.is-editor-empty:first-child]:before:pointer-events-none',
           '[&_p.is-editor-empty:first-child]:before:float-left',

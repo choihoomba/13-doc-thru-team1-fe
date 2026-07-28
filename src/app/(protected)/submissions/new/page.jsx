@@ -34,7 +34,7 @@ import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 import ModalConfirm from '@/components/ui/Modal/ModalConfirm';
 import Toast from '@/components/ui/Toast';
 
-// 임시 originalUrl
+// TODO: 임시 originalUrl 지우기
 const ORIGINAL_URL = 'https://github.com/choihoomba/13-doc-thru-team1-fe/pulls';
 
 const SAVE_DEBOUNCE_MS = 500;
@@ -200,7 +200,7 @@ export default function NewSubmissionPage() {
   ]);
 
   // - 로컬은 비었고, 서버에는 draft가 있을때 Toast띄워서 임시저장 불러오기
-  // - 서버 실패 시 로컬로 폴백 -> TODO: 일단 주석으로 남겨둠
+  // - 서버 실패 시 로컬로 폴백은 없음 -> TODO: ?
   function handleLoadDraft() {
     setIsToastOpen(false);
     openModal(
@@ -343,8 +343,7 @@ export default function NewSubmissionPage() {
                 className={cn(isOriginalOpen && 'rounded-[10px]')}
                 onClick={() => {
                   if (!submissionId) return;
-                  // content가 비어있으면 서버(draft) 저장은 항상 400(내용을 입력해주세요)이라 아예 시도 안 함
-                  if (!editorContent.trim()) return;
+                  if (!editorContent.trim()) return; // content 없이 저장되는 버그수정
                   saveDraft(submissionId, {
                     title: challengeTitle,
                     content: editorContent,

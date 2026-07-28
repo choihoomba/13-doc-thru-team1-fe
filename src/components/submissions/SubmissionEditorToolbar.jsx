@@ -1,5 +1,7 @@
 'use client';
 
+import { useRef, useState } from 'react';
+
 import Image from 'next/image';
 
 import iconAlignCenter from '@/app/assets/icons/icon_font_alignment_center.svg';
@@ -7,35 +9,106 @@ import iconAlignLeft from '@/app/assets/icons/icon_font_alignment_left.svg';
 import iconAlignRight from '@/app/assets/icons/icon_font_alignment_right.svg';
 import iconBold from '@/app/assets/icons/icon_font_bold.svg';
 import iconBullet from '@/app/assets/icons/icon_font_bullet.svg';
+import iconCode from '@/app/assets/icons/icon_font_code.svg';
 import iconColor from '@/app/assets/icons/icon_font_color.svg';
 import iconItalic from '@/app/assets/icons/icon_font_italic.svg';
 import iconNumbering from '@/app/assets/icons/icon_font_numbering.svg';
 import iconUnderline from '@/app/assets/icons/icon_font_underline.svg';
 
+import { useOutsideClick } from '@/hooks/common/useOutsideClick';
+
 import { cn } from '@/utils/cn';
 
-function ToolbarButton({ label, icon, onClick, className }) {
+const TEXT_COLOR_OPTIONS = [
+  { label: '검은색', value: '#171717' },
+  { label: '회색', value: '#737373' },
+  { label: '빨간색', value: '#EB3E3E' },
+  { label: '주황색', value: '#F97316' },
+  { label: '노란색', value: '##FFC117' },
+  { label: '초록색', value: '#22C55E' },
+  { label: '파란색', value: '#3B82F6' },
+  { label: '보라색', value: '#A855F7' },
+];
+
+function ToolbarButton({ label, icon, onClick, className, children }) {
   return (
     <button
       type="button"
       aria-label={label}
       onClick={onClick}
-      className={cn(className)}
+      className={cn(
+        'flex h-6 w-6 cursor-pointer items-center justify-center rounded',
+        className,
+      )}
     >
-      <Image src={icon} alt={label} width={24} height={24} />
+      {icon ? (
+        <Image src={icon} alt={label} width={24} height={24} />
+      ) : (
+        children
+      )}
     </button>
   );
 }
 
-export default function SubmissionEditorToolbar({ editor }) {
+function TextColorPicker({ editor }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  useOutsideClick(containerRef, () => setIsOpen(false), {
+    enabled: isOpen,
+    detectFocus: true,
+    closeOnEscape: true,
+  });
+
   function changeTextColor(color) {
     if (!color) {
       editor?.chain().focus().unsetColor().run();
-      return;
+    } else {
+      editor?.chain().focus().setColor(color).run();
     }
-    editor?.chain().focus().setColor(color).run();
+    setIsOpen(false);
   }
 
+  return (
+    <div ref={containerRef} className={cn('relative')}>
+      <button
+        type="button"
+        aria-label="글자 색상"
+        aria-haspopup="true"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((prev) => !prev)}
+        className={cn(
+          'flex h-6 w-6 cursor-pointer items-center justify-center',
+        )}
+      >
+        <Image src={iconColor} alt="" width={24} height={24} />
+      </button>
+
+      {isOpen && (
+        <div
+          className={cn(
+            'absolute left-0 top-[calc(100%+4px)] z-dropdown flex overflow-hidden border border-solid border-gray-200 shadow-md',
+            'mobile:top-[calc(100%+1px)]',
+          )}
+        >
+          {TEXT_COLOR_OPTIONS.map(({ label, value }) => (
+            <button
+              key={value}
+              type="button"
+              aria-label={label}
+              title={label}
+              onClick={() => changeTextColor(value)}
+              className={cn('h-4.5 w-6 cursor-pointer')}
+              style={{ backgroundColor: value }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function SubmissionEditorToolbar({ editor }) {
   return (
     <div
       className={cn(
@@ -86,20 +159,13 @@ export default function SubmissionEditorToolbar({ editor }) {
         className={cn('mr-[13px]')}
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
       />
-      <div className={cn('relative items-center justify-center ')}>
-        <Image src={iconColor} alt="글자 색상" width={24} height={24} />
-        {/* TODO: 밤티나는 디자인 수정 고려 or 컬러팔레트?  */}
-        <select
-          onChange={(e) => changeTextColor(e.target.value)}
-          className={cn('absolute inset-0 cursor-pointer opacity-0')}
-        >
-          <option value="">색상 선택</option>
-          <option value="red">빨간색</option>
-          <option value="blue">파란색</option>
-          <option value="green">초록색</option>
-          <option value="black">검은색</option>
-        </select>
-      </div>
+      <TextColorPicker editor={editor} />
+      <ToolbarButton
+        label="Code"
+        icon={iconCode}
+        className={cn('ml-[2px]')}
+        onClick={() => editor.chain().focus().toggleCode().run()}
+      />
     </div>
   );
 }
