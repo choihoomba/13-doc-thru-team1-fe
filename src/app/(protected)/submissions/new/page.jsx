@@ -32,6 +32,7 @@ import SubmissionEditorToolbar from '@/components/submissions/SubmissionEditorTo
 import ButtonQuit from '@/components/ui/Button/ButtonQuit';
 import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 import ModalConfirm from '@/components/ui/Modal/ModalConfirm';
+import ModalNotice from '@/components/ui/Modal/ModalNotice';
 import Toast from '@/components/ui/Toast';
 
 const SAVE_DEBOUNCE_MS = 500;
@@ -70,6 +71,13 @@ function isEditorContentEmpty(html) {
   return !html || html.trim() === '<p></p>';
 }
 
+// 챌린지 마감 여부. 크론이 아직 status를 바꾸지 않았을 수 있어 deadline도 함께 확인
+function isChallengeClosed(challenge) {
+  return (
+    challenge.status === 'CLOSED' || new Date(challenge.deadline) < new Date()
+  );
+}
+
 export default function NewSubmissionPage() {
   const searchParams = useSearchParams();
   const submissionId = searchParams.get('id');
@@ -77,6 +85,7 @@ export default function NewSubmissionPage() {
   const [editorContent, setEditorContent] = useState('');
 
   const router = useRouter();
+  const { openModal, closeModal } = useModal();
 
   // originalUrl, challenge.title
   const [originalUrl, setOriginalUrl] = useState(null);
@@ -86,17 +95,38 @@ export default function NewSubmissionPage() {
     if (!submissionId) return;
 
     let cancelled = false;
+    let closedChallengeId = null;
     getSubmission(submissionId)
       .then((res) => res.data)
       .then((submission) => {
         if (!submission?.challengeId) return null;
+        closedChallengeId = submission.challengeId;
         if (!cancelled) setChallengeId(submission.challengeId);
         return getChallenge(submission.challengeId);
       })
       .then((challenge) => {
-        if (cancelled) return;
-        if (challenge?.originalUrl) setOriginalUrl(challenge.originalUrl);
-        if (challenge?.title) setChallengeTitle(challenge.title);
+        if (cancelled || !challenge) return;
+
+        // 마감된 챌린지는 URL로 직접 들어와도 작업 화면 자체를 못 쓰게 막는다
+        if (isChallengeClosed(challenge)) {
+          openModal(
+            <ModalNotice
+              message="마감된 챌린지는 작업할 수 없습니다."
+              onConfirm={() => {
+                closeModal();
+                router.push(
+                  closedChallengeId
+                    ? `/challenges/${closedChallengeId}`
+                    : '/challenges',
+                );
+              }}
+            />,
+          );
+          return;
+        }
+
+        if (challenge.originalUrl) setOriginalUrl(challenge.originalUrl);
+        if (challenge.title) setChallengeTitle(challenge.title);
       })
       .catch((error) => {
         console.error('원문 링크 조회 실패:', error);
@@ -105,7 +135,7 @@ export default function NewSubmissionPage() {
     return () => {
       cancelled = true;
     };
-  }, [submissionId]);
+  }, [submissionId, openModal, closeModal, router]);
 
   // debounce
   const debouncedContent = useDebounce(editorContent, SAVE_DEBOUNCE_MS);
@@ -163,8 +193,6 @@ export default function NewSubmissionPage() {
   const [isOriginalOpen, setIsOriginalOpen] = useState(false);
   const [isToastOpen, setIsToastOpen] = useState(false);
   const { isResizing, panelWidthCss, handleResizeStart } = useResizablePanel();
-
-  const { openModal, closeModal } = useModal();
 
   useUnsavedChangesGuard({
     hasSaveError,
