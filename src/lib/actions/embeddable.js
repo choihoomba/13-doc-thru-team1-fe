@@ -6,6 +6,9 @@ import { isIP } from 'node:net';
 const XFO_BLOCKED_PATTERN = /deny|sameorigin/i;
 const MAX_REDIRECTS = 5;
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+// 리다이렉트 홉이 여러 번 겹쳐도 서버 함수 자체 타임아웃(예: Vercel 10초)에
+// 걸리지 않도록, 홉별이 아니라 전체 호출에 하나의 시간 예산을 건다.
+const TOTAL_TIMEOUT_MS = 6000;
 
 const PRIVATE_IPV4_PATTERNS = [
   /^127\./, // loopback
@@ -69,54 +72,51 @@ async function isSafeUrl(url) {
  * @returns {Promise<boolean | null>} true: 임베드 가능, false: 차단됨, null: 판단 불가(요청 실패, 안전하지 않은 주소 등)
  */
 export async function checkEmbeddable(url) {
+  const signal = AbortSignal.timeout(TOTAL_TIMEOUT_MS);
   let currentUrl = url;
 
-  for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
-    if (!(await isSafeUrl(currentUrl))) return null;
+  try {
+    for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
+      if (!(await isSafeUrl(currentUrl))) return null;
 
-    let response;
-    try {
-      response = await fetch(currentUrl, {
+      const response = await fetch(currentUrl, {
         method: 'HEAD',
         redirect: 'manual',
-        signal: AbortSignal.timeout(5000),
+        signal,
       });
-    } catch {
-      return null;
-    }
 
-    if (REDIRECT_STATUSES.has(response.status)) {
-      const location = response.headers.get('location');
-      if (!location) return null;
+      if (REDIRECT_STATUSES.has(response.status)) {
+        const location = response.headers.get('location');
+        if (!location) return null;
 
-      try {
         currentUrl = new URL(location, currentUrl).toString();
-      } catch {
-        return null;
+        continue;
       }
-      continue;
+
+      const xFrameOptions = response.headers.get('x-frame-options');
+      if (xFrameOptions && XFO_BLOCKED_PATTERN.test(xFrameOptions)) {
+        return false;
+      }
+
+      const csp = response.headers.get('content-security-policy');
+      const frameAncestors = csp
+        ?.split(';')
+        .map((directive) => directive.trim())
+        .find((directive) =>
+          directive.toLowerCase().startsWith('frame-ancestors'),
+        );
+
+      if (frameAncestors) {
+        const sources = frameAncestors.split(/\s+/).slice(1);
+        if (!sources.includes('*')) return false;
+      }
+
+      return true;
     }
 
-    const xFrameOptions = response.headers.get('x-frame-options');
-    if (xFrameOptions && XFO_BLOCKED_PATTERN.test(xFrameOptions)) {
-      return false;
-    }
-
-    const csp = response.headers.get('content-security-policy');
-    const frameAncestors = csp
-      ?.split(';')
-      .map((directive) => directive.trim())
-      .find((directive) =>
-        directive.toLowerCase().startsWith('frame-ancestors'),
-      );
-
-    if (frameAncestors) {
-      const sources = frameAncestors.split(/\s+/).slice(1);
-      if (!sources.includes('*')) return false;
-    }
-
-    return true;
+    return null; // 리다이렉트가 너무 많음
+  } catch {
+    // 시간 예산 초과, 잘못된 리다이렉트 URL, 네트워크 실패 등은 모두 판단 불가로 처리
+    return null;
   }
-
-  return null; // 리다이렉트가 너무 많음
 }
