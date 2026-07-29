@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { getChallenge, getChallenges } from '@/lib/api/challenges';
 
-import { challengeKeys } from './keys';
+import { challengeKeys } from './keys1';
 
 export function useChallenges(params) {
   return useQuery({

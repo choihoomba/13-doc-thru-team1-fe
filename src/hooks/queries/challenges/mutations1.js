@@ -4,9 +4,9 @@ import {
   cancelChallenge,
   createChallenge,
   deleteChallenge,
-} from '@/lib/api/challenges.js';
+} from '@/lib/api/challenges1.js';
 
-import { challengeKeys } from '@/hooks/queries/challenges/keys';
+import { challengeKeys } from '@/hooks/queries/challenges/keys1.js';
 
 export function useCreateChallenge() {
   const queryClient = useQueryClient();
