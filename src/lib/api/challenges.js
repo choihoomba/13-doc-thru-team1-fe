@@ -2,37 +2,6 @@ import clientFetch from '@/lib/api/clientFetch';
 import { ENDPOINTS } from '@/lib/api/endpoints';
 import { CHALLENGE_TAB_TO_VIEW } from '@/lib/constants/constants';
 
-//서현님이 작성해주신 나의 챌린지 조회 api 입니다.
-/**
- * 나의 챌린지(참여중/완료/신청) 목록을 조회합니다.
- * BE: GET /challenges?view=participating|completed|applied
- *
- * @param tab 'ongoing' | 'completed' | 'applied' (CHALLENGE_TABS 값)
- * @param status 'applied' 탭에서만 사용하는 신청 상태 하위 필터
- * (PENDING | APPROVED | REJECTED | DELETED | CLOSED)
- */
-export async function getMyChallenges({
-  tab,
-  page = 1,
-  limit = 10,
-  search = '',
-  status,
-} = {}) {
-  const params = new URLSearchParams({
-    view: CHALLENGE_TAB_TO_VIEW[tab],
-    page: String(page),
-    limit: String(limit),
-  });
-
-  if (search) params.set('search', search);
-  if (status && tab === 'applied') params.set('status', status);
-
-  const { data } = await clientFetch(`${ENDPOINTS.challenges.list}?${params}`);
-  return data;
-}
-//여기까지 서현님이 작성해주신 나의 챌린지  api 입니다.
-
-/*챌린지 목록 api 입니다 서현님이 작성해주신 나의 챌린지와 충돌이 나서 추후 수정과 병합이 필요합니다.*/
 /**
  * 검색·필터 조건을 Query String으로 변환합니다.
  *
@@ -85,6 +54,31 @@ export async function getChallenges(params = {}) {
 }
 
 /**
+ * 나의 챌린지(참여중/완료/신청) 목록을 조회합니다.
+ * 탭 값을 백엔드 view 값으로 변환한 뒤 공통 getChallenges를 재사용합니다.
+ * BE: GET /challenges?view=participating|completed|applied
+ *
+ * @param tab 'ongoing' | 'completed' | 'applied' (CHALLENGE_TABS 값)
+ * @param status 'applied' 탭에서만 사용하는 신청 상태 하위 필터
+ * (PENDING | APPROVED | REJECTED | DELETED | CLOSED)
+ */
+export function getMyChallenges({
+  tab,
+  page = 1,
+  limit = 10,
+  search = '',
+  status,
+} = {}) {
+  return getChallenges({
+    view: CHALLENGE_TAB_TO_VIEW[tab],
+    page,
+    limit,
+    search: search || undefined,
+    status: tab === 'applied' ? status : undefined,
+  });
+}
+
+/**
  * 상세 페이지와 관리자 수정 페이지에서 사용할
  * 챌린지 한 건을 조회합니다.
  */
@@ -117,28 +111,6 @@ export async function updateChallenge(challengeId, payload) {
 
   return response.data;
 }
-//나의 챌린지 조회 api 충돌로 우선 주석 처리 하였습니다 추후 병합이 필요합니다.
-/**
- * 나의 챌린지 화면의 탭 값을 백엔드 view 값으로 변환한 뒤
- * 공통 getChallenges 함수를 재사용합니다.
- */
-// export function getMyChallenges({
-//   tab,
-//   page = 1,
-//   limit = 10,
-//   search = '',
-//   status,
-// } = {}) {
-//   return getChallenges({
-//     view: CHALLENGE_TAB_TO_VIEW[tab],
-//     page,
-//     limit,
-//     search: search || undefined,
-
-//     // status 하위 필터는 신청한 챌린지 탭에서만 전달합니다.
-//     status: tab === 'applied' ? status : undefined,
-//   });
-// }
 
 /** 진행 중인 챌린지 삭제 (ADMIN 전용, soft delete)
  * - DELETE /challenges/:id

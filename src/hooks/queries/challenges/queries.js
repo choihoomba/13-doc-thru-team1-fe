@@ -1,8 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
-import { getChallenges, getChallenge } from '@/lib/api/challenges';
+import {
+  getChallenges,
+  getChallenge,
+  getMyChallenges,
+} from '@/lib/api/challenges';
+import { CHALLENGE_TAB_TO_VIEW } from '@/lib/constants/constants';
 
 import { challengeKeys } from './keys';
+
+const MY_CHALLENGES_PAGE_SIZE = 10;
 
 // 검색 조건을 받아 챌린지 목록을 조회합니다.
 export function useChallenges(params) {
@@ -29,4 +36,43 @@ export function useChallenge(challengeId) {
     queryFn: () => getChallenge(challengeId),
     enabled: Boolean(challengeId),
   });
+}
+
+/**
+ * 나의 챌린지(탭별) 무한스크롤 목록.
+ * tab/search가 바뀌면 1페이지부터 다시 조회하고, loadMore로 다음 페이지를 이어붙인다.
+ */
+export function useMyChallenges({ tab, search }) {
+  const {
+    data,
+    isLoading,
+    isError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: challengeKeys.list({ view: CHALLENGE_TAB_TO_VIEW[tab], search }),
+    queryFn: ({ pageParam }) =>
+      getMyChallenges({
+        tab,
+        page: pageParam,
+        limit: MY_CHALLENGES_PAGE_SIZE,
+        search,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage?.pagination?.hasNext ? allPages.length + 1 : undefined,
+  });
+
+  const challenges =
+    data?.pages.flatMap((page) => page?.challenges ?? []) ?? [];
+
+  return {
+    challenges,
+    isLoading,
+    isError,
+    hasNext: Boolean(hasNextPage),
+    isFetchingMore: isFetchingNextPage,
+    loadMore: fetchNextPage,
+  };
 }

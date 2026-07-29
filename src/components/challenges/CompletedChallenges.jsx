@@ -2,8 +2,8 @@
 
 import { CHALLENGE_TABS } from '@/lib/constants/constants';
 
-import useMyChallengesList from '@/hooks/challenges/useMyChallengesList';
 import useInfiniteScroll from '@/hooks/common/useInfiniteScroll';
+import { useMyChallenges } from '@/hooks/queries/challenges/queries';
 
 import { cn } from '@/utils/cn';
 
@@ -13,7 +13,7 @@ import LoadingDisplay from '@/components/ui/LoadingDisplay';
 /** 완료한 챌린지 목록 */
 export default function CompletedChallenges({ search }) {
   const { challenges, isLoading, isError, hasNext, isFetchingMore, loadMore } =
-    useMyChallengesList({ tab: CHALLENGE_TABS.COMPLETED, search });
+    useMyChallenges({ tab: CHALLENGE_TABS.COMPLETED, search });
 
   const sentinelRef = useInfiniteScroll(loadMore, {
     enabled: hasNext && !isFetchingMore,
