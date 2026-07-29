@@ -1,13 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { getChallenges } from '@/lib/api/challenges';
+import { getChallenge, getChallenges } from '@/lib/api/challenges';
 
 import { challengeKeys } from './keys';
 
-// TODO: 예시 코드입니다.
 export function useChallenges(params) {
   return useQuery({
-    queryKey: challengeKeys.lists(),
+    queryKey: challengeKeys.lists(params),
     queryFn: () => getChallenges(params),
+  });
+}
+
+// ✅ 챌린지 상세 (pending/rejected/deleted 상세 페이지 공용)
+export function useChallenge(id) {
+  return useQuery({
+    queryKey: challengeKeys.detail(id),
+    queryFn: () => getChallenge(id),
+    enabled: Number.isInteger(id) && id > 0,
   });
 }
