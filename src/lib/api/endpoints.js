@@ -6,7 +6,8 @@ export const ENDPOINTS = {
   },
 
   notifications: '/api/notifications',
-
+  challenges: '/api/challenges',
+  participations: '/api/participations',
   submissions: {
     detail: (submissionId) => `/api/submissions/${submissionId}`,
     feedbacks: (submissionId) => `/api/submissions/${submissionId}/feedbacks`,
