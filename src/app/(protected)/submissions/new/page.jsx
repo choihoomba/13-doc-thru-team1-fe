@@ -372,7 +372,7 @@ export default function NewSubmissionPage() {
               type="button"
               onClick={() => setIsOriginalOpen(true)}
               className={cn(
-                'flex fixed items-center gap-1 rounded-l-3xl px-3 top-[144px] right-0 z-50 bg-white py-[14px] shadow-md',
+                'flex fixed items-center gap-1 rounded-l-3xl px-3 top-[144px] right-0 z-50 bg-white py-[14px] shadow-md cursor-pointer',
                 'tablet:top-[160px]',
                 'desktop:top-[136px] desktop:flex-col desktop:gap-[8px]',
                 'text-14-semibold text-gray-500',
