@@ -40,7 +40,7 @@ export default function ModalRejectReason({
   };
 
   return (
-    <ModalBase className={cn('w-[min(90vw,343px)]', 'desktop:w-[496px]')}>
+    <ModalBase className={cn('w-[min(90vw,343px)]', 'tablet:w-[496px]')}>
       <div
         className={cn(
           'flex h-[407px] flex-col px-[16px] pt-[16px] pb-[24px]',
