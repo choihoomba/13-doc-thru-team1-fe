@@ -34,6 +34,7 @@ export function useFeedbacks(submissionId) {
   });
 }
 
+/** 챌린지의 최다 추천 작업물 조회 */
 export function useTopLikedSubmission(challengeId) {
   return useQuery({
     queryKey: submissionKeys.topLiked(challengeId),
@@ -43,9 +44,10 @@ export function useTopLikedSubmission(challengeId) {
   });
 }
 
+/** 챌린지의 참여 현황(작업물 목록) 페이지네이션 조회 */
 export function useSubmissions({ challengeId, page, limit }) {
   return useQuery({
-    queryKey: submissionKeys.list(challengeId, page, limit),
+    queryKey: submissionKeys.list({ challengeId, page, limit }),
     queryFn: () => getSubmissions({ challengeId, page, limit }),
     enabled: Boolean(challengeId),
     placeholderData: (previousData) => previousData,

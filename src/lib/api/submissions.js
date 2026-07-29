@@ -88,18 +88,6 @@ export async function deleteDraft(id) {
   return data;
 }
 
-/** 챌린지의 최다 추천 작업물 조회
- * - GET /submissions?challengeId=&include=user&orderBy=likeDesc
- * - 작업물이 하나도 없으면 null
- */
-export async function getTopLikedSubmission(challengeId) {
-  const { data } = await clientFetch(
-    `${ENDPOINTS.submissions.list}?challengeId=${challengeId}&include=user&orderBy=likeDesc`,
-  );
-
-  return data.submissions ?? null;
-}
-
 /** 챌린지의 참여 현황(작업물 목록) 페이지네이션 조회
  * - GET /submissions?challengeId=&limit=&orderBy=likeDesc&page=&include=user
  * - 응답: { submissions, pagination: { page, limit, totalCount, hasMore } }
@@ -110,4 +98,19 @@ export async function getSubmissions({ challengeId, page, limit }) {
   );
 
   return data;
+}
+
+/** 챌린지의 최다 추천 작업물 조회
+ * 좋아요순 1페이지(최대 5건)만 보면 공동 1위까지 충분히 포함되므로
+ * 공통 getSubmissions를 재사용합니다.
+ * - 작업물이 하나도 없으면 null
+ */
+export async function getTopLikedSubmission(challengeId) {
+  const { submissions } = await getSubmissions({
+    challengeId,
+    page: 1,
+    limit: 5,
+  });
+
+  return submissions ?? null;
 }
