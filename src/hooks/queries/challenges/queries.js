@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
+<<<<<<< HEAD
 import {
   getChallenges,
   getChallenge,
@@ -11,6 +12,12 @@ import { challengeKeys } from './keys';
 
 const MY_CHALLENGES_PAGE_SIZE = 10;
 
+=======
+import { getChallenges, getChallenge } from '@/lib/api/challenges';
+
+import { challengeKeys } from './keys';
+
+>>>>>>> a124381 (챌린지 목록페이지 (#75))
 // 검색 조건을 받아 챌린지 목록을 조회합니다.
 export function useChallenges(params) {
   return useQuery({
