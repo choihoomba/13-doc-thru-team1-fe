@@ -11,10 +11,24 @@ import { ENDPOINTS } from '@/lib/api/endpoints';
  * - 응답: { participation, submission }
  */
 export async function createParticipation({ challengeId }) {
-  const { data } = await clientFetch(ENDPOINTS.participations, {
+  const { data } = await clientFetch(ENDPOINTS.participations.list, {
     method: 'POST',
     body: JSON.stringify({ challengeId }),
   });
+
+  return data;
+}
+
+/** 작업 도전 포기하기 (참여 취소)
+ * - PATCH /participations/:id
+ */
+export async function cancelParticipation(participationId) {
+  const { data } = await clientFetch(
+    ENDPOINTS.participations.detail(participationId),
+    {
+      method: 'PATCH',
+    },
+  );
 
   return data;
 }

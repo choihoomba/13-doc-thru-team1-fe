@@ -10,10 +10,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import iconList from '@/app/assets/icons/ic_list.svg';
 import logo from '@/app/assets/images/img_logo.svg';
 
+import { getChallenge } from '@/lib/api/challenges';
 import {
-  cancelParticipation,
   deleteDraft,
-  getChallenge,
   getSubmission,
   saveDraft,
   updateSubmission,
@@ -21,6 +20,7 @@ import {
 
 import useDebounce from '@/hooks/common/useDebounce';
 import { useModal } from '@/hooks/modal/useModal';
+import { useCancelParticipation } from '@/hooks/queries/participations/mutations';
 import useResizablePanel from '@/hooks/submission/useResizablePanel';
 import useSubmissionEditor from '@/hooks/submission/useSubmissionEditor';
 import useUnsavedChangesGuard from '@/hooks/submission/useUnsavedChangesGuard';
@@ -194,6 +194,8 @@ export default function NewSubmissionPage() {
   const [isToastOpen, setIsToastOpen] = useState(false);
   const { isResizing, panelWidthCss, handleResizeStart } = useResizablePanel();
 
+  const { mutateAsync: cancelParticipation } = useCancelParticipation();
+
   useUnsavedChangesGuard({
     hasSaveError,
     setHasSaveError,
@@ -254,7 +256,10 @@ export default function NewSubmissionPage() {
           try {
             const submission = (await getSubmission(submissionId)).data;
             if (!submission?.participationId) return;
-            await cancelParticipation(submission.participationId);
+            await cancelParticipation({
+              participationId: submission.participationId,
+              challengeId,
+            });
             router.push(
               challengeId ? `/challenges/${challengeId}` : '/challenges',
             );

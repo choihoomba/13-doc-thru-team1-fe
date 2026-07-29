@@ -4,10 +4,7 @@ export const ENDPOINTS = {
     me: '/api/auth/me',
     refresh: '/api/auth/refresh',
   },
-
   notifications: '/api/notifications',
-  challenges: '/api/challenges',
-  participations: '/api/participations',
   submissions: {
     list: '/api/submissions',
     detail: (submissionId) => `/api/submissions/${submissionId}`,
@@ -21,6 +18,7 @@ export const ENDPOINTS = {
     detail: (id) => `/api/drafts/${id}`,
   },
   participations: {
+    list: '/api/participations',
     detail: (id) => `/api/participations/${id}`,
   },
   challenges: {

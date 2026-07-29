@@ -9,11 +9,8 @@ import { useParams, useRouter } from 'next/navigation';
 import iconList from '@/app/assets/icons/ic_list.svg';
 import logo from '@/app/assets/images/img_logo.svg';
 
-import {
-  getChallenge,
-  getSubmission,
-  updateSubmission,
-} from '@/lib/api/submissions';
+import { getChallenge } from '@/lib/api/challenges';
+import { getSubmission, updateSubmission } from '@/lib/api/submissions';
 
 import { useModal } from '@/hooks/modal/useModal';
 import useResizablePanel from '@/hooks/submission/useResizablePanel';

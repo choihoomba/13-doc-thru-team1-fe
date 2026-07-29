@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
 import { EditorContent } from '@tiptap/react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
@@ -10,10 +9,9 @@ import { useParams, useRouter } from 'next/navigation';
 import iconList from '@/app/assets/icons/ic_list.svg';
 import logo from '@/app/assets/images/img_logo.svg';
 
+import { getChallenge } from '@/lib/api/challenges';
 import {
-  cancelParticipation,
   deleteDraft,
-  getChallenge,
   getSubmission,
   saveDraft,
   updateSubmission,
@@ -21,8 +19,7 @@ import {
 
 import useDebounce from '@/hooks/common/useDebounce';
 import { useModal } from '@/hooks/modal/useModal';
-import { challengeKeys } from '@/hooks/queries/challenges/keys';
-import { submissionKeys } from '@/hooks/queries/submissions/keys';
+import { useCancelParticipation } from '@/hooks/queries/participations/mutations';
 import useResizablePanel from '@/hooks/submission/useResizablePanel';
 import useSubmissionEditor from '@/hooks/submission/useSubmissionEditor';
 import useUnsavedChangesGuard from '@/hooks/submission/useUnsavedChangesGuard';
@@ -197,7 +194,7 @@ export default function SubmissionEditPage() {
   const [isToastOpen, setIsToastOpen] = useState(false);
   const { isResizing, panelWidthCss, handleResizeStart } = useResizablePanel();
 
-  const queryClient = useQueryClient();
+  const { mutateAsync: cancelParticipation } = useCancelParticipation();
 
   useUnsavedChangesGuard({
     hasSaveError,
@@ -261,15 +258,10 @@ export default function SubmissionEditPage() {
           try {
             const submission = (await getSubmission(submissionId)).data;
             if (!submission?.participationId) return;
-            await cancelParticipation(submission.participationId);
-            // 포기 후 챌린지 상세로 돌아가도 캐시된 참여 상태가 아니라 최신 상태(다시 도전 가능)를 보도록 무효화
-            if (challengeId) {
-              queryClient.invalidateQueries({
-                queryKey: challengeKeys.detail(String(challengeId)),
-              });
-            }
-            // 포기한 작업물이 참여 현황/최다 추천 목록에서 계속 보이지 않도록 무효화
-            queryClient.invalidateQueries({ queryKey: submissionKeys.all });
+            await cancelParticipation({
+              participationId: submission.participationId,
+              challengeId,
+            });
             closeModal();
             router.push(
               challengeId ? `/challenges/${challengeId}` : '/challenges',

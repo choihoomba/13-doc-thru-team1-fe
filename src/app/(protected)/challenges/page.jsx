@@ -173,7 +173,7 @@ export default function ChallengesPage() {
   );
 
   // Query 조건이 변경되면 TanStack Query가 자동으로 재요청합니다.
-  const { data, isLoading, isError, error } = useChallenges(queryParams);
+  const { data, isPending, isError, error } = useChallenges(queryParams);
 
   // getChallenges가 response.data를 반환하므로 바로 꺼낼 수 있습니다.
   const currentChallenges = data?.challenges ?? [];
@@ -181,10 +181,10 @@ export default function ChallengesPage() {
   const totalPages = pagination?.totalPages ?? 1;
 
   // API 요청 성공 후 결과가 0개인지 확인합니다.
-  const isEmpty = !isLoading && !isError && currentChallenges.length === 0;
+  const isEmpty = !isPending && !isError && currentChallenges.length === 0;
 
   // 로딩, 에러, 빈 화면은 목록 영역의 가운데에 표시합니다.
-  const isCenteredState = isLoading || isError || isEmpty;
+  const isCenteredState = isPending || isError || isEmpty;
 
   // SearchBar가 전달한 검색어를 저장하고 첫 페이지로 이동합니다.
   const handleSearch = useCallback((nextKeyword) => {
@@ -258,7 +258,7 @@ export default function ChallengesPage() {
                 : 'flex-col items-stretch pt-[16px]',
             )}
           >
-            {isLoading ? (
+            {isPending ? (
               <LoadingDisplay />
             ) : isError ? (
               <ErrorDisplay
