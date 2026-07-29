@@ -133,6 +133,9 @@ export default function SubmissionDetail({
           className={cn(
             'mt-6 break-words',
             'text-body-14-160 text-gray-700 tablet:text-body-16-160',
+            // TipTap이 빈 줄을 <p></p>로 저장하는데, 내용 없는 <p>는 높이가 0이라
+            // 줄바꿈이 사라져 보이므로 최소 한 줄 높이를 준다
+            '[&_p:empty]:min-h-[1lh]',
           )}
           // TODO: sanitize 라이브러리(dompurify 등) 적용 전까지 임시로 unsanitized HTML을 렌더링함
           dangerouslySetInnerHTML={{ __html: content }}
