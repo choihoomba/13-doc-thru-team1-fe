@@ -27,6 +27,16 @@ export function useSignupForm() {
     setTouched((prev) => ({ ...prev, [field]: true }));
   };
 
+  // 제출 시 모든 필드를 touched 처리
+  const touchAll = () => {
+    setTouched({
+      email: true,
+      nickname: true,
+      password: true,
+      passwordConfirm: true,
+    });
+  };
+
   const errors = {
     email: touched.email ? validateEmail(values.email) : null,
     nickname: touched.nickname ? validateNickname(values.nickname) : null,
@@ -36,5 +46,5 @@ export function useSignupForm() {
       : null,
   };
 
-  return { values, errors, handleChange };
+  return { values, errors, handleChange, touchAll };
 }

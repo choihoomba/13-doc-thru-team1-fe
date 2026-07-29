@@ -16,7 +16,7 @@ export async function signupAction(prevState, formData) {
     return { error: error.message };
   }
 
-  redirect('/signin');
+  return { success: true };
 }
 
 export async function signinAction(prevState, formData) {

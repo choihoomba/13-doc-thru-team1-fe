@@ -6,7 +6,7 @@ async function requestRefresh() {
   if (!refreshPromise) {
     refreshPromise = fetch(ENDPOINTS.auth.refresh, {
       method: 'POST',
-      credentials: 'include',
+      credentials: 'same-origin',
     }).finally(() => {
       refreshPromise = null;
     });
@@ -16,17 +16,30 @@ async function requestRefresh() {
 
 /**
  * 브라우저 fetch wrapper
- * credentials: include
+ * credentials: same-origin
+ * - 프록시(app/api/[...path]/route.js)를 통해 항상 우리 서버(같은 도메인)로만
+ *   요청이 나가는 구조라 same-origin으로 충분함
+ * - include 대신 same-origin을 쓰는 이유: 실수로 절대 URL(외부 도메인)이
+ *   들어와도 쿠키가 새어나가지 않도록 방어하기 위함
  */
 export default async function clientFetch(input, init = {}) {
-  const response = await fetch(input, {
-    ...init,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...init.headers,
-    },
-  });
+  let response;
+  try {
+    response = await fetch(input, {
+      ...init,
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        ...init.headers,
+      },
+    });
+  } catch {
+    const error = new Error(
+      '서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.',
+    );
+    error.code = 'NETWORK_ERROR';
+    throw error;
+  }
 
   if (response.status === 401) {
     const errorBody = await response
