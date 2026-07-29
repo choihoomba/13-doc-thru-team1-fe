@@ -45,7 +45,7 @@ export function useChallenge(challengeId) {
 export function useMyChallenges({ tab, search }) {
   const {
     data,
-    isLoading,
+    isPending,
     isError,
     hasNextPage,
     isFetchingNextPage,
@@ -69,7 +69,7 @@ export function useMyChallenges({ tab, search }) {
 
   return {
     challenges,
-    isLoading,
+    isPending,
     isError,
     hasNext: Boolean(hasNextPage),
     isFetchingMore: isFetchingNextPage,
