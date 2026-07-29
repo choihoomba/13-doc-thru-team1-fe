@@ -132,11 +132,14 @@ export default function TopLikedSubmissionItem({ submission }) {
             !open && 'h-[220px] tablet:h-[188px] desktop:h-[179px]',
           )}
         >
-          <p
-            className={cn('text-body-14-160 text-gray-800', 'text-body-16-160')}
-          >
-            {submission.content}
-          </p>
+          <div
+            className={cn(
+              'text-body-14-160 text-gray-800',
+              'text-body-16-160',
+              '[&_p:empty]:min-h-[1lh]',
+            )}
+            dangerouslySetInnerHTML={{ __html: submission.content }}
+          />
         </div>
       </div>
 
