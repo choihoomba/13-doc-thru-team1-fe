@@ -18,6 +18,8 @@ import { useAdminChallenge } from '@/hooks/queries/adminChallenges/queries';
 import { cn } from '@/utils/cn';
 import formatDate from '@/utils/formatDate';
 
+import AdminChallengeRejectModal from '@/components/admin/AdminChallengeRejectModal';
+import AdminTopSubmissionList from '@/components/admin/AdminTopSubmissionList';
 import ButtonExternalLink from '@/components/ui/Button/ButtonExternalLink';
 import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 import ChipCategory from '@/components/ui/Chip/ChipCategory';
@@ -25,7 +27,6 @@ import ChipField from '@/components/ui/Chip/ChipField';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
 import Header from '@/components/ui/Header/Header';
 import LoadingDisplay from '@/components/ui/LoadingDisplay';
-import ModalRejectReason from '@/components/ui/Modal/ModalRejectReason';
 
 function ChallengeNavigationButton({ direction, targetId, onNavigate }) {
   const isPrevious = direction === 'previous';
@@ -173,6 +174,11 @@ export default function AdminChallengeApplicationDetail({
   const isApproved = status === 'APPROVED';
   const isRejected = status === 'REJECTED';
   const isActionPending = approveMutation.isPending || rejectMutation.isPending;
+  // API 응답에 topSubmissions가 없더라도 오류가 나지 않도록
+  // 항상 배열 형태로 정리합니다.
+  const topSubmissions = Array.isArray(challenge.topSubmissions)
+    ? challenge.topSubmissions
+    : [];
   const actionError = approveMutation.error ?? rejectMutation.error;
 
   const handleChallengeNavigate = (targetId) => {
@@ -203,7 +209,7 @@ export default function AdminChallengeApplicationDetail({
 
   const handleRejectClick = () => {
     openModal(
-      <ModalRejectReason
+      <AdminChallengeRejectModal
         title="거절 사유"
         label="내용"
         placeholder="거절 사유를 입력해주세요"
@@ -323,7 +329,7 @@ export default function AdminChallengeApplicationDetail({
           </article>
 
           <SourcePreview sourceUrl={challenge.originalUrl} />
-
+          <AdminTopSubmissionList submissions={topSubmissions} />
           {actionError && (
             <p
               role="alert"

@@ -117,12 +117,12 @@ export default function ApplicationTable({ applications = [] }) {
                 </td>
 
                 <td className="box-border h-[48px] px-[16px] py-[15px] text-left align-middle text-13-regular text-gray-500">
-                  {DOCUMENT_TYPE_LABELS[application.docType] ??
-                    application.docType}
+                  {FIELD_LABELS[application.field] ?? application.field}
                 </td>
 
                 <td className="box-border h-[48px] px-[16px] py-[15px] text-left align-middle text-13-regular text-gray-500">
-                  {FIELD_LABELS[application.field] ?? application.field}
+                  {DOCUMENT_TYPE_LABELS[application.docType] ??
+                    application.docType}
                 </td>
 
                 <td className="box-border h-[48px] px-[16px] py-[15px] align-middle">
