@@ -2,6 +2,7 @@ import clientFetch from '@/lib/api/clientFetch';
 import { ENDPOINTS } from '@/lib/api/endpoints';
 import { CHALLENGE_TAB_TO_VIEW } from '@/lib/constants/constants';
 
+//서현님이 작성해주신 나의 챌린지 조회 api 입니다.
 /**
  * 나의 챌린지(참여중/완료/신청) 목록을 조회합니다.
  * BE: GET /challenges?view=participating|completed|applied
@@ -29,7 +30,9 @@ export async function getMyChallenges({
   const { data } = await clientFetch(`${ENDPOINTS.challenges.list}?${params}`);
   return data;
 }
+//여기까지 서현님이 작성해주신 나의 챌린지  api 입니다.
 
+/*챌린지 목록 api 입니다 서현님이 작성해주신 나의 챌린지와 충돌이 나서 추후 수정과 병합이 필요합니다.*/
 /**
  * 검색·필터 조건을 Query String으로 변환합니다.
  *
@@ -114,7 +117,7 @@ export async function updateChallenge(challengeId, payload) {
 
   return response.data;
 }
-//나의 챌린지 조회 api 랑 충돌이 나 우선 주선으로 처리 하였습니다.
+//나의 챌린지 조회 api 충돌로 우선 주석 처리 하였습니다 추후 병합이 필요합니다.
 /**
  * 나의 챌린지 화면의 탭 값을 백엔드 view 값으로 변환한 뒤
  * 공통 getChallenges 함수를 재사용합니다.
@@ -137,25 +140,12 @@ export async function updateChallenge(challengeId, payload) {
 //   });
 // }
 
-/** 챌린지 상세 정보 조회
- * - GET /challenges/:id
- */
-export async function getChallengesById(id) {
-  try {
-    const result = await clientFetch(`${ENDPOINTS.challenges}/${id}`);
-    return result.data;
-  } catch (error) {
-    if (error.status === 404) return null;
-    throw error;
-  }
-}
-
 /** 진행 중인 챌린지 삭제 (ADMIN 전용, soft delete)
  * - DELETE /challenges/:id
  */
 export async function deleteChallenge({ id, reason }) {
-  return clientFetch(`${ENDPOINTS.challenges}/${id}`, {
+  return clientFetch(ENDPOINTS.challenges.detail(id), {
     method: 'DELETE',
-    body: { reason },
+    body: JSON.stringify({ reason }),
   });
 }

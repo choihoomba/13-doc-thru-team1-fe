@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { getChallenge } from '@/lib/api/challenges';
+import { getChallenges, getChallenge } from '@/lib/api/challenges';
 
 import { challengeKeys } from './keys';
 
