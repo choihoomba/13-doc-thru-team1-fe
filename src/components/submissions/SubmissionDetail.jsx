@@ -131,12 +131,12 @@ export default function SubmissionDetail({
       {content ? (
         <article
           className={cn(
-            'mt-6 whitespace-pre-wrap break-words',
+            'mt-6 break-words',
             'text-body-14-160 text-gray-700 tablet:text-body-16-160',
           )}
-        >
-          {content}
-        </article>
+          // TODO: sanitize 라이브러리(dompurify 등) 적용 전까지 임시로 unsanitized HTML을 렌더링함
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
       ) : (
         <div className="flex flex-col items-center gap-4 py-20">
           <Image

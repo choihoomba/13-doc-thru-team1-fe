@@ -132,11 +132,11 @@ export default function TopLikedSubmissionItem({ submission }) {
             !open && 'h-[220px] tablet:h-[188px] desktop:h-[179px]',
           )}
         >
-          <p
+          <div
             className={cn('text-body-14-160 text-gray-800', 'text-body-16-160')}
-          >
-            {submission.content}
-          </p>
+            // TODO: sanitize 라이브러리(dompurify 등) 적용 전까지 임시로 unsanitized HTML을 렌더링함
+            dangerouslySetInnerHTML={{ __html: submission.content }}
+          />
         </div>
       </div>
 
