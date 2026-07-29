@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 import IcDeadline from '@/app/assets/icons/ic_deadline.svg';
 import IcPerson from '@/app/assets/icons/ic_person.svg';
@@ -10,6 +9,11 @@ import IcNext from '@/app/assets/icons/icon_challenge_page_next.png';
 import IcPrev from '@/app/assets/icons/icon_challenge_page_prev.png';
 
 import { useModal } from '@/hooks/modal/useModal';
+import {
+  useApproveAdminChallenge,
+  useRejectAdminChallenge,
+} from '@/hooks/queries/adminChallenges/mutations';
+import { useAdminChallenge } from '@/hooks/queries/adminChallenges/queries';
 
 import { cn } from '@/utils/cn';
 import formatDate from '@/utils/formatDate';
@@ -18,57 +22,25 @@ import ButtonExternalLink from '@/components/ui/Button/ButtonExternalLink';
 import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 import ChipCategory from '@/components/ui/Chip/ChipCategory';
 import ChipField from '@/components/ui/Chip/ChipField';
-import Feedback from '@/components/ui/Feedback/Feedback';
+import ErrorDisplay from '@/components/ui/ErrorDisplay';
 import Header from '@/components/ui/Header/Header';
+import LoadingDisplay from '@/components/ui/LoadingDisplay';
 import ModalRejectReason from '@/components/ui/Modal/ModalRejectReason';
 
-// API 연결 전 퍼블리싱을 확인하기 위한 임시 챌린지 데이터입니다.
-const MOCK_CHALLENGE = {
-  id: 1023,
-  title: 'Next.js - App Router : Routing Fundamentals',
-  field: 'NEXTJS',
-  docType: 'OFFICIAL',
-  description:
-    'Next.js App Router 공식 문서 중 Routing Fundamentals 내용입니다. 라우팅에 따른 폴더와 파일이 구성되는 법칙과 컨벤션 등에 대해 공부할 수 있을 것 같아요~! 다른 챌린지 많이 참여해 주세요 :)',
-  deadline: '2024-03-03',
-  maxParticipants: 15,
-  currentParticipants: 14,
-  sourceUrl: 'https://nextjs.org/docs/app/building-your-application/routing',
-};
-
-// 승인 화면에서 확인할 임시 피드백 데이터입니다.
-const MOCK_FEEDBACK = {
-  id: 1,
-  content:
-    '일반적으로 개발자는 일련의 하드 스킬을 가지고 있어야 커리어에서 경력과 전문성을 쌓을 수 있습니다. 하지만 이에 못지않게 개인 브랜드를 구축하는 것도 중요합니다.',
-  createdAt: '2024-01-18T16:38:00',
-  user: {
-    id: 1,
-    nickname: '개발하는 전문가',
-    grade: 'EXPERT',
-  },
-};
-
-const STATUS_MESSAGE = {
-  APPROVED: '신청이 승인된 챌린지입니다.',
-  REJECTED: '신청이 거절된 챌린지입니다.',
-};
-
-const STATUS_BANNER_STYLE = {
-  APPROVED: 'bg-[#DFF0FF] text-[#4095DE]',
-  REJECTED: 'bg-[#FFF0F0] text-[#E54946]',
-};
-
-// 상단 이전/다음 챌린지 이동 버튼입니다.
-// 퍼블리싱 단계라 아직 실제 이동 기능은 연결하지 않습니다.
-function ChallengeNavigationButton({ direction }) {
+function ChallengeNavigationButton({ direction, targetId, onNavigate }) {
   const isPrevious = direction === 'previous';
+  const isDisabled = !targetId;
 
   return (
     <button
       type="button"
+      disabled={isDisabled}
+      onClick={() => onNavigate(targetId)}
       aria-label={isPrevious ? '이전 챌린지' : '다음 챌린지'}
-      className="flex size-[24px] items-center justify-center"
+      className={cn(
+        'flex size-[24px] items-center justify-center',
+        'disabled:cursor-default disabled:opacity-30',
+      )}
     >
       <Image
         src={isPrevious ? IcPrev : IcNext}
@@ -81,7 +53,6 @@ function ChallengeNavigationButton({ direction }) {
   );
 }
 
-// 챌린지 마감일과 참여 인원을 보여주는 영역입니다.
 function ChallengeMeta({ challenge }) {
   return (
     <div
@@ -98,14 +69,12 @@ function ChallengeMeta({ challenge }) {
 
       <span className="flex items-center gap-[6px]">
         <Image src={IcPerson} alt="" width={16} height={16} unoptimized />
-        {challenge.currentParticipants}/{challenge.maxParticipants}명
+        {challenge.currentParticipants ?? 0}/{challenge.maxParticipants ?? 0}명
       </span>
     </div>
   );
 }
 
-// 원문 링크와 미리보기 영역입니다.
-// 실제 원문 캡처 이미지가 준비되면 임시 안내 영역을 Next Image로 교체합니다.
 function SourcePreview({ sourceUrl }) {
   return (
     <section className="mt-[24px]">
@@ -117,57 +86,119 @@ function SourcePreview({ sourceUrl }) {
           'bg-gray-800 text-white',
         )}
       >
-        {/* 실제 원문 캡처 이미지를 넣기 전까지 사용하는 임시 화면입니다. */}
+        {/* 원문 미리보기 이미지 API가 없어 링크 안내 화면을 유지합니다. */}
         <div className="flex h-full flex-col px-[24px] py-[20px]">
-          <p className="text-14-semibold">NEXT.js</p>
+          <p className="text-14-semibold">원문 링크</p>
 
           <div className="flex flex-1 items-center justify-center">
-            <div className="text-center">
-              <p className="text-18-semibold tablet:text-20-semibold">
-                Routing Fundamentals
-              </p>
-              <p className="mt-[8px] text-12-regular text-gray-300">
-                원문 링크 미리보기
-              </p>
-            </div>
+            <p className="text-center text-16-regular text-gray-300">
+              링크 열기 버튼을 눌러 원문을 확인해주세요.
+            </p>
           </div>
         </div>
 
-        <ButtonExternalLink
-          href={sourceUrl}
-          className="absolute top-[8px] right-[8px]"
-        />
+        {sourceUrl && (
+          <ButtonExternalLink
+            href={sourceUrl}
+            className="absolute top-[8px] right-[8px]"
+          />
+        )}
       </div>
     </section>
   );
 }
 
-export default function AdminChallengeApplicationDetail({ challengeId }) {
+function DetailStateDisplay({ isLoading, error }) {
+  return (
+    <>
+      <Header activeAdminNav="manage" />
+
+      <main className={cn('min-h-dvh bg-white pt-[56px]', 'tablet:pt-[60px]')}>
+        <div className="mx-auto w-full max-w-[890px] px-[16px] tablet:px-[24px] desktop:px-0">
+          {isLoading ? (
+            <LoadingDisplay />
+          ) : (
+            <ErrorDisplay
+              message={
+                error?.message ?? '챌린지 신청 정보를 불러오지 못했습니다.'
+              }
+            />
+          )}
+        </div>
+      </main>
+    </>
+  );
+}
+
+export default function AdminChallengeApplicationDetail({
+  challengeId,
+  challengeIds = [],
+}) {
+  const router = useRouter();
   const { openModal } = useModal();
+  const {
+    data: challenge,
+    isLoading,
+    isError,
+    error,
+  } = useAdminChallenge(challengeId);
+  const approveMutation = useApproveAdminChallenge(challengeId);
+  const rejectMutation = useRejectAdminChallenge(challengeId);
 
-  // PENDING에서 승인 또는 거절 상태로 바꾸기 위한 임시 상태입니다.
-  // API 연결 후에는 서버에서 받은 challenge.status를 사용하게 됩니다.
-  const [status, setStatus] = useState('PENDING');
+  // 현재 챌린지가 전달받은 목록에서 몇 번째인지 찾습니다.
+  const currentChallengeIndex = challengeIds.findIndex(
+    (id) => String(id) === String(challengeId),
+  );
 
-  // 관리자가 모달에서 입력한 거절 사유를 임시로 저장합니다.
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [rejectedAt, setRejectedAt] = useState(null);
+  // 현재 항목의 바로 앞과 뒤에 있는 챌린지 ID를 가져옵니다.
+  const previousChallengeId =
+    currentChallengeIndex > 0 ? challengeIds[currentChallengeIndex - 1] : null;
 
-  const challenge = {
-    ...MOCK_CHALLENGE,
-    id: challengeId || MOCK_CHALLENGE.id,
+  const nextChallengeId =
+    currentChallengeIndex >= 0 &&
+    currentChallengeIndex < challengeIds.length - 1
+      ? challengeIds[currentChallengeIndex + 1]
+      : null;
+
+  if (isLoading) {
+    return <DetailStateDisplay isLoading />;
+  }
+
+  if (isError || !challenge) {
+    return <DetailStateDisplay error={error} />;
+  }
+
+  const status = challenge.status;
+  const isPending = status === 'PENDING';
+  const isApproved = status === 'APPROVED';
+  const isRejected = status === 'REJECTED';
+  const isActionPending = approveMutation.isPending || rejectMutation.isPending;
+  const actionError = approveMutation.error ?? rejectMutation.error;
+
+  const handleChallengeNavigate = (targetId) => {
+    if (!targetId) return;
+
+    const searchParams = new URLSearchParams();
+
+    if (challengeIds.length > 0) {
+      searchParams.set('ids', challengeIds.join(','));
+    }
+
+    const queryString = searchParams.toString();
+
+    router.push(
+      queryString
+        ? `/admin/challenges/${targetId}?${queryString}`
+        : `/admin/challenges/${targetId}`,
+    );
   };
 
   const handleApprove = () => {
-    // API 연결 후 승인 mutation을 실행하는 위치입니다.
-    setStatus('APPROVED');
+    approveMutation.mutate();
   };
 
   const handleRejectSubmit = (reason) => {
-    // API 연결 후 거절 mutation에 reason을 전달하는 위치입니다.
-    setRejectionReason(reason);
-    setRejectedAt(new Date());
-    setStatus('REJECTED');
+    return rejectMutation.mutateAsync(reason);
   };
 
   const handleRejectClick = () => {
@@ -182,8 +213,6 @@ export default function AdminChallengeApplicationDetail({ challengeId }) {
     );
   };
 
-  const hasResult = status === 'APPROVED' || status === 'REJECTED';
-
   return (
     <>
       <Header activeAdminNav="manage" />
@@ -197,33 +226,43 @@ export default function AdminChallengeApplicationDetail({ challengeId }) {
             'desktop:px-0',
           )}
         >
-          {/* 신청 번호와 이전/다음 이동 버튼 영역입니다. */}
           <div className="flex items-center justify-between">
             <p className="text-13-regular text-gray-800">No. {challenge.id}</p>
 
             <div className="flex items-center gap-[8px]">
-              <ChallengeNavigationButton direction="previous" />
-              <ChallengeNavigationButton direction="next" />
+              <ChallengeNavigationButton
+                direction="previous"
+                targetId={previousChallengeId}
+                onNavigate={handleChallengeNavigate}
+              />
+
+              <ChallengeNavigationButton
+                direction="next"
+                targetId={nextChallengeId}
+                onNavigate={handleChallengeNavigate}
+              />
             </div>
           </div>
 
-          {/* 승인 또는 거절된 경우 결과 안내를 보여줍니다. */}
-          {hasResult && (
+          {(isApproved || isRejected) && (
             <div
               role="status"
               aria-live="polite"
               className={cn(
                 'mt-[16px] flex min-h-[35px] w-full items-center justify-center',
-                'rounded-full px-[16px] text-center text-16-semebold',
-                STATUS_BANNER_STYLE[status],
+                'rounded-full px-[16px] text-center text-16-semibold',
+                isApproved
+                  ? 'bg-[#DFF0FF] text-[#4095DE]'
+                  : 'bg-[#FFF0F0] text-[#E54946]',
               )}
             >
-              {STATUS_MESSAGE[status]}
+              {isApproved
+                ? '신청이 승인된 챌린지입니다.'
+                : '신청이 거절된 챌린지입니다.'}
             </div>
           )}
 
-          {/* 거절 상태일 때만 거절 사유를 표시합니다. */}
-          {status === 'REJECTED' && (
+          {isRejected && (
             <section
               className={cn(
                 'mt-[16px] rounded-[12px]',
@@ -237,7 +276,7 @@ export default function AdminChallengeApplicationDetail({ challengeId }) {
               </h2>
 
               <p className="mt-[12px] text-center text-16-medium text-gray-700">
-                {rejectionReason}
+                {challenge.reason || '등록된 거절 사유가 없습니다.'}
               </p>
 
               <div
@@ -247,8 +286,8 @@ export default function AdminChallengeApplicationDetail({ challengeId }) {
                 )}
               >
                 <span>독스루 운영진</span>
-                <time dateTime={rejectedAt?.toISOString()}>
-                  {formatDate(rejectedAt, true)}
+                <time dateTime={challenge.updatedAt}>
+                  {formatDate(challenge.updatedAt, true)}
                 </time>
               </div>
             </section>
@@ -275,7 +314,7 @@ export default function AdminChallengeApplicationDetail({ challengeId }) {
                 'tablet:text-16-regular',
               )}
             >
-              {challenge.description}
+              {challenge.content}
             </p>
 
             <div className="mt-[16px]">
@@ -283,35 +322,22 @@ export default function AdminChallengeApplicationDetail({ challengeId }) {
             </div>
           </article>
 
-          <SourcePreview sourceUrl={challenge.sourceUrl} />
+          <SourcePreview sourceUrl={challenge.originalUrl} />
 
-          {/* 승인된 화면에서만 피드백 예시를 보여줍니다. */}
-          {status === 'APPROVED' && (
-            <section className="mt-[16px] border-t border-gray-200 pt-[16px]">
-              <p
-                className={cn(
-                  'inline-flex rounded-full bg-gray-800',
-                  'px-[12px] py-[6px]',
-                  'text-12-medium text-white',
-                )}
-              >
-                🏆 최다 추천 번역
-              </p>
-
-              <Feedback
-                feedback={MOCK_FEEDBACK}
-                canManage={false}
-                className="mt-[8px]"
-              />
-            </section>
+          {actionError && (
+            <p
+              role="alert"
+              className="mt-[16px] text-right text-14-regular text-red-error"
+            >
+              {actionError.message}
+            </p>
           )}
 
-          {/* 승인 대기 상태일 때만 승인·거절 버튼을 보여줍니다. */}
-          {status === 'PENDING' && (
+          {isPending && (
             <div className="mt-[16px] border-t border-gray-200 pt-[16px]">
               <div
                 className={cn(
-                  'mt-[16px] grid grid-cols-2 gap-[8px]',
+                  'grid grid-cols-2 gap-[8px]',
                   'tablet:ml-auto tablet:w-[330px]',
                 )}
               >
@@ -319,6 +345,7 @@ export default function AdminChallengeApplicationDetail({ challengeId }) {
                   color="red"
                   size="lg"
                   width="100%"
+                  disabled={isActionPending}
                   onClick={handleRejectClick}
                 >
                   거절하기
@@ -328,9 +355,10 @@ export default function AdminChallengeApplicationDetail({ challengeId }) {
                   color="black"
                   size="lg"
                   width="100%"
+                  disabled={isActionPending}
                   onClick={handleApprove}
                 >
-                  승인하기
+                  {approveMutation.isPending ? '승인 중' : '승인하기'}
                 </ButtonSecondary>
               </div>
             </div>
