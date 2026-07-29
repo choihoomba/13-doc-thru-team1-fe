@@ -1,16 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { getChallenge, getChallenges } from '@/lib/api/challenges';
+import { getChallenge } from '@/lib/api/challenges';
 
 import { challengeKeys } from './keys';
-
-// TODO: 예시 코드입니다.
-export function useChallenges(params) {
-  return useQuery({
-    queryKey: challengeKeys.lists(),
-    queryFn: () => getChallenges(params),
-  });
-}
 
 /**
  * [챌린지 수정 페이지] URL의 challengeId에 해당하는 상세 데이터를 조회합니다.

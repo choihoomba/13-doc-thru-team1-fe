@@ -88,3 +88,26 @@ export async function getMyChallenges({
   const { data } = await clientFetch(`${ENDPOINTS.challenges.list}?${params}`);
   return data;
 }
+
+/** 챌린지 상세 정보 조회
+ * - GET /challenges/:id
+ */
+export async function getChallengesById(id) {
+  try {
+    const result = await clientFetch(`${ENDPOINTS.challenges}/${id}`);
+    return result.data;
+  } catch (error) {
+    if (error.status === 404) return null;
+    throw error;
+  }
+}
+
+/** 진행 중인 챌린지 삭제 (ADMIN 전용, soft delete)
+ * - DELETE /challenges/:id
+ */
+export async function deleteChallenge({ id, reason }) {
+  return clientFetch(`${ENDPOINTS.challenges}/${id}`, {
+    method: 'DELETE',
+    body: { reason },
+  });
+}
