@@ -4,150 +4,43 @@ import { useCallback, useMemo, useState } from 'react';
 
 import Image from 'next/image';
 
-import icon_challenge_page_next from '@/app/assets/icons/icon_challenge_page_next.png';
-import icon_challenge_page_prev from '@/app/assets/icons/icon_challenge_page_prev.png';
+import IcPageNext from '@/app/assets/icons/icon_challenge_page_next.png';
+import IcPagePrev from '@/app/assets/icons/icon_challenge_page_prev.png';
+
+import { useAdminChallengeApplications } from '@/hooks/queries/adminChallenges/queries';
 
 import { cn } from '@/utils/cn';
 
 import ApplicationTable from '@/components/admin/ApplicationTable';
+import ErrorDisplay from '@/components/ui/ErrorDisplay';
 import SearchBar from '@/components/ui/FilterBar/SearchBar';
 import SortDropdown from '@/components/ui/FilterBar/Sort';
 import Header from '@/components/ui/Header/Header';
+import LoadingDisplay from '@/components/ui/LoadingDisplay';
 
-// 한 페이지에 표시할 신청 개수입니다.
 const ITEMS_PER_PAGE = 10;
-
-// 페이지네이션에 한 번에 표시할 페이지 번호 개수입니다.
 const MAX_VISIBLE_PAGES = 5;
 
-// API 연결 전 화면을 확인하기 위한 임시 데이터입니다.
-const BASE_APPLICATIONS = [
-  {
-    id: 1023,
-    docType: 'OFFICIAL',
-    field: 'NEXTJS',
-    title: 'Next.js - App Router: Routing Fundamentals',
-    maxParticipants: 10,
-    createdAt: '2024-01-16',
-    deadline: '2024-02-24',
-    status: 'PENDING',
-  },
-  {
-    id: 1022,
-    docType: 'BLOG',
-    field: 'API',
-    title: 'Fetch API, 너는 에러를 제대로 핸들링 하고 있는가?(dailydev)',
-    maxParticipants: 5,
-    createdAt: '2024-01-16',
-    deadline: '2024-02-23',
-    status: 'PENDING',
-  },
-  {
-    id: 1021,
-    docType: 'OFFICIAL',
-    field: 'API',
-    title: 'Fetch API, 너는 에러를 제대로 핸들링 하고 있는가?(dailydev)',
-    maxParticipants: 10,
-    createdAt: '2024-01-16',
-    deadline: '2024-02-22',
-    status: 'PENDING',
-  },
-  {
-    id: 1020,
-    docType: 'BLOG',
-    field: 'CAREER',
-    title: '개발자로서 자신만의 브랜드를 구축하는 방법(dailydev)',
-    maxParticipants: 5,
-    createdAt: '2024-01-16',
-    deadline: '2024-02-22',
-    status: 'REJECTED',
-  },
-  {
-    id: 1019,
-    docType: 'OFFICIAL',
-    field: 'NEXTJS',
-    title: 'Next.js - App Router: Routing Fundamentals',
-    maxParticipants: 10,
-    createdAt: '2024-01-16',
-    deadline: '2024-02-22',
-    status: 'APPROVED',
-  },
-  {
-    id: 1018,
-    docType: 'OFFICIAL',
-    field: 'API',
-    title: 'Fetch API, 너는 에러를 제대로 핸들링 하고 있는가?(dailydev)',
-    maxParticipants: 5,
-    createdAt: '2024-01-16',
-    deadline: '2024-02-22',
-    status: 'REJECTED',
-  },
-  {
-    id: 1017,
-    docType: 'OFFICIAL',
-    field: 'API',
-    title: 'Fetch API, 너는 에러를 제대로 핸들링 하고 있는가?(dailydev)',
-    maxParticipants: 10,
-    createdAt: '2024-01-16',
-    deadline: '2024-02-22',
-    status: 'APPROVED',
-  },
-  {
-    id: 1016,
-    docType: 'BLOG',
-    field: 'CAREER',
-    title: '개발자로서 자신만의 브랜드를 구축하는 방법(dailydev)',
-    maxParticipants: 5,
-    createdAt: '2024-01-16',
-    deadline: '2024-02-22',
-    status: 'APPROVED',
-  },
-  {
-    id: 1015,
-    docType: 'BLOG',
-    field: 'NEXTJS',
-    title: 'Next.js - App Router: Routing Fundamentals',
-    maxParticipants: 10,
-    createdAt: '2024-01-16',
-    deadline: '2024-02-22',
-    status: 'APPROVED',
-  },
-  {
-    id: 1014,
-    docType: 'BLOG',
-    field: 'NEXTJS',
-    title: 'Next.js - App Router: Routing Fundamentals',
-    maxParticipants: 10,
-    createdAt: '2024-01-16',
-    deadline: '2024-02-22',
-    status: 'DELETED',
-  },
-];
+const INITIAL_ADMIN_FILTER = {
+  id: 'PENDING',
+  type: 'status',
+  value: 'PENDING',
+};
 
-// 페이지네이션을 테스트할 수 있도록 5페이지 분량으로 복사합니다.
-const MOCK_APPLICATIONS = Array.from(
-  { length: ITEMS_PER_PAGE * 5 },
-  (_, index) => {
-    const application = BASE_APPLICATIONS[index % BASE_APPLICATIONS.length];
+// 공통 Sort가 전달하는 값을 백엔드 sort Query 값으로 변환합니다.
+const SORT_QUERY_BY_OPTION_ID = {
+  created_asc: 'oldest',
+  created_desc: 'latest',
+  deadline_asc: 'deadlineAsc',
+  deadline_desc: 'deadlineDesc',
+};
 
-    return {
-      ...application,
-      id: 1023 - index,
-    };
-  },
-);
-
-// 현재 페이지 주변에 표시할 페이지 번호를 계산합니다.
 function getVisiblePages(currentPage, totalPages) {
   const visiblePageCount = Math.min(MAX_VISIBLE_PAGES, totalPages);
-
   let startPage = currentPage - Math.floor(visiblePageCount / 2);
 
   startPage = Math.max(1, startPage);
-
-  const lastPossibleStartPage = totalPages - visiblePageCount + 1;
-
-  startPage = Math.min(startPage, lastPossibleStartPage);
+  startPage = Math.min(startPage, totalPages - visiblePageCount + 1);
 
   return Array.from(
     { length: visiblePageCount },
@@ -156,21 +49,21 @@ function getVisiblePages(currentPage, totalPages) {
 }
 
 function PageArrowButton({ direction, disabled, onClick }) {
-  const isPrev = direction === 'prev';
+  const isPrevious = direction === 'previous';
 
   return (
     <button
       type="button"
       disabled={disabled}
       onClick={onClick}
-      aria-label={isPrev ? '이전 페이지' : '다음 페이지'}
+      aria-label={isPrevious ? '이전 페이지' : '다음 페이지'}
       className={cn(
         'flex size-[24px] items-center justify-center',
         'disabled:cursor-default disabled:opacity-30',
       )}
     >
       <Image
-        src={isPrev ? icon_challenge_page_prev : icon_challenge_page_next}
+        src={isPrevious ? IcPagePrev : IcPageNext}
         alt=""
         width={24}
         height={24}
@@ -180,15 +73,10 @@ function PageArrowButton({ direction, disabled, onClick }) {
   );
 }
 
-// 어드민 신청 관리 페이지 안에서만 사용하는 페이지네이션입니다.
 function AdminPagination({ currentPage, totalPages, onPageChange }) {
-  if (totalPages <= 1) {
-    return null;
-  }
+  if (totalPages <= 1) return null;
 
   const visiblePages = getVisiblePages(currentPage, totalPages);
-  const isFirstPage = currentPage === 1;
-  const isLastPage = currentPage === totalPages;
 
   const handlePageChange = (nextPage) => {
     if (nextPage < 1 || nextPage > totalPages || nextPage === currentPage) {
@@ -204,10 +92,11 @@ function AdminPagination({ currentPage, totalPages, onPageChange }) {
       className="flex items-center justify-center gap-[4px]"
     >
       <PageArrowButton
-        direction="prev"
-        disabled={isFirstPage}
+        direction="previous"
+        disabled={currentPage === 1}
         onClick={() => handlePageChange(currentPage - 1)}
       />
+
       {visiblePages.map((page) => {
         const isCurrentPage = page === currentPage;
 
@@ -233,7 +122,7 @@ function AdminPagination({ currentPage, totalPages, onPageChange }) {
 
       <PageArrowButton
         direction="next"
-        disabled={isLastPage}
+        disabled={currentPage === totalPages}
         onClick={() => handlePageChange(currentPage + 1)}
       />
     </nav>
@@ -242,62 +131,40 @@ function AdminPagination({ currentPage, totalPages, onPageChange }) {
 
 export default function AdminManagePage() {
   const [keyword, setKeyword] = useState('');
-  const [selectedOption, setSelectedOption] = useState(null);
+  const [selectedOption, setSelectedOption] = useState(INITIAL_ADMIN_FILTER);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // SearchBar가 전달한 문자열을 검색어로 저장합니다.
+  const queryParams = useMemo(() => {
+    const isStatusOption = selectedOption?.type === 'status';
+    const isSortOption = selectedOption?.type === 'sort';
+
+    return {
+      search: keyword || undefined,
+      status: isStatusOption ? selectedOption.value : undefined,
+      sort: isSortOption
+        ? SORT_QUERY_BY_OPTION_ID[selectedOption.id]
+        : 'latest',
+      page: currentPage,
+      limit: ITEMS_PER_PAGE,
+    };
+  }, [currentPage, keyword, selectedOption]);
+
+  const { data, isLoading, isError, error, isFetching } =
+    useAdminChallengeApplications(queryParams);
+
+  const applications = data?.challenges ?? [];
+  const totalPages = data?.pagination?.totalPages ?? 1;
+
   const handleSearch = useCallback((nextKeyword) => {
-    setKeyword(nextKeyword);
+    // 백엔드 검색어 최대 길이인 100자를 넘기지 않습니다.
+    setKeyword(nextKeyword.slice(0, 100));
     setCurrentPage(1);
   }, []);
 
-  // Sort가 전달한 상태 또는 정렬 조건을 저장합니다.
   const handleSortSelect = useCallback((nextOption) => {
     setSelectedOption(nextOption);
     setCurrentPage(1);
   }, []);
-
-  // 검색어, 상태, 정렬 조건에 맞는 신청 목록을 계산합니다.
-  const filteredApplications = useMemo(() => {
-    const normalizedKeyword = keyword.trim().toLowerCase();
-
-    let nextApplications = MOCK_APPLICATIONS.filter((application) => {
-      const matchesKeyword =
-        normalizedKeyword.length === 0 ||
-        application.title.toLowerCase().includes(normalizedKeyword);
-
-      const matchesStatus =
-        selectedOption?.type !== 'status' ||
-        application.status === selectedOption.value;
-
-      return matchesKeyword && matchesStatus;
-    });
-
-    if (selectedOption?.type === 'sort') {
-      nextApplications = [...nextApplications].sort((first, second) => {
-        const firstValue = new Date(first[selectedOption.field]).getTime();
-        const secondValue = new Date(second[selectedOption.field]).getTime();
-
-        return selectedOption.order === 'asc'
-          ? firstValue - secondValue
-          : secondValue - firstValue;
-      });
-    }
-
-    return nextApplications;
-  }, [keyword, selectedOption]);
-
-  // 필터링된 목록을 기준으로 전체 페이지 수를 계산합니다.
-  const totalPages = Math.ceil(filteredApplications.length / ITEMS_PER_PAGE);
-
-  // 현재 페이지에서 시작할 배열 위치를 계산합니다.
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-
-  // 현재 페이지에서 보여줄 신청 데이터만 잘라냅니다.
-  const currentApplications = filteredApplications.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE,
-  );
 
   return (
     <>
@@ -326,17 +193,33 @@ export default function AdminManagePage() {
             <SortDropdown onSelect={handleSortSelect} className="shrink-0" />
           </div>
 
-          <div className="mt-[16px]">
-            <ApplicationTable applications={currentApplications} />
-          </div>
+          <section aria-label="챌린지 신청 목록" className="mt-[16px]">
+            {isLoading ? (
+              <LoadingDisplay />
+            ) : isError ? (
+              <ErrorDisplay
+                message={
+                  error?.message ?? '챌린지 신청 목록을 불러오지 못했습니다.'
+                }
+              />
+            ) : (
+              <div
+                className={cn('transition-opacity', isFetching && 'opacity-60')}
+              >
+                <ApplicationTable applications={applications} />
+              </div>
+            )}
+          </section>
 
-          <div className="mt-[32px]">
-            <AdminPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          </div>
+          {!isLoading && !isError && (
+            <div className="mt-[32px]">
+              <AdminPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
         </div>
       </main>
     </>
