@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { EditorContent } from '@tiptap/react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
@@ -20,6 +21,8 @@ import {
 
 import useDebounce from '@/hooks/common/useDebounce';
 import { useModal } from '@/hooks/modal/useModal';
+import { challengeKeys } from '@/hooks/queries/challenges/keys';
+import { submissionKeys } from '@/hooks/queries/submissions/keys';
 import useResizablePanel from '@/hooks/submission/useResizablePanel';
 import useSubmissionEditor from '@/hooks/submission/useSubmissionEditor';
 import useUnsavedChangesGuard from '@/hooks/submission/useUnsavedChangesGuard';
@@ -31,6 +34,7 @@ import SubmissionEditorToolbar from '@/components/submissions/SubmissionEditorTo
 import ButtonQuit from '@/components/ui/Button/ButtonQuit';
 import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 import ModalConfirm from '@/components/ui/Modal/ModalConfirm';
+import ModalNotice from '@/components/ui/Modal/ModalNotice';
 import Toast from '@/components/ui/Toast';
 
 const SAVE_DEBOUNCE_MS = 500;
@@ -171,6 +175,7 @@ export default function SubmissionEditPage() {
   const { isResizing, panelWidthCss, handleResizeStart } = useResizablePanel();
 
   const { openModal, closeModal } = useModal();
+  const queryClient = useQueryClient();
 
   useUnsavedChangesGuard({
     hasSaveError,
@@ -235,13 +240,23 @@ export default function SubmissionEditPage() {
             const submission = (await getSubmission(submissionId)).data;
             if (!submission?.participationId) return;
             await cancelParticipation(submission.participationId);
+            // 포기 후 챌린지 상세로 돌아가도 캐시된 참여 상태가 아니라 최신 상태(다시 도전 가능)를 보도록 무효화
+            if (challengeId) {
+              queryClient.invalidateQueries({
+                queryKey: challengeKeys.detail(String(challengeId)),
+              });
+            }
+            // 포기한 작업물이 참여 현황/최다 추천 목록에서 계속 보이지 않도록 무효화
+            queryClient.invalidateQueries({ queryKey: submissionKeys.all });
+            closeModal();
             router.push(
               challengeId ? `/challenges/${challengeId}` : '/challenges',
             );
           } catch (error) {
             console.error('작업 포기 실패:', error);
-          } finally {
-            closeModal();
+            openModal(
+              <ModalNotice message={error.message} onConfirm={closeModal} />,
+            );
           }
         }}
       />,

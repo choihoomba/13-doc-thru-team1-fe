@@ -106,3 +106,27 @@ export async function deleteDraft(id) {
   });
   return data;
 }
+
+/** 챌린지의 최다 추천 작업물 조회
+ * - GET /submissions?challengeId=&include=user&orderBy=likeDesc
+ * - 작업물이 하나도 없으면 null
+ */
+export async function getTopLikedSubmission(challengeId) {
+  const { data } = await clientFetch(
+    `${ENDPOINTS.submissions.list}?challengeId=${challengeId}&include=user&orderBy=likeDesc`,
+  );
+
+  return data.submissions ?? null;
+}
+
+/** 챌린지의 참여 현황(작업물 목록) 페이지네이션 조회
+ * - GET /submissions?challengeId=&limit=&orderBy=likeDesc&page=&include=user
+ * - 응답: { submissions, pagination: { page, limit, totalCount, hasMore } }
+ */
+export async function getSubmissions({ challengeId, page, limit }) {
+  const { data } = await clientFetch(
+    `${ENDPOINTS.submissions.list}?challengeId=${challengeId}&limit=${limit}&orderBy=likeDesc&page=${page}&include=user`,
+  );
+
+  return data;
+}

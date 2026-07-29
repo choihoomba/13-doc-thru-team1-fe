@@ -8,14 +8,27 @@ async function proxy(request, { params }) {
   const hasBody = !['GET', 'DELETE'].includes(request.method);
   const body = hasBody ? await request.text() : undefined;
 
-  const response = await fetch(targetUrl, {
-    method: request.method,
-    headers: {
-      'Content-Type': 'application/json',
-      cookie: request.headers.get('cookie') ?? '',
-    },
-    body,
-  });
+  let response;
+  try {
+    response = await fetch(targetUrl, {
+      method: request.method,
+      headers: {
+        'Content-Type': 'application/json',
+        cookie: request.headers.get('cookie') ?? '',
+      },
+      body,
+    });
+  } catch {
+    // 백엔드 연결 실패 시에도 HTML 에러 페이지 대신 JSON으로 응답
+    return Response.json(
+      {
+        success: false,
+        message: '백엔드 서버에 연결할 수 없습니다.',
+        code: 'BACKEND_UNREACHABLE',
+      },
+      { status: 502 },
+    );
+  }
 
   const data = await response.text();
 

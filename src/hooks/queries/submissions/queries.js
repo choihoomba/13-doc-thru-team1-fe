@@ -1,6 +1,11 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
-import { getFeedbacks, getSubmission } from '@/lib/api/submissions';
+import {
+  getFeedbacks,
+  getSubmission,
+  getSubmissions,
+  getTopLikedSubmission,
+} from '@/lib/api/submissions';
 
 import { submissionKeys } from './keys';
 
@@ -26,5 +31,24 @@ export function useFeedbacks(submissionId) {
     getNextPageParam: (lastPage) =>
       lastPage.data.hasNext ? lastPage.data.nextCursor : undefined,
     enabled: !!submissionId,
+  });
+}
+
+export function useTopLikedSubmission(challengeId) {
+  return useQuery({
+    queryKey: submissionKeys.topLiked(challengeId),
+    queryFn: () => getTopLikedSubmission(challengeId),
+    enabled: Boolean(challengeId),
+    meta: { name: 'topLikedSubmission' },
+  });
+}
+
+export function useSubmissions({ challengeId, page, limit }) {
+  return useQuery({
+    queryKey: submissionKeys.list(challengeId, page, limit),
+    queryFn: () => getSubmissions({ challengeId, page, limit }),
+    enabled: Boolean(challengeId),
+    placeholderData: (previousData) => previousData,
+    meta: { name: 'submissions' },
   });
 }

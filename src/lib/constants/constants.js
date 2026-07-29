@@ -24,3 +24,22 @@ export const CHALLENGE_TAB_TO_VIEW = {
   [CHALLENGE_TABS.COMPLETED]: 'completed',
   [CHALLENGE_TABS.APPLIED]: 'applied',
 };
+
+// Challenge Filed Labels
+export const FIELD_LABELS = {
+  NEXTJS: 'Next.js',
+  REACT: 'React',
+  MODERNJS: 'Modern JS',
+  TYPESCRIPT: 'TypeScript',
+  API: 'API',
+  WEB: 'Web',
+  CAREER: 'Career',
+};
+
+// Challenge docType
+export const DOC_TYPE_LABELS = {
+  OFFICIAL: '공식문서',
+  BLOG: '블로그',
+  BOOK: '도서',
+  ETC: '기타',
+};

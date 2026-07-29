@@ -81,7 +81,7 @@ export default function Header({
   // Hook 호출 순서는 유지하고 enabled로 회원의 실제 요청만 실행합니다.
   const {
     data: requestedNotifications = [],
-    isLoading,
+    isPending,
     isError,
   } = useChallengeNotifications({
     enabled: shouldRequestNotifications,
@@ -260,7 +260,7 @@ export default function Header({
               <NotificationPanel
                 id={notificationPanelId}
                 notifications={challengeNotifications}
-                isLoading={shouldRequestNotifications ? isLoading : false}
+                isLoading={shouldRequestNotifications ? isPending : false}
                 isError={shouldRequestNotifications ? isError : false}
                 onClose={closeNotificationPanel}
                 onSelect={handleNotificationSelect}
