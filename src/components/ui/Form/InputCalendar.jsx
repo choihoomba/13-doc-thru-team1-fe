@@ -16,6 +16,7 @@ import {
   FORM_END_ICON_STYLE,
   FORM_ERROR_STYLE,
   FORM_GROUP_STYLE,
+  FORM_HELPER_STYLE,
   FORM_MESSAGE_STYLE,
 } from './formStyles';
 import Label from './Label';
@@ -234,12 +235,15 @@ export default function InputCalendar({
   labelClassName = '',
   label,
   error,
+  helperText = '',
   required = false,
+  showRequired = required,
   placeholder = 'YY/MM/DD',
   value,
   defaultValue = '',
   disabled = false,
   min,
+  max,
   name,
   onChange,
   ...props
@@ -250,11 +254,14 @@ export default function InputCalendar({
   - triggerId: 화면에 보이는 달력 열기 button
   - inputId: form submit용 native date input
   - errorId: 오류 메시지
+  - helperId: 기본 입력 조건 도움말
   */
   const generatedId = useId();
   const inputId = id || generatedId;
   const triggerId = `${inputId}-trigger`;
   const errorId = error ? `${inputId}-error` : undefined;
+  const helperId = !error && helperText ? `${inputId}-helper` : undefined;
+  const describedById = errorId || helperId;
 
   /*
   @ DOM과 상태
@@ -290,10 +297,14 @@ export default function InputCalendar({
   */
   const today = startOfDay(new Date());
   const minDateFromProps = parseDateValue(min);
+  const maxDateFromProps = parseDateValue(max);
 
   const minimumDate = minDateFromProps
     ? getLaterDate(today, startOfDay(minDateFromProps))
     : today;
+  const maximumDate = maxDateFromProps
+    ? startOfDay(maxDateFromProps)
+    : undefined;
 
   /*
   @ 현재 화면에 표시할 월
@@ -368,7 +379,12 @@ export default function InputCalendar({
   - 선택한 날짜는 YYYY-MM-DD 형식으로 전달하고 popup을 닫습니다.
   */
   const handleSelectDate = (date) => {
-    if (startOfDay(date).getTime() < minimumDate.getTime()) return;
+    const selectedDay = startOfDay(date);
+    const isBeforeMinimum = selectedDay.getTime() < minimumDate.getTime();
+    const isAfterMaximum =
+      maximumDate && selectedDay.getTime() > maximumDate.getTime();
+
+    if (isBeforeMinimum || isAfterMaximum) return;
 
     emitChange(toDateValue(date));
     setIsOpen(false);
@@ -387,7 +403,7 @@ export default function InputCalendar({
       {label && (
         <Label
           htmlFor={triggerId}
-          required={required}
+          required={showRequired}
           className={labelClassName}
         >
           {label}
@@ -408,7 +424,7 @@ export default function InputCalendar({
           aria-haspopup="dialog"
           aria-expanded={isOpen}
           aria-controls={`${inputId}-calendar`}
-          aria-describedby={errorId}
+          aria-describedby={describedById}
           aria-invalid={Boolean(error)}
           className={cn(
             FORM_CONTROL_STYLE,
@@ -490,36 +506,40 @@ export default function InputCalendar({
 
               {calendarDays.map(({ date, value: dateValue }) => {
                 /*
-                선택 불가능 조건은 minimumDate보다 이전인지 여부만 확인합니다.
+                선택 불가능 조건은 minimumDate 이전 또는 maximumDate 이후인지 확인합니다.
 
                 현재 월인지, 달력 마지막 줄에 함께 표시된 다음 달인지와 관계없이
-                오늘 이후의 선택 가능한 날짜는 모두 검은색으로 표시합니다.
+                선택 가능한 날짜는 모두 검은색으로 표시합니다.
 
                 따라서 8월 달력에 함께 표시된 9월 날짜도
                 현재 달 날짜와 동일하게 보이며 클릭하면 정상 적용됩니다.
                 */
                 const isBeforeMinimum =
                   startOfDay(date).getTime() < minimumDate.getTime();
+                const isAfterMaximum =
+                  maximumDate &&
+                  startOfDay(date).getTime() > maximumDate.getTime();
+                const isUnavailable = isBeforeMinimum || isAfterMaximum;
 
                 const isSelected =
-                  !isBeforeMinimum && dateValue === selectedValue;
+                  !isUnavailable && dateValue === selectedValue;
 
                 return (
                   <button
                     key={dateValue}
                     type="button"
-                    disabled={isBeforeMinimum}
+                    disabled={isUnavailable}
                     onClick={() => handleSelectDate(date)}
                     aria-label={`${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`}
                     aria-pressed={isSelected}
                     className={cn(
                       'flex h-[40px] items-center justify-center rounded-[8px] text-14-regular',
 
-                      // 과거 날짜만 회색으로 표시하고 마우스·키보드 선택을 막습니다.
-                      isBeforeMinimum && 'cursor-not-allowed text-gray-300',
+                      // 선택 범위를 벗어난 날짜는 회색으로 표시하고 선택을 막습니다.
+                      isUnavailable && 'cursor-not-allowed text-gray-300',
 
-                      // 오늘 이후 날짜는 현재 월 여부와 관계없이 동일한 검은색으로 표시합니다.
-                      !isBeforeMinimum &&
+                      // 선택 가능한 날짜는 현재 월 여부와 관계없이 동일하게 표시합니다.
+                      !isUnavailable &&
                         'cursor-pointer text-gray-900 hover:bg-gray-50',
 
                       // 선택된 날짜는 검은 배경과 흰색 글자로 강조합니다.
@@ -538,10 +558,10 @@ export default function InputCalendar({
           form submit용 native date input
 
           화면에는 커스텀 캘린더를 사용하지만,
-          name, value, required, min과 같은 HTML form 기능은 native input에 유지합니다.
+          name, value, required, min, max 같은 HTML form 기능은 native input에 유지합니다.
 
           min에는 오늘 또는 전달된 min을 넣어 과거 날짜가 유효한 값으로 제출되지 않도록 합니다.
-          현재일 + 7일 정책은 min이 아니라 페이지의 error 검증으로 처리합니다.
+          max가 전달되면 최대 선택 날짜도 동일하게 제한합니다.
         */}
         <input
           id={inputId}
@@ -549,6 +569,7 @@ export default function InputCalendar({
           name={name}
           value={selectedValue}
           min={toDateValue(minimumDate)}
+          max={maximumDate ? toDateValue(maximumDate) : undefined}
           required={required}
           disabled={disabled}
           tabIndex={-1}
@@ -560,13 +581,20 @@ export default function InputCalendar({
       </div>
 
       {/*
-        페이지의 검증 결과가 error 문자열로 전달되면
-        마감일 입력창 아래에 안내 메시지를 표시합니다.
+        정상 상태에서는 입력 조건을 helperText로 안내합니다.
+        페이지 검증 결과가 error로 전달되면 도움말을 숨기고
+        같은 위치에 오류 메시지를 표시해 중복 안내를 피합니다.
       */}
-      {error && (
-        <p id={errorId} className={FORM_MESSAGE_STYLE}>
+      {error ? (
+        <p id={errorId} role="alert" className={FORM_MESSAGE_STYLE}>
           {error}
         </p>
+      ) : (
+        helperText && (
+          <p id={helperId} className={FORM_HELPER_STYLE}>
+            {helperText}
+          </p>
+        )
       )}
     </div>
   );

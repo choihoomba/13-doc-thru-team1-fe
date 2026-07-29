@@ -150,7 +150,7 @@ const SELECT_OPTION_STYLE = [
   'py-[12px]',
   'text-center',
   'text-16-regular',
-  'text-gray-800',
+  'text-gray-500',
   'hover:bg-gray-50',
   'focus:bg-gray-50',
   'focus:outline-none',
@@ -201,6 +201,7 @@ export default function Select({
   label,
   error,
   required = false,
+  showRequired = required,
   placeholder = '선택해 주세요',
   options = [],
   value,
@@ -362,7 +363,7 @@ export default function Select({
       {label && (
         <Label
           htmlFor={selectId}
-          required={required}
+          required={showRequired}
           className={labelClassName}
         >
           {label}
@@ -395,14 +396,17 @@ export default function Select({
             isOpen && 'border-gray-700',
 
             // 값이 없으면 placeholder 색상, 선택값이 있으면 본문 색상을 사용합니다.
-            selectedOption ? 'text-gray-800' : 'text-gray-400',
-
             error && FORM_ERROR_STYLE,
             selectClassName,
           )}
           {...props}
         >
-          <span className="truncate">
+          <span
+            className={cn(
+              'truncate',
+              selectedOption ? 'text-gray-800' : 'text-gray-500',
+            )}
+          >
             {selectedOption?.optionLabel ?? placeholder}
           </span>
 

@@ -7,6 +7,7 @@ import Textarea from '@/components/ui/Form/Textarea';
 import {
   DOCUMENT_TYPE_OPTIONS,
   FIELD_OPTIONS,
+  getMaximumDeadlineValue,
   getMinimumDeadlineValue,
   MAX_PARTICIPANTS,
 } from './challengeEditFormUtils';
@@ -22,10 +23,12 @@ export default function ChallengeEditForm({
   submitError,
   currentParticipants,
   isUpdating,
+  isSubmitDisabled,
   onChange,
   onSubmit,
 }) {
   const minimumDeadline = getMinimumDeadlineValue();
+  const maximumDeadline = getMaximumDeadlineValue();
 
   return (
     <div
@@ -53,6 +56,7 @@ export default function ChallengeEditForm({
           <div className="mt-[12px] flex flex-col gap-[24px] tablet:mt-[24px]">
             <InputBase
               required
+              showRequired={Boolean(errors.title)}
               label="제목"
               name="title"
               value={values.title}
@@ -64,6 +68,7 @@ export default function ChallengeEditForm({
 
             <InputBase
               required
+              showRequired={Boolean(errors.originalUrl)}
               label="원문 링크"
               name="originalUrl"
               type="url"
@@ -76,6 +81,7 @@ export default function ChallengeEditForm({
 
             <Select
               required
+              showRequired={Boolean(errors.field)}
               label="분야"
               name="field"
               value={values.field}
@@ -87,6 +93,7 @@ export default function ChallengeEditForm({
 
             <Select
               required
+              showRequired={Boolean(errors.docType)}
               label="문서 타입"
               name="docType"
               value={values.docType}
@@ -98,16 +105,20 @@ export default function ChallengeEditForm({
 
             <InputCalendar
               required
+              showRequired={Boolean(errors.deadline)}
               label="마감일"
               name="deadline"
               value={values.deadline}
               error={errors.deadline}
+              helperText="마감일은 오늘부터 21일 이내의 날짜로 변경할 수 있습니다."
               min={minimumDeadline}
+              max={maximumDeadline}
               onChange={onChange}
             />
 
             <InputBase
               required
+              showRequired={Boolean(errors.maxParticipants)}
               className="tablet:mt-[8px]"
               inputClassName="h-[57px]"
               label="최대 인원"
@@ -125,6 +136,7 @@ export default function ChallengeEditForm({
 
             <Textarea
               required
+              showRequired={Boolean(errors.content)}
               className="tablet:mt-[8px]"
               textareaClassName="h-[228px]"
               label="내용"
@@ -146,7 +158,7 @@ export default function ChallengeEditForm({
               type="submit"
               size="xl"
               width="100%"
-              disabled={isUpdating}
+              disabled={isSubmitDisabled}
             >
               {isUpdating ? '수정 중...' : '수정하기'}
             </ButtonPrimary>

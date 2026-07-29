@@ -26,9 +26,9 @@ export const EMPTY_FORM_VALUES = {
 };
 
 export const MAX_PARTICIPANTS = 15;
-export const MINIMUM_DEADLINE_DAYS = 7;
+export const MAXIMUM_DEADLINE_DAYS = 21;
 
-const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+const TITLE_TEXT_PATTERN = /[\p{L}\p{N}]/u;
 
 /**
  * API의 ISO 날짜를 InputCalendar가 사용하는 YYYY-MM-DD로 변환합니다.
@@ -58,20 +58,24 @@ function toDeadlineISOString(dateValue) {
 }
 
 /**
- * 수정 시점의 날짜를 기준으로 선택 가능한 최소 마감일을 계산합니다.
+ * 관리자 수정에서는 신규 신청의 7일 제한을 다시 적용하지 않습니다.
+ * 백엔드 수정 정책과 동일하게 오늘을 포함한 미래 날짜를 선택할 수 있도록
+ * 현재 날짜를 최소 마감일로 반환합니다.
  * InputCalendar의 min prop이 사용하는 YYYY-MM-DD 형식으로 반환합니다.
  */
 export function getMinimumDeadlineValue(baseDate = new Date()) {
-  const minimumDate = new Date(
-    baseDate.getFullYear(),
-    baseDate.getMonth(),
-    baseDate.getDate() + MINIMUM_DEADLINE_DAYS,
-  );
-  const year = minimumDate.getFullYear();
-  const month = String(minimumDate.getMonth() + 1).padStart(2, '0');
-  const day = String(minimumDate.getDate()).padStart(2, '0');
+  return toDateInputValue(baseDate);
+}
 
-  return `${year}-${month}-${day}`;
+/**
+ * 관리자 수정에서도 요청일로부터 21일째 날짜까지만 선택할 수 있습니다.
+ * InputCalendar의 max prop이 사용하는 YYYY-MM-DD 형식으로 반환합니다.
+ */
+export function getMaximumDeadlineValue(baseDate = new Date()) {
+  const maximumDeadline = new Date(baseDate);
+  maximumDeadline.setDate(maximumDeadline.getDate() + MAXIMUM_DEADLINE_DAYS);
+
+  return toDateInputValue(maximumDeadline);
 }
 
 /**
@@ -90,7 +94,8 @@ export function createInitialValues(challenge) {
 }
 
 /**
- * 챌린지 업무 규칙에 맞춰 수정 시점으로부터 최소 7일 이후인지 검증합니다.
+ * 관리자 수정에서는 오늘을 포함한 미래 날짜인지 검증합니다.
+ * 신규 신청 단계에서 이미 7일 제한을 검증했으므로 수정 시 다시 적용하지 않습니다.
  * 달력의 min 제한을 우회해 값을 전달해도 제출 단계에서 다시 차단합니다.
  */
 export function validateChallengeEditForm(values, currentParticipants) {
@@ -102,6 +107,8 @@ export function validateChallengeEditForm(values, currentParticipants) {
 
   if (!trimmedTitle) {
     errors.title = '* 제목을 입력해주세요.';
+  } else if (!TITLE_TEXT_PATTERN.test(trimmedTitle)) {
+    errors.title = '* 제목은 문자 또는 숫자를 포함해주세요.';
   } else if (trimmedTitle.length > 100) {
     errors.title = '* 제목은 100자 이하로 입력해주세요.';
   }
@@ -132,13 +139,15 @@ export function validateChallengeEditForm(values, currentParticipants) {
     errors.deadline = '* 마감일을 선택해주세요.';
   } else {
     const selectedDeadline = new Date(toDeadlineISOString(values.deadline));
-    const minimumDeadline = new Date(
-      Date.now() + MINIMUM_DEADLINE_DAYS * MILLISECONDS_PER_DAY,
-    );
+    const maximumDeadline = new Date();
+    maximumDeadline.setDate(maximumDeadline.getDate() + MAXIMUM_DEADLINE_DAYS);
+    maximumDeadline.setHours(23, 59, 59, 999);
 
-    if (selectedDeadline.getTime() < minimumDeadline.getTime()) {
-      errors.deadline =
-        '* 마감일은 현재 날짜 기준 최소 7일 이후로 선택해주세요.';
+    if (
+      selectedDeadline.getTime() <= Date.now() ||
+      selectedDeadline.getTime() > maximumDeadline.getTime()
+    ) {
+      errors.deadline = '* 마감일은 오늘부터 21일 이내의 날짜로 선택해주세요.';
     }
   }
 
