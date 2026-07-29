@@ -77,19 +77,6 @@ export async function saveDraft(id, { title, content }) {
   return data;
 }
 
-/* 포기하기 버튼 클릭시: */
-/* 1. GET participationId -> getSubmission 사용 */
-/* 2. 포기하기로 상태 변경 */
-export async function cancelParticipation(participationId) {
-  const { data } = await clientFetch(
-    ENDPOINTS.participations.detail(participationId),
-    {
-      method: 'PATCH',
-    },
-  );
-  return data;
-}
-
 /* 제출하기 버튼 클릭시: */
 /* 1. 작업물 최종 제출, submission.content로 들어감 */
 export async function updateSubmission(id, content) {
