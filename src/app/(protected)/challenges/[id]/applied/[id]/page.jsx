@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import deadlineIcon from '@/app/assets/icons/ic_deadline.svg';
 import personIcon from '@/app/assets/icons/ic_person.svg';
 
-import { useChallenge } from '@/hooks/queries/challenges/queries';
+import { useChallenge } from '@/hooks/queries/challenges/queries1';
 
 import { cn } from '@/utils/cn';
 import formatDate from '@/utils/formatDate';

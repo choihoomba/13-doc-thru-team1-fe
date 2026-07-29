@@ -1,20 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { getChallenge, getChallenges } from '@/lib/api/challenges';
+import { getChallenge } from '@/lib/api/challenges';
 
 import { challengeKeys } from './keys';
 
-export function useChallenges(params) {
+/**
+ * [챌린지 수정 페이지] URL의 challengeId에 해당하는 상세 데이터를 조회합니다.
+ *
+ * id가 준비되기 전에는 요청하지 않아 `/api/challenges/undefined` 호출을 막고,
+ * 상세 전용 queryKey를 사용해 목록 캐시와 섞이지 않도록 합니다.
+ */
+export function useChallenge(challengeId) {
   return useQuery({
-    queryKey: challengeKeys.lists(params),
-    queryFn: () => getChallenges(params),
-  });
-}
-
-export function useChallenge(id) {
-  return useQuery({
-    queryKey: challengeKeys.detail(id),
-    queryFn: () => getChallenge(id),
-    enabled: Number.isInteger(id) && id > 0,
+    queryKey: challengeKeys.detail(challengeId),
+    queryFn: () => getChallenge(challengeId),
+    enabled: Boolean(challengeId),
   });
 }

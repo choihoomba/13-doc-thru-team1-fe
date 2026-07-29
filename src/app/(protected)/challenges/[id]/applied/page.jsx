@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { useChallenges } from '@/hooks/queries/challenges/queries';
+import { useChallenges } from '@/hooks/queries/challenges/queries1';
 
 import { cn } from '@/utils/cn';
 import formatDate from '@/utils/formatDate';

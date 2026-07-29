@@ -52,8 +52,15 @@ export default function Header({
   const pathname = usePathname();
   const { user: authUser } = useAuth();
 
+  /*
+   * AuthProvider가 API 공통 응답인 { success, data } 전체를 전달하는 현재 구조와
+   * 사용자 객체를 직접 전달하는 구조를 모두 지원합니다.
+   * Header 안에서만 응답을 정리하므로 공용 auth.js와 Provider에는 영향을 주지 않습니다.
+   */
+  const resolvedAuthUser = authUser?.data ?? authUser;
+
   // undefined는 실제 Auth 사용자 사용, null은 예제의 비회원 상태를 의미합니다.
-  const user = providedUser === undefined ? authUser : providedUser;
+  const user = providedUser === undefined ? resolvedAuthUser : providedUser;
   const headerVariant = getHeaderVariant(user);
   const isMember = headerVariant === 'member';
   const isAdmin = headerVariant === 'admin';
@@ -74,7 +81,7 @@ export default function Header({
   // Hook 호출 순서는 유지하고 enabled로 회원의 실제 요청만 실행합니다.
   const {
     data: requestedNotifications = [],
-    isLoading,
+    isPending,
     isError,
   } = useChallengeNotifications({
     enabled: shouldRequestNotifications,
@@ -253,7 +260,7 @@ export default function Header({
               <NotificationPanel
                 id={notificationPanelId}
                 notifications={challengeNotifications}
-                isLoading={shouldRequestNotifications ? isLoading : false}
+                isLoading={shouldRequestNotifications ? isPending : false}
                 isError={shouldRequestNotifications ? isError : false}
                 onClose={closeNotificationPanel}
                 onSelect={handleNotificationSelect}

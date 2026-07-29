@@ -10,8 +10,8 @@ import personIcon from '@/app/assets/icons/ic_person.svg';
 import check from '@/app/assets/icons/icon_check.svg';
 import kebabIcon from '@/app/assets/icons/icon_kebab.svg';
 
-import { useCancelChallenge } from '@/hooks/queries/challenges/mutations';
-import { useChallenge } from '@/hooks/queries/challenges/queries';
+import { useCancelChallenge } from '@/hooks/queries/challenges/mutations1';
+import { useChallenge } from '@/hooks/queries/challenges/queries1';
 
 import { cn } from '@/utils/cn';
 import formatDate from '@/utils/formatDate';

@@ -1,38 +1,47 @@
 'use client';
 
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
+import { usePathname } from 'next/navigation';
 
 import { getMe } from '@/lib/api/auth';
-
-import { authKeys } from '@/hooks/queries/auth/keys';
 
 import LoadingDisplay from '@/components/ui/LoadingDisplay';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const { data: user, isLoading } = useQuery({
-    queryKey: authKeys.me(),
-    queryFn: async () => {
+  const pathname = usePathname();
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function fetchUser() {
       try {
-        return await getMe();
+        const data = await getMe();
+        if (!ignore) setUser(data);
       } catch {
-        return null;
+        if (!ignore) setUser(null);
+      } finally {
+        if (!ignore) setIsLoading(false);
       }
-    },
-    retry: false,
-  });
+    }
+
+    fetchUser();
+
+    return () => {
+      ignore = true;
+    };
+  }, [pathname]);
 
   if (isLoading) {
     return <LoadingDisplay className="min-h-screen" />;
   }
 
   return (
-    <AuthContext.Provider value={{ user: user ?? null }}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={{ user }}>{children}</AuthContext.Provider>
   );
 }
 

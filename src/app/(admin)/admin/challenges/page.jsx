@@ -11,8 +11,8 @@ import persons from '@/app/assets/icons/ic_persons.svg';
 import kebab from '@/app/assets/icons/icon_kebab.svg';
 import out from '@/app/assets/icons/icon_out.svg';
 
-import { useDeleteChallenge } from '@/hooks/queries/challenges/mutations';
-import { useChallenges } from '@/hooks/queries/challenges/queries';
+import { useDeleteChallenge } from '@/hooks/queries/challenges/mutations1';
+import { useChallenges } from '@/hooks/queries/challenges/queries1';
 
 import { cn } from '@/utils/cn';
 import formatDate from '@/utils/formatDate';

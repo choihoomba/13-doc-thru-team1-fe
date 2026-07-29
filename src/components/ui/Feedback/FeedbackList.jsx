@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import { cn } from '@/utils/cn';
 
 import ButtonLoadMore from '@/components/ui/Button/ButtonLoadMore';
@@ -20,7 +22,7 @@ import FeedbackTextarea from './FeedbackTextarea';
  * @param isSubmitting  전송 중 여부. 입력창 비활성화에 사용
  * @param onSubmit      피드백 작성 시 실행
  * @param onLoadMore    더보기 클릭 시 실행
- * @param onEdit        수정하기 클릭 시 실행
+ * @param onEdit        수정 완료 시 실행. (feedback, 수정된 내용)을 인자로 넘김
  * @param onDelete      삭제하기 클릭 시 실행
  */
 export default function FeedbackList({
@@ -35,6 +37,9 @@ export default function FeedbackList({
   onDelete,
   className,
 }) {
+  // 편집 중인 피드백 id. 한 번에 하나만 편집할 수 있도록 목록이 관리한다
+  const [editingId, setEditingId] = useState(null);
+
   // 피드백별 수정/삭제 권한 판단
   // 백엔드 서비스의 권한 로직(마감 여부 → isOwner || isAdmin)과 동일한 기준을 사용한다.
   // 프론트는 버튼을 숨기고, 실제 차단은 백엔드가 담당 (이중 방어)
@@ -43,6 +48,12 @@ export default function FeedbackList({
     // 마감된 챌린지의 피드백은 어드민도 수정/삭제할 수 없다 (요구사항)
     if (isClosed) return false;
     return currentUser.id === feedback.user.id || currentUser.role === 'ADMIN';
+  };
+
+  const handleSubmitEdit = (feedback, content) => {
+    onEdit?.(feedback, content);
+    // 서버 응답을 기다리지 않고 편집 모드를 닫는다. 목록 갱신은 부모가 처리
+    setEditingId(null);
   };
 
   return (
@@ -54,7 +65,7 @@ export default function FeedbackList({
 
       {/* 피드백 목록. 피그마상 빈 상태 안내 문구가 없어 목록이 있을 때만 렌더 */}
       {/* desktop:pr-[64px] — 입력창의 전송 버튼(40px)+gap(24px)만큼 오른쪽 여백을 줘
-    입력창과 카드의 오른쪽 끝을 맞춘다 */}
+          입력창과 카드의 오른쪽 끝을 맞춘다 */}
       {feedbacks.length > 0 && (
         <div className="flex flex-col gap-3 desktop:pr-[64px]">
           {feedbacks.map((feedback) => (
@@ -62,7 +73,10 @@ export default function FeedbackList({
               key={feedback.id}
               feedback={feedback}
               canManage={canManageFeedback(feedback)}
-              onEdit={onEdit}
+              isEditing={editingId === feedback.id}
+              onStartEdit={() => setEditingId(feedback.id)}
+              onCancelEdit={() => setEditingId(null)}
+              onSubmitEdit={handleSubmitEdit}
               onDelete={onDelete}
             />
           ))}

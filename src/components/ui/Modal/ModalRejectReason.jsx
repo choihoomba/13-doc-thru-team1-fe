@@ -25,6 +25,7 @@ export default function ModalRejectReason({
   label = '내용',
   placeholder = '거절사유를 입력해주세요',
   submitText = '전송',
+  maxLength = 100,
   onSubmit,
 }) {
   const { closeModal } = useModal();
@@ -63,6 +64,7 @@ export default function ModalRejectReason({
           </label>
           {/* TODO: Form/Label 만들어지면 넣어야함 */}
           <textarea
+            maxLength={maxLength}
             className={cn(
               'box-border w-full flex-1 resize-none rounded-md border border-gray-300 px-5 py-4 mb-4',
               'desktop:mb-6',
