@@ -1,3 +1,6 @@
+import Link from 'next/link';
+
+import { cn } from '@/utils/cn';
 import formatDate from '@/utils/formatDate';
 
 import ChipStatus from '@/components/ui/Chip/ChipStatus';
@@ -126,9 +129,15 @@ export default function ApplicationTable({ applications = [] }) {
                 </td>
 
                 <td className="box-border h-[48px] px-[16px] py-[15px] align-middle">
-                  <p className="truncate text-13-medium text-gray-700">
+                  <Link
+                    href={`/admin/challenges/${application.id}`}
+                    className={cn(
+                      'block truncate text-13-medium text-gray-700',
+                      'hover:underline focus-visible:underline',
+                    )}
+                  >
                     {application.title}
-                  </p>
+                  </Link>
                 </td>
 
                 <td className="box-border h-[48px] px-[16px] py-[15px] text-center align-middle text-13-regular text-gray-500">
