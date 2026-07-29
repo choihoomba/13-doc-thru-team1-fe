@@ -10,9 +10,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import iconList from '@/app/assets/icons/ic_list.svg';
 import logo from '@/app/assets/images/img_logo.svg';
 
+import { getChallenge } from '@/lib/api/challenges';
 import {
   deleteDraft,
-  getChallenge,
   getSubmission,
   saveDraft,
   updateSubmission,

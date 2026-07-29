@@ -1,12 +1,6 @@
 import clientFetch from '@/lib/api/clientFetch';
 import { ENDPOINTS } from '@/lib/api/endpoints';
 
-/* TODO: 챌린지로 이동... originalUrl */
-export async function getChallenge(challengeId) {
-  const { data } = await clientFetch(ENDPOINTS.challenges.detail(challengeId));
-  return data;
-}
-
 /** 작업물 상세 조회 */
 export async function getSubmission(submissionId) {
   return clientFetch(ENDPOINTS.submissions.detail(submissionId));
