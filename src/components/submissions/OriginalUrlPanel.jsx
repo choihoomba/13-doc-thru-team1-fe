@@ -6,6 +6,8 @@ import Image from 'next/image';
 
 import iconOutCircle from '@/app/assets/icons/icon_out_circle.svg';
 
+import { checkEmbeddable } from '@/lib/actions/embeddable';
+
 import { cn } from '@/utils/cn';
 
 import ButtonExternalLink from '../../components/ui/Button/ButtonExternalLink';
@@ -20,26 +22,48 @@ export default function OriginalUrlPanel({
 }) {
   // 'loading' | 'loaded' | 'blocked'
   const [status, setStatus] = useState('loading');
+  // 서버 헤더 체크 결과: true(임베드 가능) | false(차단) | null(판단 불가/체크 전)
+  const [embeddable, setEmbeddable] = useState(null);
+
+  // 서버에서 X-Frame-Options/CSP 헤더를 먼저 확인해, 확실히 차단된 경우
+  // iframe이 브라우저 자체 에러 페이지를 띄우기 전에 바로 fallback으로 전환한다.
+  useEffect(() => {
+    if (!isOpen || !url) return;
+
+    let cancelled = false;
+
+    checkEmbeddable(url).then((result) => {
+      if (cancelled) return;
+      setEmbeddable(result);
+      if (result === false) setStatus('blocked');
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, url]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    // 서버 헤더 체크에서 임베드 가능이 확인된 사이트는 로딩이 오래 걸려도
+    // 차단으로 오판하지 않는다 (무거운 페이지가 5초 넘게 걸릴 수 있음).
+    if (!isOpen || embeddable === true) return;
 
     const timer = setTimeout(() => {
       setStatus((prev) => (prev === 'loaded' ? prev : 'blocked'));
     }, IFRAME_LOAD_TIMEOUT_MS);
 
     return () => clearTimeout(timer);
-  }, [isOpen]);
+  }, [isOpen, embeddable]);
 
   function handleIframeLoad(e) {
     const frame = e.currentTarget;
     try {
+      // 접근이 성공하고 여전히 about:blank라면 임베드가 차단되어 실제 이동이 안 된 것
       const isStillBlank = frame.contentWindow.location.href === 'about:blank';
-      setStatus(isStillBlank ? 'loaded' : 'blocked');
-      console.log('loaded');
+      setStatus(isStillBlank ? 'blocked' : 'loaded');
     } catch {
-      setStatus('blocked');
-      console.log('blocked');
+      // cross-origin 접근이 막혔다는 건 실제로 외부 사이트로 정상 이동했다는 뜻
+      setStatus('loaded');
     }
   }
 
