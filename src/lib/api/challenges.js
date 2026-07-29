@@ -10,8 +10,6 @@ export async function createChallenge(data) {
 }
 
 export async function getChallenges(params = {}) {
-  // ✅ undefined/null/빈 문자열 값은 querystring에 'undefined' 문자열로
-  //    직렬화되는 것을 방지하기 위해 걸러냅니다.
   const entries = Object.entries(params).filter(
     ([, value]) => value !== undefined && value !== null && value !== '',
   );
@@ -22,7 +20,6 @@ export async function getChallenges(params = {}) {
   );
 }
 
-// ✅ 상세 조회 (pending/rejected/deleted 페이지에서 사용)
 export async function getChallenge(id) {
   return clientFetch(`${CHALLENGES_ENDPOINT}/${id}`);
 }
@@ -34,7 +31,6 @@ export async function deleteChallenge(id, reason) {
   });
 }
 
-// ✅ 승인 대기 신청 취소 (PATCH { action: 'CANCEL' })
 export async function cancelChallenge(id) {
   return clientFetch(`${CHALLENGES_ENDPOINT}/${id}`, {
     method: 'PATCH',

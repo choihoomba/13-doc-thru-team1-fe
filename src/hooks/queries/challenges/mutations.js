@@ -33,7 +33,6 @@ export function useDeleteChallenge() {
   });
 }
 
-// ✅ 신청자 본인의 승인 대기 신청 취소
 export function useCancelChallenge() {
   const queryClient = useQueryClient();
 
@@ -41,7 +40,6 @@ export function useCancelChallenge() {
     mutationFn: (id) => cancelChallenge(id),
     onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: challengeKeys.lists() });
-      // 취소된 신청은 실제로 삭제(hard delete)되므로 상세 캐시도 제거합니다.
       queryClient.removeQueries({ queryKey: challengeKeys.detail(id) });
     },
     onError: (error) => {

@@ -11,7 +11,6 @@ export function useChallenges(params) {
   });
 }
 
-// ✅ 챌린지 상세 (pending/rejected/deleted 상세 페이지 공용)
 export function useChallenge(id) {
   return useQuery({
     queryKey: challengeKeys.detail(id),
