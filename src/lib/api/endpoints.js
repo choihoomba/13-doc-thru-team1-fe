@@ -9,6 +9,7 @@ export const ENDPOINTS = {
   challenges: '/api/challenges',
   participations: '/api/participations',
   submissions: {
+    list: '/api/submissions',
     detail: (submissionId) => `/api/submissions/${submissionId}`,
     feedbacks: (submissionId) => `/api/submissions/${submissionId}/feedbacks`,
     likes: (submissionId) => `/api/submissions/${submissionId}/likes`,
