@@ -13,7 +13,7 @@ import {
   getChallenge,
   getSubmission,
   updateSubmission,
-} from '@/lib/api/submissionNew';
+} from '@/lib/api/submissions';
 
 import { useModal } from '@/hooks/modal/useModal';
 import useResizablePanel from '@/hooks/submission/useResizablePanel';
@@ -46,6 +46,7 @@ export default function AdminSubmissionEditPage() {
 
     let cancelled = false;
     getSubmission(submissionId)
+      .then((res) => res.data)
       .then((submission) => {
         if (cancelled) return null;
         setInitialContent(submission?.content ?? '');

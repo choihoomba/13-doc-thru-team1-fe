@@ -17,7 +17,7 @@ import {
   getSubmission,
   saveDraft,
   updateSubmission,
-} from '@/lib/api/submissionNew';
+} from '@/lib/api/submissions';
 
 import useDebounce from '@/hooks/common/useDebounce';
 import { useModal } from '@/hooks/modal/useModal';
@@ -87,6 +87,7 @@ export default function NewSubmissionPage() {
 
     let cancelled = false;
     getSubmission(submissionId)
+      .then((res) => res.data)
       .then((submission) => {
         if (!submission?.challengeId) return null;
         if (!cancelled) setChallengeId(submission.challengeId);
@@ -153,7 +154,7 @@ export default function NewSubmissionPage() {
       if (!submissionId) return;
 
       getSubmission(submissionId)
-        .then((submission) => setIsToastOpen(Boolean(submission?.draft)))
+        .then((res) => setIsToastOpen(Boolean(res?.data?.draft)))
         .catch((error) => {
           console.error('임시저장 존재 확인 실패:', error);
         });
@@ -175,7 +176,7 @@ export default function NewSubmissionPage() {
 
   async function attemptLoadDraft() {
     try {
-      const submission = await getSubmission(submissionId);
+      const submission = (await getSubmission(submissionId)).data;
       const loadedContent = submission?.draft?.content ?? '';
       setEditorContent(loadedContent);
       editor?.commands.setContent(loadedContent);
@@ -223,7 +224,7 @@ export default function NewSubmissionPage() {
         onCancel={closeModal}
         onConfirm={async () => {
           try {
-            const submission = await getSubmission(submissionId);
+            const submission = (await getSubmission(submissionId)).data;
             if (!submission?.participationId) return;
             await cancelParticipation(submission.participationId);
             router.push(
