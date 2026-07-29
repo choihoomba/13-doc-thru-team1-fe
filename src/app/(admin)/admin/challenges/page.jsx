@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 
 import deadlineIcon from '@/app/assets/icons/ic_deadline.svg';
 import personIcon from '@/app/assets/icons/ic_person.svg';
-import persons from '@/app/assets/icons/ic_persons.svg';
+import persons from '@/app/assets/icons/ic_person_white.svg';
 import kebab from '@/app/assets/icons/icon_kebab.svg';
 import out from '@/app/assets/icons/icon_out.svg';
 
