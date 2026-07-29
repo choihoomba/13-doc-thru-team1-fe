@@ -30,29 +30,17 @@ export default function ModalRejectReason({
 }) {
   const { closeModal } = useModal();
   const [reason, setReason] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
   const isEmpty = !reason.trim();
 
-  const handleSubmit = async () => {
-    if (isEmpty || isSubmitting) return;
-
-    setIsSubmitting(true);
-    setSubmitError('');
-
-    try {
-      await onSubmit?.(reason.trim());
-      setReason('');
-      closeModal();
-    } catch (error) {
-      setSubmitError(error.message ?? '거절 처리 중 오류가 발생했습니다.');
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleSubmit = () => {
+    if (isEmpty) return; // 빈 사유 제출 방지
+    onSubmit?.(reason);
+    setReason('');
+    closeModal();
   };
 
   return (
-    <ModalBase className={cn('w-[min(90vw,343px)]', 'tablet:w-[496px]')}>
+    <ModalBase className={cn('w-[min(90vw,343px)]', 'desktop:w-[496px]')}>
       <div
         className={cn(
           'flex h-[407px] flex-col px-[16px] pt-[16px] pb-[24px]',
@@ -71,18 +59,12 @@ export default function ModalRejectReason({
           </button>
         </div>
         <div className={cn('flex flex-1 flex-col mt-[24px]')}>
-          <label
-            htmlFor="reject-reason"
-            className={cn('mb-2 block text-body-16-160 text-gray-900')}
-          >
+          <label className={cn('mb-2 block text-body-16-160 text-gray-900')}>
             {label}
           </label>
           {/* TODO: Form/Label 만들어지면 넣어야함 */}
           <textarea
-            id="reject-reason"
-            aria-describedby={submitError ? 'reject-reason-error' : undefined}
             maxLength={maxLength}
-            disabled={isSubmitting}
             className={cn(
               'box-border w-full flex-1 resize-none rounded-md border border-gray-300 px-5 py-4 mb-4',
               'desktop:mb-6',
@@ -91,27 +73,11 @@ export default function ModalRejectReason({
             )}
             placeholder={placeholder}
             value={reason}
-            onChange={(e) => {
-              setReason(e.target.value);
-              setSubmitError('');
-            }}
+            onChange={(e) => setReason(e.target.value)}
           />
           {/* TODO: Form/Textarea 만들어지면 넣어야함 */}
-          {submitError && (
-            <p
-              id="reject-reason-error"
-              role="alert"
-              className="mb-[8px] text-12-regular text-red-error"
-            >
-              {submitError}
-            </p>
-          )}
-          <ButtonPrimary
-            size="xxl"
-            onClick={handleSubmit}
-            disabled={isEmpty || isSubmitting}
-          >
-            {isSubmitting ? '전송 중' : submitText}
+          <ButtonPrimary size="xxl" onClick={handleSubmit} disabled={isEmpty}>
+            {submitText}
           </ButtonPrimary>
         </div>
       </div>
