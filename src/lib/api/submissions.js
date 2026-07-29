@@ -1,16 +1,11 @@
 import clientFetch from '@/lib/api/clientFetch';
 import { ENDPOINTS } from '@/lib/api/endpoints';
 
-/* originalUrl */
+/* TODO: 챌린지로 이동... originalUrl */
 export async function getChallenge(challengeId) {
   const { data } = await clientFetch(ENDPOINTS.challenges.detail(challengeId));
   return data;
 }
-
-/**
- * 임시저장 불러오기:
- * GET /submissions/:id
- */
 
 /** 작업물 상세 조회 */
 export async function getSubmission(submissionId) {
@@ -71,9 +66,6 @@ export async function deleteLike(submissionId) {
   return clientFetch(ENDPOINTS.submissions.likes(submissionId), {
     method: 'DELETE',
   });
-export async function getSubmission(id) {
-  const { data } = await clientFetch(ENDPOINTS.submissions.detail(id));
-  return data;
 }
 
 /* 임시저장 버튼 클릭시: */

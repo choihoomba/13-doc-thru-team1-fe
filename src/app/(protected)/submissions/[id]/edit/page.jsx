@@ -86,6 +86,7 @@ export default function SubmissionEditPage() {
 
     let cancelled = false;
     getSubmission(submissionId)
+      .then((res) => res.data)
       .then((submission) => {
         if (!submission?.challengeId) return null;
         if (!cancelled) setChallengeId(submission.challengeId);
@@ -153,6 +154,7 @@ export default function SubmissionEditPage() {
       if (!submissionId) return;
 
       getSubmission(submissionId)
+        .then((res) => res.data)
         .then((submission) => {
           const initialContent = submission?.content ?? '';
           setEditorContent(initialContent);
@@ -181,7 +183,7 @@ export default function SubmissionEditPage() {
   // 작업물 불러오기 Modal로 '네' 클릭시:
   async function attemptLoadDraft() {
     try {
-      const submission = await getSubmission(submissionId);
+      const submission = (await getSubmission(submissionId)).data;
       const loadedContent = submission?.draft?.content ?? '';
       setEditorContent(loadedContent);
       editor?.commands.setContent(loadedContent);
@@ -230,7 +232,7 @@ export default function SubmissionEditPage() {
         onCancel={closeModal}
         onConfirm={async () => {
           try {
-            const submission = await getSubmission(submissionId);
+            const submission = (await getSubmission(submissionId)).data;
             if (!submission?.participationId) return;
             await cancelParticipation(submission.participationId);
             router.push(

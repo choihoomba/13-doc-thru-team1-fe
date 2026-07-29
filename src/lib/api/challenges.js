@@ -59,6 +59,9 @@ export async function updateChallenge(challengeId, payload) {
   });
 
   return response.data;
+}
+
+/**
  * 나의 챌린지(참여중/완료/신청) 목록을 조회합니다.
  * BE: GET /challenges?view=participating|completed|applied
  *

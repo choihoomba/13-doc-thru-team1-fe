@@ -46,6 +46,7 @@ export default function AdminSubmissionEditPage() {
 
     let cancelled = false;
     getSubmission(submissionId)
+      .then((res) => res.data)
       .then((submission) => {
         if (cancelled) return null;
         setInitialContent(submission?.content ?? '');
