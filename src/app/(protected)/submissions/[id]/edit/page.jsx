@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
 import { EditorContent } from '@tiptap/react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
@@ -10,10 +9,9 @@ import { useParams, useRouter } from 'next/navigation';
 import iconList from '@/app/assets/icons/ic_list.svg';
 import logo from '@/app/assets/images/img_logo.svg';
 
+import { getChallenge } from '@/lib/api/challenges';
 import {
-  cancelParticipation,
   deleteDraft,
-  getChallenge,
   getSubmission,
   saveDraft,
   updateSubmission,
@@ -21,8 +19,7 @@ import {
 
 import useDebounce from '@/hooks/common/useDebounce';
 import { useModal } from '@/hooks/modal/useModal';
-import { challengeKeys } from '@/hooks/queries/challenges/keys';
-import { submissionKeys } from '@/hooks/queries/submissions/keys';
+import { useCancelParticipation } from '@/hooks/queries/participations/mutations';
 import useResizablePanel from '@/hooks/submission/useResizablePanel';
 import useSubmissionEditor from '@/hooks/submission/useSubmissionEditor';
 import useUnsavedChangesGuard from '@/hooks/submission/useUnsavedChangesGuard';
@@ -73,6 +70,13 @@ function isEditorContentEmpty(html) {
   return !html || html.trim() === '<p></p>';
 }
 
+// 챌린지 마감 여부. 크론이 아직 status를 바꾸지 않았을 수 있어 deadline도 함께 확인
+function isChallengeClosed(challenge) {
+  return (
+    challenge.status === 'CLOSED' || new Date(challenge.deadline) < new Date()
+  );
+}
+
 export default function SubmissionEditPage() {
   const params = useParams();
   const submissionId = params?.id;
@@ -80,6 +84,7 @@ export default function SubmissionEditPage() {
   const [editorContent, setEditorContent] = useState('');
 
   const router = useRouter();
+  const { openModal, closeModal } = useModal();
 
   // originalUrl, challenge.title
   const [originalUrl, setOriginalUrl] = useState(null);
@@ -97,9 +102,24 @@ export default function SubmissionEditPage() {
         return getChallenge(submission.challengeId);
       })
       .then((challenge) => {
-        if (cancelled) return;
-        if (challenge?.originalUrl) setOriginalUrl(challenge.originalUrl);
-        if (challenge?.title) setChallengeTitle(challenge.title);
+        if (cancelled || !challenge) return;
+
+        // 마감된 챌린지는 URL로 직접 들어와도 수정 화면 자체를 못 쓰게 막는다
+        if (isChallengeClosed(challenge)) {
+          openModal(
+            <ModalNotice
+              message="마감된 챌린지는 수정할 수 없습니다."
+              onConfirm={() => {
+                closeModal();
+                router.push(`/submissions/${submissionId}`);
+              }}
+            />,
+          );
+          return;
+        }
+
+        if (challenge.originalUrl) setOriginalUrl(challenge.originalUrl);
+        if (challenge.title) setChallengeTitle(challenge.title);
       })
       .catch((error) => {
         console.error('원문 링크 조회 실패:', error);
@@ -108,7 +128,7 @@ export default function SubmissionEditPage() {
     return () => {
       cancelled = true;
     };
-  }, [submissionId]);
+  }, [submissionId, openModal, closeModal, router]);
 
   // debounce
   const debouncedContent = useDebounce(editorContent, SAVE_DEBOUNCE_MS);
@@ -174,8 +194,7 @@ export default function SubmissionEditPage() {
   const [isToastOpen, setIsToastOpen] = useState(false);
   const { isResizing, panelWidthCss, handleResizeStart } = useResizablePanel();
 
-  const { openModal, closeModal } = useModal();
-  const queryClient = useQueryClient();
+  const { mutateAsync: cancelParticipation } = useCancelParticipation();
 
   useUnsavedChangesGuard({
     hasSaveError,
@@ -239,15 +258,10 @@ export default function SubmissionEditPage() {
           try {
             const submission = (await getSubmission(submissionId)).data;
             if (!submission?.participationId) return;
-            await cancelParticipation(submission.participationId);
-            // 포기 후 챌린지 상세로 돌아가도 캐시된 참여 상태가 아니라 최신 상태(다시 도전 가능)를 보도록 무효화
-            if (challengeId) {
-              queryClient.invalidateQueries({
-                queryKey: challengeKeys.detail(String(challengeId)),
-              });
-            }
-            // 포기한 작업물이 참여 현황/최다 추천 목록에서 계속 보이지 않도록 무효화
-            queryClient.invalidateQueries({ queryKey: submissionKeys.all });
+            await cancelParticipation({
+              participationId: submission.participationId,
+              challengeId,
+            });
             closeModal();
             router.push(
               challengeId ? `/challenges/${challengeId}` : '/challenges',

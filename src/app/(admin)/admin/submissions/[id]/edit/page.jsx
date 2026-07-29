@@ -9,11 +9,8 @@ import { useParams, useRouter } from 'next/navigation';
 import iconList from '@/app/assets/icons/ic_list.svg';
 import logo from '@/app/assets/images/img_logo.svg';
 
-import {
-  getChallenge,
-  getSubmission,
-  updateSubmission,
-} from '@/lib/api/submissions';
+import { getChallenge } from '@/lib/api/challenges';
+import { getSubmission, updateSubmission } from '@/lib/api/submissions';
 
 import { useModal } from '@/hooks/modal/useModal';
 import useResizablePanel from '@/hooks/submission/useResizablePanel';
@@ -25,10 +22,18 @@ import OriginalUrlPanel from '@/components/submissions/OriginalUrlPanel';
 import SubmissionEditorToolbar from '@/components/submissions/SubmissionEditorToolbar';
 import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
 import ModalConfirm from '@/components/ui/Modal/ModalConfirm';
+import ModalNotice from '@/components/ui/Modal/ModalNotice';
 
 // TipTap이 완전히 빈 상태에서도 getHTML()이 ''가 아니라 '<p></p>'를 반환해서 쓰는함수
 function isEditorContentEmpty(html) {
   return !html || html.trim() === '<p></p>';
+}
+
+// 챌린지 마감 여부. 크론이 아직 status를 바꾸지 않았을 수 있어 deadline도 함께 확인
+function isChallengeClosed(challenge) {
+  return (
+    challenge.status === 'CLOSED' || new Date(challenge.deadline) < new Date()
+  );
 }
 
 export default function AdminSubmissionEditPage() {
@@ -36,6 +41,7 @@ export default function AdminSubmissionEditPage() {
   const submissionId = params?.id;
 
   const router = useRouter();
+  const { openModal, closeModal } = useModal();
 
   // originalUrl / challengeTitle / 기존 제출 내용 가져오기
   const [originalUrl, setOriginalUrl] = useState(null);
@@ -55,6 +61,21 @@ export default function AdminSubmissionEditPage() {
       })
       .then((challenge) => {
         if (cancelled || !challenge) return;
+
+        // 마감된 챌린지는 URL로 직접 들어와도 수정 화면 자체를 못 쓰게 막는다
+        if (isChallengeClosed(challenge)) {
+          openModal(
+            <ModalNotice
+              message="마감된 챌린지는 수정할 수 없습니다."
+              onConfirm={() => {
+                closeModal();
+                router.push(`/admin/submissions/${submissionId}`);
+              }}
+            />,
+          );
+          return;
+        }
+
         if (challenge.originalUrl) setOriginalUrl(challenge.originalUrl);
         if (challenge.title) setChallengeTitle(challenge.title);
       })
@@ -65,7 +86,7 @@ export default function AdminSubmissionEditPage() {
     return () => {
       cancelled = true;
     };
-  }, [submissionId]);
+  }, [submissionId, openModal, closeModal, router]);
 
   const editor = useSubmissionEditor();
 
@@ -77,8 +98,6 @@ export default function AdminSubmissionEditPage() {
 
   const [isOriginalOpen, setIsOriginalOpen] = useState(false);
   const { isResizing, panelWidthCss, handleResizeStart } = useResizablePanel();
-
-  const { openModal, closeModal } = useModal();
 
   // 취소하기 버튼 누르면:
   function handleCancel() {

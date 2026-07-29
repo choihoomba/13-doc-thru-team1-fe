@@ -18,7 +18,7 @@ import ChipField from '@/components/ui/Chip/ChipField';
 export default function ChallengeDeletedPage() {
   const router = useRouter();
   const params = useParams();
-  const challengeId = Number(params.id);
+  const challengeId = Number(params.appliedId);
 
   const { data: challenge, isLoading, isError } = useChallenge(challengeId);
 

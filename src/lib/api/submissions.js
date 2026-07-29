@@ -1,12 +1,6 @@
 import clientFetch from '@/lib/api/clientFetch';
 import { ENDPOINTS } from '@/lib/api/endpoints';
 
-/* TODO: 챌린지로 이동... originalUrl */
-export async function getChallenge(challengeId) {
-  const { data } = await clientFetch(ENDPOINTS.challenges.detail(challengeId));
-  return data;
-}
-
 /** 작업물 상세 조회 */
 export async function getSubmission(submissionId) {
   return clientFetch(ENDPOINTS.submissions.detail(submissionId));
@@ -77,19 +71,6 @@ export async function saveDraft(id, { title, content }) {
   return data;
 }
 
-/* 포기하기 버튼 클릭시: */
-/* 1. GET participationId -> getSubmission 사용 */
-/* 2. 포기하기로 상태 변경 */
-export async function cancelParticipation(participationId) {
-  const { data } = await clientFetch(
-    ENDPOINTS.participations.detail(participationId),
-    {
-      method: 'PATCH',
-    },
-  );
-  return data;
-}
-
 /* 제출하기 버튼 클릭시: */
 /* 1. 작업물 최종 제출, submission.content로 들어감 */
 export async function updateSubmission(id, content) {
@@ -107,18 +88,6 @@ export async function deleteDraft(id) {
   return data;
 }
 
-/** 챌린지의 최다 추천 작업물 조회
- * - GET /submissions?challengeId=&include=user&orderBy=likeDesc
- * - 작업물이 하나도 없으면 null
- */
-export async function getTopLikedSubmission(challengeId) {
-  const { data } = await clientFetch(
-    `${ENDPOINTS.submissions.list}?challengeId=${challengeId}&include=user&orderBy=likeDesc`,
-  );
-
-  return data.submissions ?? null;
-}
-
 /** 챌린지의 참여 현황(작업물 목록) 페이지네이션 조회
  * - GET /submissions?challengeId=&limit=&orderBy=likeDesc&page=&include=user
  * - 응답: { submissions, pagination: { page, limit, totalCount, hasMore } }
@@ -129,4 +98,19 @@ export async function getSubmissions({ challengeId, page, limit }) {
   );
 
   return data;
+}
+
+/** 챌린지의 최다 추천 작업물 조회
+ * 좋아요순 1페이지(최대 5건)만 보면 공동 1위까지 충분히 포함되므로
+ * 공통 getSubmissions를 재사용합니다.
+ * - 작업물이 하나도 없으면 null
+ */
+export async function getTopLikedSubmission(challengeId) {
+  const { submissions } = await getSubmissions({
+    challengeId,
+    page: 1,
+    limit: 5,
+  });
+
+  return submissions ?? null;
 }

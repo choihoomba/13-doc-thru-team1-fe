@@ -402,6 +402,7 @@ export default function InputCalendar({
         <button
           id={triggerId}
           type="button"
+          role="combobox"
           onClick={handleOpenCalendar}
           disabled={disabled}
           aria-haspopup="dialog"

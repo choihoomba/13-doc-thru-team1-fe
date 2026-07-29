@@ -35,7 +35,7 @@ export default function AdminSubmissionDetailPage({ params }) {
 
   const { openModal, closeModal } = useModal();
 
-  const { data: submissionRes, isLoading, isError, error } = useSubmission(id);
+  const { data: submissionRes, isPending, isError, error } = useSubmission(id);
   const { data: feedbackRes, fetchNextPage, hasNextPage } = useFeedbacks(id);
 
   const createFeedback = useCreateFeedback(id);
@@ -44,7 +44,7 @@ export default function AdminSubmissionDetailPage({ params }) {
   const deleteSubmission = useDeleteSubmission(id);
   const toggleLike = useToggleLike(id);
 
-  if (isLoading) {
+  if (isPending) {
     return <LoadingDisplay className="min-h-screen" />;
   }
 

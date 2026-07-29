@@ -22,7 +22,7 @@ import ChipField from '@/components/ui/Chip/ChipField';
 export default function ChallengePendingPage() {
   const router = useRouter();
   const params = useParams();
-  const challengeId = Number(params.id);
+  const challengeId = Number(params.appliedId);
 
   const [isKebabOpen, setIsKebabOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
