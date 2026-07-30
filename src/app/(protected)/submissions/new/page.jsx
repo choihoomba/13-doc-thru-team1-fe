@@ -261,6 +261,10 @@ export default function NewSubmissionPage() {
               participationId: submission.participationId,
               challengeId,
             });
+            removeDraftFromLocal(submissionId);
+            deleteDraft(submissionId).catch((error) => {
+              console.error('임시저장 삭제 실패:', error);
+            });
             router.push(
               challengeId ? `/challenges/${challengeId}` : '/challenges',
             );
