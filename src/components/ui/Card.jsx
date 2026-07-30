@@ -8,8 +8,6 @@ import IcDeadlineWhite from '@/app/assets/icons/ic_deadline_white.svg';
 import IcPerson from '@/app/assets/icons/ic_person.svg';
 import IcPersonWhite from '@/app/assets/icons/ic_person_white.svg';
 
-import { useAuth } from '@/lib/providers/AuthProvider';
-
 import { cn } from '@/utils/cn';
 
 import ButtonChallenge from '@/components/ui/Button/ButtonChallenge';
@@ -48,7 +46,7 @@ export default function Card({
   challenge = {}, // 챌린지 응답 데이터
   detailHref = '', // 챌린지 상세 페이지 링크
   showStatusChip = true, // 상태 칩(모집완료/마감) 노출 여부
-  // showKebab = false, // 케밥 메뉴(수정/삭제) 노출 여부
+  showKebab = false, // 케밥 메뉴(수정/삭제) 노출 여부
   onEdit = () => {}, // 케밥 메뉴 수정 클릭 핸들러
   onDelete = () => {}, // 케밥 메뉴 삭제 클릭 핸들러
   showContinueButton, // '도전 계속하기' 버튼 노출 여부
@@ -66,9 +64,6 @@ export default function Card({
     docType,
     status,
   } = challenge;
-
-  const { user } = useAuth();
-  const showKebab = user?.role === 'ADMIN';
 
   const statusChip = STATUS_MAP[status];
   const hasStatusChip = showStatusChip && Boolean(statusChip);
