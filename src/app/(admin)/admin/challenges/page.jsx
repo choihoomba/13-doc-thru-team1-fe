@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 
 import deadlineIcon from '@/app/assets/icons/ic_deadline.svg';
 import personIcon from '@/app/assets/icons/ic_person.svg';
-import persons from '@/app/assets/icons/ic_person_white.svg';
 import kebab from '@/app/assets/icons/icon_kebab.svg';
 import out from '@/app/assets/icons/icon_out.svg';
 
@@ -236,7 +235,7 @@ export default function AdminChallengeListPage() {
                   ) : isFull ? (
                     <div className="mb-3 flex w-fit items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1 text-12-medium text-gray-800 border border-gray-200">
                       <Image
-                        src={persons}
+                        src={personIcon}
                         alt="마감배지_사람들"
                         width={24}
                         height={24}
