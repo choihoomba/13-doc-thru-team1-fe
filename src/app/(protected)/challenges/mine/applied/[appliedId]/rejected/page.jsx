@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import deadlineIcon from '@/app/assets/icons/ic_deadline.svg';
 import personIcon from '@/app/assets/icons/ic_person.svg';
 
+import { useEmbeddableIframe } from '@/hooks/common/useEmbeddableIframe';
 import { useChallenge } from '@/hooks/queries/challenges/queries1';
 
 import { cn } from '@/utils/cn';
@@ -21,6 +22,9 @@ export default function ChallengeRejectedPage() {
   const challengeId = Number(params.appliedId);
 
   const { data: challenge, isLoading, isError } = useChallenge(challengeId);
+  const { status: iframeStatus, handleIframeLoad } = useEmbeddableIframe(
+    challenge?.originalUrl,
+  );
 
   if (isLoading) {
     return (
@@ -51,7 +55,7 @@ export default function ChallengeRejectedPage() {
 
       <div
         className={cn(
-          'mx-auto mb-6 flex h-[35px] w-[890px] items-center justify-center rounded-full bg-[#FFF0F0] shadow-sm',
+          'mx-auto mb-6 flex h-[35px] items-center justify-center rounded-full bg-[#FFF0F0]',
         )}
       >
         <span
@@ -139,8 +143,31 @@ export default function ChallengeRejectedPage() {
         >
           <ButtonExternalLink
             href={challenge.originalUrl}
-            className={cn('absolute right-4 top-4')}
+            className={cn('absolute top-4 right-4 z-20')}
           />
+          {iframeStatus === 'blocked' ? (
+            <div
+              className={cn(
+                'flex h-full flex-col items-center justify-center gap-3 bg-white px-6 text-center',
+              )}
+            >
+              <p className={cn('text-14-medium text-gray-500')}>
+                이 사이트는 미리보기를 지원하지 않아요
+              </p>
+              <ButtonExternalLink
+                href={challenge.originalUrl}
+                className={cn('static w-auto')}
+              />
+            </div>
+          ) : (
+            <iframe
+              src={challenge.originalUrl}
+              title="원본 링크"
+              onLoad={handleIframeLoad}
+              scrolling="no"
+              className={cn('h-full w-full border-none')}
+            />
+          )}
         </div>
       </div>
     </div>
