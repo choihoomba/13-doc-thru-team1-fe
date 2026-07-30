@@ -10,6 +10,7 @@ import { cn } from '@/utils/cn';
 import formatDate from '@/utils/formatDate';
 
 import ChipStatus from '@/components/ui/Chip/ChipStatus';
+import SearchBar from '@/components/ui/FilterBar/SearchBar';
 import Sort from '@/components/ui/FilterBar/Sort';
 
 const FIELD_LABEL_MAP = {
@@ -40,13 +41,13 @@ const GRID_COLS =
  *
  * 참여중·완료한 탭은 카드+무한스크롤이지만, 신청한 탭은 피그마상 표 형태이고
  * 페이지네이션을 사용하므로 별도 구조로 구현한다.
- *
- * @param search 상위 탭 페이지의 검색어
+ * 검색창과 상태 드롭다운이 한 줄에 배치되어야 해 검색창도 이 컴포넌트가 렌더한다.
  */
-export default function AppliedChallenges({ search }) {
+export default function AppliedChallenges() {
   const router = useRouter();
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
   const [status, setStatus] = useState(null);
   const [sortOption, setSortOption] = useState(DEFAULT_SORT);
 
@@ -54,7 +55,7 @@ export default function AppliedChallenges({ search }) {
     view: 'applied',
     page: currentPage,
     limit: 10,
-    search,
+    search: searchTerm,
     status,
     sortBy: sortOption.field,
     sortOrder: sortOption.order,
@@ -78,6 +79,12 @@ export default function AppliedChallenges({ search }) {
     }
   };
 
+  // 검색·필터·정렬이 바뀌면 이전 페이지 번호가 유효하지 않으므로 1페이지로 되돌린다
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    setCurrentPage(1);
+  };
+
   const handleSortSelect = (option) => {
     if (!option) return;
 
@@ -91,7 +98,14 @@ export default function AppliedChallenges({ search }) {
 
   return (
     <div className={cn('flex flex-col mt-[16px]', 'tablet:mt-[24px]')}>
-      <div className="mb-[16px] flex justify-end">
+      {/* 검색창과 상태 드롭다운을 한 줄에 배치 (피그마 기준) */}
+      <div className="mb-[16px] flex items-center gap-[16px]">
+        <div className="flex-1">
+          <SearchBar
+            onSearch={handleSearch}
+            placeholder="챌린지 이름을 검색해보세요"
+          />
+        </div>
         <Sort onSelect={handleSortSelect} />
       </div>
 
