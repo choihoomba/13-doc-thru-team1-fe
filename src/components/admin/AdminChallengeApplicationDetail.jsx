@@ -8,6 +8,7 @@ import IcPerson from '@/app/assets/icons/ic_person.svg';
 import IcNext from '@/app/assets/icons/icon_challenge_page_next.png';
 import IcPrev from '@/app/assets/icons/icon_challenge_page_prev.png';
 
+import { useEmbeddableIframe } from '@/hooks/common/useEmbeddableIframe';
 import { useModal } from '@/hooks/modal/useModal';
 import {
   useApproveAdminChallenge,
@@ -76,32 +77,38 @@ function ChallengeMeta({ challenge }) {
   );
 }
 
-function SourcePreview({ sourceUrl }) {
+function SourcePreview({ originalUrl }) {
+  const { status: iframeStatus, handleIframeLoad } =
+    useEmbeddableIframe(originalUrl);
   return (
     <section className="mt-[24px]">
       <h2 className="text-16-semibold text-gray-800">원문 링크</h2>
-
-      <div
-        className={cn(
-          'relative mt-[12px] aspect-[16/9] w-full overflow-hidden',
-          'bg-gray-800 text-white',
-        )}
-      >
-        {/* 원문 미리보기 이미지 API가 없어 링크 안내 화면을 유지합니다. */}
-        <div className="flex h-full flex-col px-[24px] py-[20px]">
-          <p className="text-14-semibold">원문 링크</p>
-
-          <div className="flex flex-1 items-center justify-center">
-            <p className="text-center text-16-regular text-gray-300">
-              링크 열기 버튼을 눌러 원문을 확인해주세요.
+      <div className={cn('relative h-100 w-full  bg-black', 'tablet:mx-0')}>
+        <ButtonExternalLink
+          href={originalUrl}
+          className={cn('absolute top-4 right-4 z-20')}
+        />
+        {iframeStatus === 'blocked' ? (
+          <div
+            className={cn(
+              'flex h-full flex-col items-center justify-center gap-3 bg-white px-6 text-center',
+            )}
+          >
+            <p className={cn('text-14-medium text-gray-500')}>
+              이 사이트는 미리보기를 지원하지 않아요
             </p>
+            <ButtonExternalLink
+              href={originalUrl}
+              className={cn('static w-auto')}
+            />
           </div>
-        </div>
-
-        {sourceUrl && (
-          <ButtonExternalLink
-            href={sourceUrl}
-            className="absolute top-[8px] right-[8px]"
+        ) : (
+          <iframe
+            src={originalUrl}
+            title="원본 링크"
+            onLoad={handleIframeLoad}
+            scrolling="no"
+            className={cn('h-full w-full border-none')}
           />
         )}
       </div>
@@ -328,7 +335,7 @@ export default function AdminChallengeApplicationDetail({
             </div>
           </article>
 
-          <SourcePreview sourceUrl={challenge.originalUrl} />
+          <SourcePreview originalUrl={challenge.originalUrl} />
           <AdminTopSubmissionList submissions={topSubmissions} />
           {actionError && (
             <p
