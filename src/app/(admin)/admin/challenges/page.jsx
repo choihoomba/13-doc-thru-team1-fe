@@ -124,12 +124,9 @@ export default function AdminChallengeListPage() {
   }, []);
 
   return (
-    <div className={cn('mt-10')}>
+    <div className={cn('pt-6 bg-gray-50')}>
       <main
-        className={cn(
-          'min-h-[100vh] px-[16px] pb-[32px] bg-gray-50',
-          'tablet:px-[24px]',
-        )}
+        className={cn('min-h-[100vh] px-[16px] pb-[32px]', 'tablet:px-[24px]')}
       >
         <div className={cn('m-auto max-w-[996px]')}>
           <div className="mb-6 flex flex-col">
