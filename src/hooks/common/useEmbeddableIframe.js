@@ -30,6 +30,7 @@ export function useEmbeddableIframe(url, isActive = true) {
     checkEmbeddable(url).then((result) => {
       if (cancelled) return;
       setEmbeddable(result);
+      if (result === true) setStatus('loaded');
       if (result === false) setStatus('blocked');
     });
 
@@ -39,8 +40,6 @@ export function useEmbeddableIframe(url, isActive = true) {
   }, [isActive, url]);
 
   useEffect(() => {
-    // 서버 헤더 체크에서 임베드 가능이 확인된 사이트는 로딩이 오래 걸려도
-    // 차단으로 오판하지 않는다 (무거운 페이지가 5초 넘게 걸릴 수 있음).
     if (!isActive || embeddable === true) return;
 
     const timer = setTimeout(() => {
@@ -51,16 +50,14 @@ export function useEmbeddableIframe(url, isActive = true) {
   }, [isActive, embeddable]);
 
   function handleIframeLoad(e) {
+    // 서버 헤더 체크로 이미 확실히 판단됐으면 onLoad 휴리스틱으로 덮어쓰지 않는다
+    if (embeddable === true || embeddable === false) return;
+
     const frame = e.currentTarget;
     try {
-      // 실제로 목표 사이트로 정상 이동했다면 cross-origin 보안 정책 때문에
-      // location.href 접근 자체가 예외를 던진다. 예외 없이 읽혔다는 건
-      // about:blank(X-Frame-Options 차단)이든, DNS 실패/연결 거부로 뜬
-      // 브라우저 자체 에러 페이지든 목표 사이트로 이동하지 못했다는 뜻이다.
       frame.contentWindow.location.href;
       setStatus('blocked');
     } catch {
-      // cross-origin 접근이 막혔다는 건 실제로 외부 사이트로 정상 이동했다는 뜻
       setStatus('loaded');
     }
   }
