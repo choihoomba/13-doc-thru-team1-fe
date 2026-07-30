@@ -138,6 +138,16 @@ export default function NewSubmissionPage() {
       })
       .catch((error) => {
         console.error('원문 링크 조회 실패:', error);
+        if (cancelled) return;
+        openModal(
+          <ModalNotice
+            message="존재하지 않거나 포기한 작업물입니다."
+            onConfirm={() => {
+              closeModal();
+              router.push('/challenges');
+            }}
+          />,
+        );
       });
 
     return () => {
