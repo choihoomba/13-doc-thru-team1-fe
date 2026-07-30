@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { EditorContent } from '@tiptap/react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import iconList from '@/app/assets/icons/ic_list.svg';
@@ -341,16 +342,18 @@ export default function NewSubmissionPage() {
               'tablet:mb-[24px]',
             )}
           >
-            <Image
-              src={logo}
-              alt="logo"
-              width={120}
-              height={27}
-              className={cn(
-                'h-[18px] w-[80px]',
-                !isOriginalOpen && 'tablet:h-[27px] tablet:w-[120px]',
-              )}
-            ></Image>
+            <Link href="/challenges" aria-label="챌린지 목록으로 이동">
+              <Image
+                src={logo}
+                alt="logo"
+                width={120}
+                height={27}
+                className={cn(
+                  'h-[18px] w-[80px]',
+                  !isOriginalOpen && 'tablet:h-[27px] tablet:w-[120px]',
+                )}
+              />
+            </Link>
             <div
               className={cn(
                 'flex flex-row gap-[4px]',

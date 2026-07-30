@@ -64,12 +64,12 @@ function ChallengeMeta({ challenge }) {
         'tablet:flex-row tablet:items-center tablet:gap-[16px]',
       )}
     >
-      <span className="flex items-center gap-[6px]">
+      <span className={cn('flex items-center gap-[6px]')}>
         <Image src={IcDeadline} alt="" width={16} height={16} unoptimized />
         {formatDate(challenge.deadline)} 마감
       </span>
 
-      <span className="flex items-center gap-[6px]">
+      <span className={cn('flex items-center gap-[6px]')}>
         <Image src={IcPerson} alt="" width={16} height={16} unoptimized />
         {challenge.currentParticipants ?? 0}/{challenge.maxParticipants ?? 0}명
       </span>
@@ -81,8 +81,8 @@ function SourcePreview({ originalUrl }) {
   const { status: iframeStatus, handleIframeLoad } =
     useEmbeddableIframe(originalUrl);
   return (
-    <section className="mt-[24px]">
-      <h2 className="text-16-semibold text-gray-800">원문 링크</h2>
+    <section className={cn('mt-[24px]')}>
+      <h2 className={cn('text-16-semibold text-gray-800')}>원문 링크</h2>
       <div className={cn('relative h-100 w-full  bg-black', 'tablet:mx-0')}>
         <ButtonExternalLink
           href={originalUrl}
@@ -122,7 +122,12 @@ function DetailStateDisplay({ isLoading, error }) {
       <Header activeAdminNav="manage" />
 
       <main className={cn('min-h-dvh bg-white pt-[56px]', 'tablet:pt-[60px]')}>
-        <div className="mx-auto w-full max-w-[890px] px-[16px] tablet:px-[24px] desktop:px-0">
+        <div
+          className={cn(
+            'mx-auto w-full max-w-[890px] px-[16px] desktop:px-0',
+            'tablet:px-[24px]',
+          )}
+        >
           {isLoading ? (
             <LoadingDisplay />
           ) : (
@@ -239,10 +244,12 @@ export default function AdminChallengeApplicationDetail({
             'desktop:px-0',
           )}
         >
-          <div className="flex items-center justify-between">
-            <p className="text-13-regular text-gray-800">No. {challenge.id}</p>
+          <div className={cn('flex items-center justify-between')}>
+            <p className={cn('text-13-regular text-gray-800')}>
+              No. {challenge.id}
+            </p>
 
-            <div className="flex items-center gap-[8px]">
+            <div className={cn('flex items-center gap-[8px]')}>
               <ChallengeNavigationButton
                 direction="previous"
                 targetId={previousChallengeId}
@@ -284,11 +291,15 @@ export default function AdminChallengeApplicationDetail({
                 'tablet:px-[24px]',
               )}
             >
-              <h2 className="text-center text-14-semibold text-gray-800">
+              <h2 className={cn('text-center text-14-semibold text-gray-800')}>
                 신청 거절 사유
               </h2>
 
-              <p className="mt-[12px] text-center text-16-medium text-gray-700">
+              <p
+                className={cn(
+                  'mt-[12px] text-center text-16-medium text-gray-700',
+                )}
+              >
                 {challenge.reason || '등록된 거절 사유가 없습니다.'}
               </p>
 
@@ -306,7 +317,9 @@ export default function AdminChallengeApplicationDetail({
             </section>
           )}
 
-          <article className="mt-[16px] border-b border-gray-200 pb-[24px]">
+          <article
+            className={cn('mt-[16px] border-b border-gray-200 pb-[24px]')}
+          >
             <h1
               className={cn(
                 'break-words text-18-semibold text-gray-800',
@@ -316,7 +329,7 @@ export default function AdminChallengeApplicationDetail({
               {challenge.title}
             </h1>
 
-            <div className="mt-[12px] flex items-center gap-[8px]">
+            <div className={cn('mt-[12px] flex items-center gap-[8px]')}>
               <ChipField variant={challenge.field} />
               <ChipCategory variant={challenge.docType} />
             </div>
@@ -330,7 +343,7 @@ export default function AdminChallengeApplicationDetail({
               {challenge.content}
             </p>
 
-            <div className="mt-[16px]">
+            <div className={cn('mt-[16px]')}>
               <ChallengeMeta challenge={challenge} />
             </div>
           </article>
@@ -340,14 +353,16 @@ export default function AdminChallengeApplicationDetail({
           {actionError && (
             <p
               role="alert"
-              className="mt-[16px] text-right text-14-regular text-red-error"
+              className={cn(
+                'mt-[16px] text-right text-14-regular text-red-error',
+              )}
             >
               {actionError.message}
             </p>
           )}
 
           {isPending && (
-            <div className="mt-[16px] border-t border-gray-200 pt-[16px]">
+            <div className={cn('mt-[16px] border-t border-gray-200 pt-[16px]')}>
               <div
                 className={cn(
                   'grid grid-cols-2 gap-[8px]',
