@@ -67,6 +67,13 @@ function removeDraftFromLocal(submissionId) {
   localStorage.removeItem(getLocalDraftKey(submissionId));
 }
 
+// [id]/edit 페이지가 재도전 시 지난 submission.content를 자동으로
+// 채우지 않도록 확인하는 마커. 키 포맷은 [id]/edit/page.jsx와 동일하게 맞춰야 함.
+function markDropped(submissionId) {
+  if (typeof window === 'undefined' || !submissionId) return;
+  localStorage.setItem(`submissionEdit:dropped:${submissionId}`, '1');
+}
+
 // TipTap가 완전히 빈 상태에서도 getHTML()이 ''가 아니라 '<p></p>'를 반환해서 만든 함수
 function isEditorContentEmpty(html) {
   return !html || html.trim() === '<p></p>';
@@ -163,7 +170,12 @@ export default function NewSubmissionPage() {
       title: challengeTitle,
       content: debouncedContent,
     })
-      .then(() => setHasSaveError(false))
+      .then(() => {
+        setHasSaveError(false);
+        // 서버 저장 성공 = 로컬 백업 필요 없음. 남겨두면 다음 재진입 때
+        // submission.content가 비어있고 서버 draft가 있어도 Toast 없이 조용히 로컬로 채워짐
+        removeDraftFromLocal(submissionId);
+      })
       .catch((error) => {
         setHasSaveError(true);
         console.error('임시저장(서버) 실패:', error);
@@ -257,13 +269,16 @@ export default function NewSubmissionPage() {
           try {
             const submission = (await getSubmission(submissionId)).data;
             if (!submission?.participationId) return;
+            // 소유권 체크가 deletedAt: null을 요구해서, submission이
+            // soft-delete되기 전(포기 전)에 draft를 먼저 지워야 함
+            removeDraftFromLocal(submissionId);
+            markDropped(submissionId);
+            await deleteDraft(submissionId).catch((error) => {
+              console.error('임시저장 삭제 실패:', error);
+            });
             await cancelParticipation({
               participationId: submission.participationId,
               challengeId,
-            });
-            removeDraftFromLocal(submissionId);
-            deleteDraft(submissionId).catch((error) => {
-              console.error('임시저장 삭제 실패:', error);
             });
             router.push(
               challengeId ? `/challenges/${challengeId}` : '/challenges',
@@ -383,7 +398,10 @@ export default function NewSubmissionPage() {
                     title: challengeTitle,
                     content: editorContent,
                   })
-                    .then(() => setHasSaveError(false))
+                    .then(() => {
+                      setHasSaveError(false);
+                      removeDraftFromLocal(submissionId);
+                    })
                     .catch((error) => {
                       setHasSaveError(true);
                       console.error('임시저장(수동) 실패:', error);

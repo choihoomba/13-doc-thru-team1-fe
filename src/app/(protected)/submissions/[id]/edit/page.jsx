@@ -66,6 +66,25 @@ function removeDraftFromLocal(submissionId) {
   localStorage.removeItem(getLocalDraftKey(submissionId));
 }
 
+// 포기 후 재도전 시, 서버에 남아있는 지난 submission.content를 에디터에
+// 자동으로 채우지 않기 위한 1회성 표시 (백엔드는 재도전 시 content를 유지함)
+function getDroppedMarkerKey(submissionId) {
+  return `submissionEdit:dropped:${submissionId}`;
+}
+
+function markDropped(submissionId) {
+  if (typeof window === 'undefined' || !submissionId) return;
+  localStorage.setItem(getDroppedMarkerKey(submissionId), '1');
+}
+
+function consumeDroppedMarker(submissionId) {
+  if (typeof window === 'undefined' || !submissionId) return false;
+  const key = getDroppedMarkerKey(submissionId);
+  const wasDropped = localStorage.getItem(key) === '1';
+  if (wasDropped) localStorage.removeItem(key);
+  return wasDropped;
+}
+
 // TipTap가 완전히 빈 상태에서도 getHTML()이 ''가 아니라 '<p></p>'를 반환해서 쓰는함수
 function isEditorContentEmpty(html) {
   return !html || html.trim() === '<p></p>';
@@ -156,7 +175,12 @@ export default function SubmissionEditPage() {
       title: challengeTitle,
       content: debouncedContent,
     })
-      .then(() => setHasSaveError(false))
+      .then(() => {
+        setHasSaveError(false);
+        // 서버 저장 성공 = 로컬 백업 필요 없음. 남겨두면 다음 재진입 때
+        // submission.content가 비어있고 서버 draft가 있어도 Toast 없이 조용히 로컬로 채워짐
+        removeDraftFromLocal(submissionId);
+      })
       .catch((error) => {
         setHasSaveError(true);
         console.error('임시저장(서버) 실패:', error);
@@ -178,10 +202,12 @@ export default function SubmissionEditPage() {
 
       if (!submissionId) return;
 
+      const wasDropped = consumeDroppedMarker(submissionId);
+
       getSubmission(submissionId)
         .then((res) => res.data)
         .then((submission) => {
-          const initialContent = submission?.content ?? '';
+          const initialContent = wasDropped ? '' : (submission?.content ?? '');
           setEditorContent(initialContent);
           editor.commands.setContent(initialContent);
           setIsToastOpen(Boolean(submission?.draft));
@@ -259,13 +285,16 @@ export default function SubmissionEditPage() {
           try {
             const submission = (await getSubmission(submissionId)).data;
             if (!submission?.participationId) return;
+            // 소유권 체크가 deletedAt: null을 요구해서, submission이
+            // soft-delete되기 전(포기 전)에 draft를 먼저 지워야 함
+            removeDraftFromLocal(submissionId);
+            markDropped(submissionId);
+            await deleteDraft(submissionId).catch((error) => {
+              console.error('임시저장 삭제 실패:', error);
+            });
             await cancelParticipation({
               participationId: submission.participationId,
               challengeId,
-            });
-            removeDraftFromLocal(submissionId);
-            deleteDraft(submissionId).catch((error) => {
-              console.error('임시저장 삭제 실패:', error);
             });
             closeModal();
             router.push(
@@ -387,7 +416,10 @@ export default function SubmissionEditPage() {
                     title: challengeTitle,
                     content: editorContent,
                   })
-                    .then(() => setHasSaveError(false))
+                    .then(() => {
+                      setHasSaveError(false);
+                      removeDraftFromLocal(submissionId);
+                    })
                     .catch((error) => {
                       setHasSaveError(true);
                       console.error('임시저장(수동) 실패:', error);
