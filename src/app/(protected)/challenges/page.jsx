@@ -17,7 +17,6 @@ import Card from '@/components/ui/Card';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
 import Filter from '@/components/ui/FilterBar/Filter';
 import SearchBar from '@/components/ui/FilterBar/SearchBar';
-import Header from '@/components/ui/Header/Header';
 import LoadingDisplay from '@/components/ui/LoadingDisplay';
 
 // 한 페이지에 표시할 챌린지 개수입니다.
@@ -199,106 +198,95 @@ export default function ChallengesPage() {
   }, []);
 
   return (
-    <>
-      <Header />
-
-      <main
+    <main className={cn('flex min-h-dvh flex-col bg-white')}>
+      <div
         className={cn(
-          'flex min-h-dvh flex-col bg-white',
-          'pt-[56px]',
-          'tablet:pt-[60px]',
+          'mx-auto flex w-full max-w-[996px] flex-1 flex-col',
+          'px-[16px]',
+          'tablet:px-[24px]',
+          'desktop:px-0',
         )}
       >
-        <div
+        <section
+          aria-labelledby="challenge-list-title"
+          className="shrink-0 pt-[24px]"
+        >
+          <div className="flex items-center justify-between gap-[12px]">
+            <h1
+              id="challenge-list-title"
+              className="text-20-semibold text-gray-800"
+            >
+              챌린지 목록
+            </h1>
+
+            <ButtonChallengeApply href="/challenges/new" />
+          </div>
+
+          <div className="mt-[16px] flex w-full items-center gap-[8px]">
+            <Filter
+              appliedFilters={appliedFilters}
+              onApply={handleApplyFilters}
+              className="shrink-0"
+            />
+
+            <div className="min-w-0 flex-1">
+              <SearchBar
+                placeholder="챌린지 이름을 검색해보세요"
+                onSearch={handleSearch}
+                className="w-full max-w-none"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section
+          aria-label="챌린지 목록"
           className={cn(
-            'mx-auto flex w-full max-w-[996px] flex-1 flex-col',
-            'px-[16px]',
-            'tablet:px-[24px]',
-            'desktop:px-0',
+            'flex w-full flex-1',
+            isCenteredState
+              ? 'items-center justify-center'
+              : 'flex-col items-stretch pt-[16px]',
           )}
         >
-          <section
-            aria-labelledby="challenge-list-title"
-            className="shrink-0 pt-[24px]"
-          >
-            <div className="flex items-center justify-between gap-[12px]">
-              <h1
-                id="challenge-list-title"
-                className="text-20-semibold text-gray-800"
-              >
-                챌린지 목록
-              </h1>
+          {isPending ? (
+            <LoadingDisplay />
+          ) : isError ? (
+            <ErrorDisplay
+              message={error?.message ?? '챌린지 목록을 불러오지 못했습니다.'}
+            />
+          ) : isEmpty ? (
+            <ChallengeEmptyState />
+          ) : (
+            <>
+              <div className="flex w-full flex-col gap-[24px]">
+                {currentChallenges.map((challenge) => {
+                  // CLOSED이거나 참여 인원이 가득 찼을 때만 상태 칩을 표시합니다.
+                  const showStatusChip =
+                    challenge.status === 'CLOSED' ||
+                    challenge.currentParticipants >= challenge.maxParticipants;
 
-              <ButtonChallengeApply href="/challenges/new" />
-            </div>
+                  return (
+                    <Card
+                      key={challenge.id}
+                      challenge={challenge}
+                      detailHref={`/challenges/${challenge.id}`}
+                      showStatusChip={showStatusChip}
+                    />
+                  );
+                })}
+              </div>
 
-            <div className="mt-[16px] flex w-full items-center gap-[8px]">
-              <Filter
-                appliedFilters={appliedFilters}
-                onApply={handleApplyFilters}
-                className="shrink-0"
-              />
-
-              <div className="min-w-0 flex-1">
-                <SearchBar
-                  placeholder="챌린지 이름을 검색해보세요"
-                  onSearch={handleSearch}
-                  className="w-full max-w-none"
+              <div className="mt-[32px] pb-[40px]">
+                <ChallengePagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
                 />
               </div>
-            </div>
-          </section>
-
-          <section
-            aria-label="챌린지 목록"
-            className={cn(
-              'flex w-full flex-1',
-              isCenteredState
-                ? 'items-center justify-center'
-                : 'flex-col items-stretch pt-[16px]',
-            )}
-          >
-            {isPending ? (
-              <LoadingDisplay />
-            ) : isError ? (
-              <ErrorDisplay
-                message={error?.message ?? '챌린지 목록을 불러오지 못했습니다.'}
-              />
-            ) : isEmpty ? (
-              <ChallengeEmptyState />
-            ) : (
-              <>
-                <div className="flex w-full flex-col gap-[24px]">
-                  {currentChallenges.map((challenge) => {
-                    // CLOSED이거나 참여 인원이 가득 찼을 때만 상태 칩을 표시합니다.
-                    const showStatusChip =
-                      challenge.status === 'CLOSED' ||
-                      challenge.currentParticipants >=
-                        challenge.maxParticipants;
-
-                    return (
-                      <Card
-                        key={challenge.id}
-                        challenge={challenge}
-                        detailHref={`/challenges/${challenge.id}`}
-                        showStatusChip={showStatusChip}
-                      />
-                    );
-                  })}
-                </div>
-
-                <div className="mt-[32px] pb-[40px]">
-                  <ChallengePagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={setCurrentPage}
-                  />
-                </div>
-              </>
-            )}
-          </section>
-        </div>
-      </main>
-    </>
+            </>
+          )}
+        </section>
+      </div>
+    </main>
   );
 }

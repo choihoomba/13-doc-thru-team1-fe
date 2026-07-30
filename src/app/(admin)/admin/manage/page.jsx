@@ -166,7 +166,7 @@ export default function AdminManagePage() {
   }, []);
 
   return (
-    <main className={cn('min-h-dvh bg-white pt-[56px]', 'tablet:pt-[60px]')}>
+    <main className={cn('min-h-dvh bg-white ')}>
       <div
         className={cn(
           'mx-auto w-full max-w-[996px]',
