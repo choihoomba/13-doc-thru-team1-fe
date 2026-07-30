@@ -14,7 +14,6 @@
 ## 📑 목차
 
 - [서비스 소개](#-서비스-소개)
-- [서비스 화면](#-서비스-화면)
 - [배포 주소](#-배포-주소)
 - [주요 기능](#-주요-기능)
 - [Tech Stack](#-tech-stack)
@@ -112,9 +111,7 @@
 <!-- 프론트엔드 아키텍처 다이어그램 이미지 추가 예정 -->
 <div align="center">
 
-![architecture](https://via.placeholder.com/800x300.png?text=Architecture+Diagram+Coming+Soon)
-
-> 프론트엔드 아키텍처 다이어그램이 추가될 예정입니다.
+<img width="755" height="637" alt="스크린샷 2026-07-30 오후 6 22 52" src="https://github.com/user-attachments/assets/dfa33fe4-af39-4d0a-b6de-629a074d20fc" />
 
 </div>
 
