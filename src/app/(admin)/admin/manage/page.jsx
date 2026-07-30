@@ -15,7 +15,6 @@ import ApplicationTable from '@/components/admin/ApplicationTable';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
 import SearchBar from '@/components/ui/FilterBar/SearchBar';
 import SortDropdown from '@/components/ui/FilterBar/Sort';
-import Header from '@/components/ui/Header/Header';
 import LoadingDisplay from '@/components/ui/LoadingDisplay';
 
 const ITEMS_PER_PAGE = 10;
@@ -167,61 +166,57 @@ export default function AdminManagePage() {
   }, []);
 
   return (
-    <>
-      <Header activeAdminNav="manage" />
+    <main className={cn('min-h-dvh bg-white pt-[56px]', 'tablet:pt-[60px]')}>
+      <div
+        className={cn(
+          'mx-auto w-full max-w-[996px]',
+          'px-[16px] pt-[32px] pb-[48px]',
+          'tablet:px-[24px]',
+          'desktop:px-0',
+        )}
+      >
+        <h1 className="text-20-semibold text-gray-800">챌린지 신청 관리</h1>
 
-      <main className={cn('min-h-dvh bg-white pt-[56px]', 'tablet:pt-[60px]')}>
-        <div
-          className={cn(
-            'mx-auto w-full max-w-[996px]',
-            'px-[16px] pt-[32px] pb-[48px]',
-            'tablet:px-[24px]',
-            'desktop:px-0',
-          )}
-        >
-          <h1 className="text-20-semibold text-gray-800">챌린지 신청 관리</h1>
-
-          <div className="mt-[16px] flex w-full items-center gap-[8px]">
-            <div className="min-w-0 flex-1">
-              <SearchBar
-                placeholder="챌린지 이름을 검색해보세요"
-                onSearch={handleSearch}
-                className="w-full max-w-none"
-              />
-            </div>
-
-            <SortDropdown onSelect={handleSortSelect} className="shrink-0" />
+        <div className="mt-[16px] flex w-full items-center gap-[8px]">
+          <div className="min-w-0 flex-1">
+            <SearchBar
+              placeholder="챌린지 이름을 검색해보세요"
+              onSearch={handleSearch}
+              className="w-full max-w-none"
+            />
           </div>
 
-          <section aria-label="챌린지 신청 목록" className="mt-[16px]">
-            {isLoading ? (
-              <LoadingDisplay />
-            ) : isError ? (
-              <ErrorDisplay
-                message={
-                  error?.message ?? '챌린지 신청 목록을 불러오지 못했습니다.'
-                }
-              />
-            ) : (
-              <div
-                className={cn('transition-opacity', isFetching && 'opacity-60')}
-              >
-                <ApplicationTable applications={applications} />
-              </div>
-            )}
-          </section>
+          <SortDropdown onSelect={handleSortSelect} className="shrink-0" />
+        </div>
 
-          {!isLoading && !isError && (
-            <div className="mt-[32px]">
-              <AdminPagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
+        <section aria-label="챌린지 신청 목록" className="mt-[16px]">
+          {isLoading ? (
+            <LoadingDisplay />
+          ) : isError ? (
+            <ErrorDisplay
+              message={
+                error?.message ?? '챌린지 신청 목록을 불러오지 못했습니다.'
+              }
+            />
+          ) : (
+            <div
+              className={cn('transition-opacity', isFetching && 'opacity-60')}
+            >
+              <ApplicationTable applications={applications} />
             </div>
           )}
-        </div>
-      </main>
-    </>
+        </section>
+
+        {!isLoading && !isError && (
+          <div className="mt-[32px]">
+            <AdminPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
