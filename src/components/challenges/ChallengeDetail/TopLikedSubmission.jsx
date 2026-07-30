@@ -81,7 +81,6 @@ export default function TopLikedSubmission({ challengeId }) {
         onSlideChange={updateWidth}
         onResize={updateWidth}
       >
-        {/* TODO: 화살표 position 확인 */}
         <ButtonCircle
           variant="secondary"
           aria-label="이전"
@@ -98,9 +97,7 @@ export default function TopLikedSubmission({ challengeId }) {
           aria-label="다음"
           className={cn(
             'top-liked-swiper-next absolute top-1/2 z-10 -translate-x-full -translate-y-1/2',
-            'transition-[left,opacity] duration-300 ease-out',
-            // 'left-[calc(100%-26px)]',
-            // 'tablet:left-[calc(100%-40px)]',
+            'transition-[right,opacity] duration-300 ease-out',
             'right-[calc(100%-var(--slide-width)-35px)]',
             'tablet:right-[calc(100%-var(--slide-width)-60px)]',
           )}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -12,6 +12,7 @@ import ImgUser from '@/app/assets/images/img_user.svg';
 
 import { useSubmissions } from '@/hooks/queries/submissions/queries';
 
+import buildRanks from '@/utils/buildRanks';
 import { cn } from '@/utils/cn';
 
 import ButtonLike from '@/components/ui/Button/ButtonLike';
@@ -22,26 +23,51 @@ const LIMIT = 5;
 
 export default function ParticipationStatus({ challengeId }) {
   const [page, setPage] = useState(1);
+  // 페이지 경계에서도 순위가 이어지도록 이전 페이지 마지막 항목의 순위/좋아요 수를 기억
+  const [pageBoundaries, setPageBoundaries] = useState({});
   const { data, isPending, isError } = useSubmissions({
     challengeId,
     page,
     limit: LIMIT,
   });
 
+  const ranks = useMemo(() => {
+    if (!data?.submissions?.length) return [];
+
+    const prevBoundary = pageBoundaries[page - 1];
+    const baseRank =
+      page === 1
+        ? 1
+        : prevBoundary
+          ? prevBoundary.lastLikes === data.submissions[0]._count.likes
+            ? prevBoundary.lastRank
+            : prevBoundary.lastRank + 1
+          : (page - 1) * LIMIT + 1;
+
+    return buildRanks(data.submissions, baseRank);
+  }, [data, page, pageBoundaries]);
+
+  // 다음 페이지 계산에 쓸 수 있도록 이번 페이지의 마지막 순위/좋아요 수를 기록
+  if (data?.submissions?.length && ranks.length) {
+    const lastSubmission = data.submissions[data.submissions.length - 1];
+    const lastRank = ranks[ranks.length - 1];
+
+    if (
+      pageBoundaries[page]?.lastRank !== lastRank ||
+      pageBoundaries[page]?.lastLikes !== lastSubmission._count.likes
+    ) {
+      setPageBoundaries((prev) => ({
+        ...prev,
+        [page]: { lastLikes: lastSubmission._count.likes, lastRank },
+      }));
+    }
+  }
+
   if (isPending) return <LoadingDisplay />;
   if (isError) return <ErrorDisplay />;
 
   const { submissions, pagination } = data;
   const totalPages = Math.max(1, Math.ceil(pagination.totalCount / LIMIT));
-
-  // 좋아요 수가 같으면 같은 순위(공동 순위)를 부여 (같은 페이지 내에서만 비교)
-  const ranks = [];
-  submissions.forEach((s, i) => {
-    const positionRank = (page - 1) * LIMIT + i + 1;
-    const tiesWithPrev =
-      i > 0 && s._count.likes === submissions[i - 1]._count.likes;
-    ranks.push(tiesWithPrev ? ranks[i - 1] : positionRank);
-  });
 
   return (
     <section
