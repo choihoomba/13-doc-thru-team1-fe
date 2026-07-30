@@ -8,6 +8,9 @@ import {
 
 import { challengeKeys } from './keys';
 
+/** 신규 챌린지 신청
+ * - 성공하면 목록에 바로 나타나도록 목록 캐시를 무효화
+ */
 export function useCreateChallenge() {
   const queryClient = useQueryClient();
 
