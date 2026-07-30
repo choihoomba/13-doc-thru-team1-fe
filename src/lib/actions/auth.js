@@ -23,9 +23,11 @@ export async function signinAction(prevState, formData) {
   const email = formData.get('email');
   const password = formData.get('password');
 
+  let user;
   let setCookieHeaders;
   try {
     const result = await authService.signin({ email, password });
+    user = result.user;
     setCookieHeaders = result.setCookieHeaders;
   } catch (error) {
     return { error: error.message };
@@ -36,7 +38,7 @@ export async function signinAction(prevState, formData) {
     cookieStore.set(parseCookieString(cookie));
   });
 
-  redirect('/challenges');
+  redirect(user.role === 'ADMIN' ? '/admin/manage' : '/challenges');
 }
 
 export async function signoutAction() {

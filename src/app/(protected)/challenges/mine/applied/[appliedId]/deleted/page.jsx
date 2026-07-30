@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import deadlineIcon from '@/app/assets/icons/ic_deadline.svg';
 import personIcon from '@/app/assets/icons/ic_person.svg';
 
+import { useEmbeddableIframe } from '@/hooks/common/useEmbeddableIframe';
 import { useChallenge } from '@/hooks/queries/challenges/queries1';
 
 import { cn } from '@/utils/cn';
@@ -21,6 +22,9 @@ export default function ChallengeDeletedPage() {
   const challengeId = Number(params.appliedId);
 
   const { data: challenge, isLoading, isError } = useChallenge(challengeId);
+  const { status: iframeStatus, handleIframeLoad } = useEmbeddableIframe(
+    challenge?.originalUrl,
+  );
 
   if (isLoading) {
     return (
@@ -39,7 +43,7 @@ export default function ChallengeDeletedPage() {
   }
 
   return (
-    <div className={cn('mx-auto max-w-4xl px-4 py-10 font-pretendard')}>
+    <div className={cn('mx-auto max-w-4xl px-4 py-10 ')}>
       <button
         onClick={() => router.back()}
         className={cn(
@@ -51,12 +55,12 @@ export default function ChallengeDeletedPage() {
 
       <div
         className={cn(
-          'mx-auto mb-6 flex h-[35px] w-[890px] items-center justify-center rounded-full bg-[#757575] shadow-sm',
+          'mx-auto mb-6 flex h-[35px]  items-center justify-center rounded-full bg-[#757575] ',
         )}
       >
         <span
           className={cn(
-            'flex h-[19px] items-center justify-center text-center text-16-semibold text-[#FAFAFA]',
+            'flex  items-center justify-center text-center text-16-semibold text-white',
           )}
         >
           삭제된 챌린지입니다.
@@ -124,19 +128,36 @@ export default function ChallengeDeletedPage() {
 
       <hr className={cn('mb-4 border-gray-200')} />
 
-      <div>
-        <h3 className={cn('mb-4 text-18-bold text-gray-900')}>원본 링크</h3>
+      <h3 className={cn('mb-4 text-18-bold text-gray-900')}>원본 링크</h3>
 
-        <div
-          className={cn(
-            'relative h-100 w-full overflow-hidden rounded-lg border border-gray-200 bg-black shadow-md',
-          )}
-        >
-          <ButtonExternalLink
-            href={challenge.originalUrl}
-            className={cn('absolute right-4 top-4')}
+      <div className={cn('relative h-100 w-full  bg-black', 'tablet:mx-0')}>
+        <ButtonExternalLink
+          href={challenge.originalUrl}
+          className={cn('absolute top-4 right-4 z-20')}
+        />
+        {iframeStatus === 'blocked' ? (
+          <div
+            className={cn(
+              'flex h-full flex-col items-center justify-center gap-3 bg-white px-6 text-center',
+            )}
+          >
+            <p className={cn('text-14-medium text-gray-500')}>
+              이 사이트는 미리보기를 지원하지 않아요
+            </p>
+            <ButtonExternalLink
+              href={challenge.originalUrl}
+              className={cn('static w-auto')}
+            />
+          </div>
+        ) : (
+          <iframe
+            src={challenge.originalUrl}
+            title="원본 링크"
+            onLoad={handleIframeLoad}
+            scrolling="no"
+            className={cn('h-full w-full border-none')}
           />
-        </div>
+        )}
       </div>
     </div>
   );

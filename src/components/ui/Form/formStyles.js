@@ -126,6 +126,15 @@ export const FORM_MESSAGE_STYLE = ['text-12-regular', 'text-red-error'].join(
 );
 
 /*
+@ 입력 도움말
+
+- 오류가 발생하기 전에도 사용자가 입력 조건을 알 수 있도록 안내합니다.
+- 프로젝트 본문 검은색 토큰인 gray-800을 사용해 입력 조건이 명확히 보이도록 합니다.
+- 실제 오류가 아니므로 role="alert"는 적용하지 않습니다.
+*/
+export const FORM_HELPER_STYLE = ['text-12-regular', 'text-gray-800'].join(' ');
+
+/*
 @ 입력 영역 우측 아이콘 공통 위치
 
 - InputBase의 일반 아이콘, Select 화살표, InputCalendar 아이콘에 사용합니다.

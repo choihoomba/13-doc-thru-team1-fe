@@ -10,6 +10,9 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 function makeQueryClient() {
   const queryCache = new QueryCache({
     onError: (error, query) => {
+      // 404는 notFound()로 페이지 단에서 정상적으로 처리하는 흐름이라 콘솔 에러로 남기지 않는다
+      if (error?.status === 404) return;
+
       console.error(
         `오류 발생: ${query.meta?.name || '알 수 없는 쿼리'} - ${error.message}`,
       );

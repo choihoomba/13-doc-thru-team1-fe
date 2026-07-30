@@ -79,7 +79,6 @@ export default function NotificationPanel({
             <NotificationItem
               key={notification.id}
               notification={notification}
-              isFirst={index === 0}
               isLast={index === notifications.length - 1}
               onSelect={onSelect}
             />

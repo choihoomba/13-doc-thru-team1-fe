@@ -8,6 +8,7 @@ import { CHALLENGE_TABS } from '@/lib/constants/constants';
 
 import { cn } from '@/utils/cn';
 
+import AppliedChallenges from '@/components/challenges/AppliedChallenges';
 import ChallengeTabs from '@/components/challenges/ChallengeTabs';
 import CompletedChallenges from '@/components/challenges/CompletedChallenges';
 import OngoingChallenges from '@/components/challenges/OngoingChallenges';
@@ -45,11 +46,9 @@ export default function MyChallengesPage() {
       {activeTab === CHALLENGE_TABS.COMPLETED && (
         <CompletedChallenges search={search} />
       )}
+
       {activeTab === CHALLENGE_TABS.APPLIED && (
-        // TODO: 신청한 챌린지 탭
-        <p className="py-[80px] text-center text-14-medium text-gray-500">
-          준비 중이에요.
-        </p>
+        <AppliedChallenges search={search} />
       )}
     </div>
   );

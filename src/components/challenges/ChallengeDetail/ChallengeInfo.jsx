@@ -42,7 +42,7 @@ const CHALLENGE_CONTENT_HEIGHT = {
 export default function ChallengeInfo({ challengeId }) {
   const router = useRouter();
   const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = user?.data.role === 'ADMIN';
   const [isNavigating, setIsNavigating] = useState(false);
 
   const {
@@ -131,7 +131,7 @@ export default function ChallengeInfo({ challengeId }) {
       <div
         className={cn(
           'pb-[16px] mb-[16px] border-b border-gray-100',
-          'tablet:pb-[24px] tablet:flex tablet:gap-[16px] tablet:mb-[24px]',
+          'tablet:pb-[24px] tablet:flex tablet:justify-between tablet:gap-[16px] tablet:mb-[24px]',
           'desktop:gap-[24px]',
         )}
       >
@@ -203,8 +203,8 @@ export default function ChallengeInfo({ challengeId }) {
         <article
           className={cn(
             'border-2 rounded-[16px] border-gray-100 bg-white flex flex-col gap-[16px] items-center py-[12px] px-[16.5px]',
-            'tablet:flex-1 tablet:min-w-[251px] tablet:h-fit tablet:py-[24px] tablet:px-[16px]',
-            'desktop:',
+            'tablet:flex-0 tablet:min-w-[251px] tablet:h-fit tablet:py-[24px] tablet:px-[16px]',
+            'desktop:min-w-[285px]',
           )}
         >
           {/* 마감, 모집인원 */}
