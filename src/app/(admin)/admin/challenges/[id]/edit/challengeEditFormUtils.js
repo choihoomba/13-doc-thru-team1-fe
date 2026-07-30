@@ -26,6 +26,7 @@ export const EMPTY_FORM_VALUES = {
 };
 
 export const MAX_PARTICIPANTS = 15;
+export const MINIMUM_DEADLINE_DAYS = 7;
 export const MAXIMUM_DEADLINE_DAYS = 21;
 
 const TITLE_TEXT_PATTERN = /[\p{L}\p{N}]/u;
@@ -58,13 +59,15 @@ function toDeadlineISOString(dateValue) {
 }
 
 /**
- * 관리자 수정에서는 신규 신청의 7일 제한을 다시 적용하지 않습니다.
- * 백엔드 수정 정책과 동일하게 오늘을 포함한 미래 날짜를 선택할 수 있도록
- * 현재 날짜를 최소 마감일로 반환합니다.
+ * 관리자 수정에서도 신청 페이지와 동일하게 오늘을 기준으로 7일 뒤부터
+ * 마감일을 선택할 수 있도록 최소 날짜를 계산합니다.
  * InputCalendar의 min prop이 사용하는 YYYY-MM-DD 형식으로 반환합니다.
  */
 export function getMinimumDeadlineValue(baseDate = new Date()) {
-  return toDateInputValue(baseDate);
+  const minimumDeadline = new Date(baseDate);
+  minimumDeadline.setDate(minimumDeadline.getDate() + MINIMUM_DEADLINE_DAYS);
+
+  return toDateInputValue(minimumDeadline);
 }
 
 /**
@@ -94,8 +97,7 @@ export function createInitialValues(challenge) {
 }
 
 /**
- * 관리자 수정에서는 오늘을 포함한 미래 날짜인지 검증합니다.
- * 신규 신청 단계에서 이미 7일 제한을 검증했으므로 수정 시 다시 적용하지 않습니다.
+ * 관리자 수정에서도 오늘 기준 7일 뒤부터 21일 이내의 날짜인지 검증합니다.
  * 달력의 min 제한을 우회해 값을 전달해도 제출 단계에서 다시 차단합니다.
  */
 export function validateChallengeEditForm(values, currentParticipants) {
@@ -139,15 +141,20 @@ export function validateChallengeEditForm(values, currentParticipants) {
     errors.deadline = '* 마감일을 선택해주세요.';
   } else {
     const selectedDeadline = new Date(toDeadlineISOString(values.deadline));
+    const minimumDeadline = new Date();
+    minimumDeadline.setDate(minimumDeadline.getDate() + MINIMUM_DEADLINE_DAYS);
+    minimumDeadline.setHours(0, 0, 0, 0);
+
     const maximumDeadline = new Date();
     maximumDeadline.setDate(maximumDeadline.getDate() + MAXIMUM_DEADLINE_DAYS);
     maximumDeadline.setHours(23, 59, 59, 999);
 
     if (
-      selectedDeadline.getTime() <= Date.now() ||
+      selectedDeadline.getTime() < minimumDeadline.getTime() ||
       selectedDeadline.getTime() > maximumDeadline.getTime()
     ) {
-      errors.deadline = '* 마감일은 오늘부터 21일 이내의 날짜로 선택해주세요.';
+      errors.deadline =
+        '* 마감일은 신청일 기준 7일 뒤부터 21일 이내의 날짜로 선택해주세요.';
     }
   }
 

@@ -110,7 +110,7 @@ export default function ChallengeEditForm({
               name="deadline"
               value={values.deadline}
               error={errors.deadline}
-              helperText="마감일은 오늘부터 21일 이내의 날짜로 변경할 수 있습니다."
+              helperText="마감일은 신청일 기준 7일 뒤부터 21일 이내의 날짜로 변경할 수 있습니다."
               min={minimumDeadline}
               max={maximumDeadline}
               onChange={onChange}

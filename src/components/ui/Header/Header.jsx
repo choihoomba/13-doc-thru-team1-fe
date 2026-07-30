@@ -73,7 +73,19 @@ export default function Header({
 
   // undefined는 실제 Auth 사용자 사용, null은 예제의 비회원 상태를 의미합니다.
   const user = providedUser === undefined ? resolvedAuthUser : providedUser;
-  const headerVariant = getHeaderVariant(user);
+
+  /*
+   * 관리자 로그인 성공 후에는 `/admin` 경로로 이동합니다.
+   * 이때 AuthProvider 사용자 정보가 갱신되기 전에 비회원 UI를 그리면
+   * 배포 환경에서 로그인 버튼이 잠시 노출되므로 Header 액션 영역만 로딩 처리합니다.
+   * 사용자 조회와 권한 검사는 기존 AuthProvider 및 `(admin)` layout에 맡기며,
+   * Header에서 Auth API를 추가 호출하거나 공용 Auth 파일을 변경하지 않습니다.
+   */
+  const isResolvingAuth =
+    providedUser === undefined &&
+    !resolvedAuthUser &&
+    pathname.startsWith('/admin');
+  const headerVariant = isResolvingAuth ? 'loading' : getHeaderVariant(user);
   const isMember = headerVariant === 'member';
   const isAdmin = headerVariant === 'admin';
 
@@ -259,6 +271,18 @@ export default function Header({
           >
             로그인
           </ButtonSecondary>
+        )}
+
+        {isResolvingAuth && (
+          <div
+            role="status"
+            aria-label="사용자 정보 확인 중"
+            aria-busy="true"
+            className="
+              h-[36px] w-[72px] animate-pulse rounded-[10px] bg-gray-100
+              tablet:h-[40px] tablet:w-[90px] tablet:rounded-[12px]
+            "
+          />
         )}
 
         {isMember && (
