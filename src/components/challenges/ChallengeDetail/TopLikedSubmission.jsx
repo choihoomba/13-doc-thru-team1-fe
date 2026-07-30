@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import 'swiper/css';
 import { Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -15,6 +17,17 @@ import LoadingDisplay from '@/components/ui/LoadingDisplay';
 
 /** 최다 추천 번역 섹션 */
 export default function TopLikedSubmission({ challengeId }) {
+  const [slideWidth, setSlideWidth] = useState(0);
+
+  // 너비를 계산하고 업데이트하는 공통 함수
+  const updateWidth = (swiper) => {
+    // const activeSlide = swiper.slides[swiper.activeIndex];
+    const firstSlide = swiper.slides[0];
+    if (firstSlide && firstSlide.offsetWidth !== slideWidth) {
+      setSlideWidth(firstSlide.offsetWidth);
+    }
+  };
+
   const {
     data: submission,
     isPending,
@@ -64,17 +77,34 @@ export default function TopLikedSubmission({ challengeId }) {
           '[&_.swiper-button-disabled]:pointer-events-none!',
           '[&_.swiper-slide:not(.swiper-slide-active)]:opacity-20',
         )}
+        onInit={updateWidth}
+        onSlideChange={updateWidth}
+        onResize={updateWidth}
       >
         {/* TODO: 화살표 position 확인 */}
         <ButtonCircle
           variant="secondary"
           aria-label="이전"
-          className="top-liked-swiper-prev absolute top-1/2 left-[26px] tablet:left-[40px] z-10 -translate-y-1/2 rotate-180 transition-opacity duration-300"
+          className={cn(
+            'top-liked-swiper-prev absolute top-1/2 z-10 -translate-x-full -translate-y-1/2 rotate-180',
+            'transition-[left,opacity] duration-300 ease-out',
+            'left-[calc(100%-var(--slide-width)+12px)]',
+            'tablet:left-[calc(100%-var(--slide-width)+20px)]',
+          )}
+          style={{ '--slide-width': `${slideWidth}px` }}
         />
         <ButtonCircle
           variant="secondary"
           aria-label="다음"
-          className="top-liked-swiper-next absolute top-1/2 right-[26px] tablet:right-[40px] z-10 -translate-y-1/2 transition-opacity duration-300"
+          className={cn(
+            'top-liked-swiper-next absolute top-1/2 z-10 -translate-x-full -translate-y-1/2',
+            'transition-[left,opacity] duration-300 ease-out',
+            // 'left-[calc(100%-26px)]',
+            // 'tablet:left-[calc(100%-40px)]',
+            'right-[calc(100%-var(--slide-width)-35px)]',
+            'tablet:right-[calc(100%-var(--slide-width)-60px)]',
+          )}
+          style={{ '--slide-width': `${slideWidth}px` }}
         />
         {submission.map(
           (s) =>
