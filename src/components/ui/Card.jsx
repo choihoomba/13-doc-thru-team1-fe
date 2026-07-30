@@ -68,7 +68,7 @@ export default function Card({
   } = challenge;
 
   const { user } = useAuth();
-  const showKebab = user?.data.role === 'ADMIN';
+  const showKebab = user?.role === 'ADMIN';
 
   const statusChip = STATUS_MAP[status];
   const hasStatusChip = showStatusChip && Boolean(statusChip);
