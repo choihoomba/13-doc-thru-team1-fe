@@ -104,6 +104,8 @@ export default function AdminChallengeListPage() {
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedChallengeId, setSelectedChallengeId] = useState(null);
+  const apiStatus =
+    filters.status === 'IN_PROGRESS' ? 'APPROVED' : filters.status;
 
   const { data, isLoading, isError } = useChallenges({
     view: 'admin',
@@ -112,7 +114,7 @@ export default function AdminChallengeListPage() {
     search: searchTerm,
     categories: filters.categories,
     docType: filters.docType,
-    status: filters.status,
+    status: apiStatus,
   });
 
   const { mutate: deleteChallengeMutate, isPending: isDeleting } =
