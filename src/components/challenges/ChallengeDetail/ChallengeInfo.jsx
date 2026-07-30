@@ -136,7 +136,7 @@ export default function ChallengeInfo({ challengeId }) {
         )}
       >
         {/* 챌린지 정보 섹션 */}
-        <article>
+        <article className={cn('w-full')}>
           {/* 타이틀 + 케밥 버튼 */}
           <div className={cn('flex justify-between mb-[16px]')}>
             <h1
@@ -147,7 +147,7 @@ export default function ChallengeInfo({ challengeId }) {
             >
               {challenge.title}
             </h1>
-            {isAdmin && (
+            {isAdmin && !isDeadlinePassed && (
               <ButtonKebab
                 onEdit={handleEditChallenge}
                 onDelete={handleDeleteChallenge}

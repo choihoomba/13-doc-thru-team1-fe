@@ -38,7 +38,11 @@ export default function MyChallengesPage() {
 
       <ChallengeTabs />
 
-      <InputSearch onSearch={setSearch} />
+      {/* 신청한 탭은 검색창과 상태 드롭다운이 한 줄에 배치되어야 해
+          AppliedChallenges가 검색창까지 직접 렌더한다 */}
+      {activeTab !== CHALLENGE_TABS.APPLIED && (
+        <InputSearch onSearch={setSearch} />
+      )}
 
       {activeTab === CHALLENGE_TABS.ONGOING && (
         <OngoingChallenges search={search} />
@@ -46,10 +50,7 @@ export default function MyChallengesPage() {
       {activeTab === CHALLENGE_TABS.COMPLETED && (
         <CompletedChallenges search={search} />
       )}
-
-      {activeTab === CHALLENGE_TABS.APPLIED && (
-        <AppliedChallenges search={search} />
-      )}
+      {activeTab === CHALLENGE_TABS.APPLIED && <AppliedChallenges />}
     </div>
   );
 }
