@@ -3,21 +3,17 @@
 import { useState, useEffect, useRef } from 'react';
 
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 
-import deadlineIcon from '@/app/assets/icons/ic_deadline.svg';
-import personIcon from '@/app/assets/icons/ic_person.svg';
-import kebab from '@/app/assets/icons/icon_kebab.svg';
+// import { useRouter } from 'next/navigation';
+
 import out from '@/app/assets/icons/icon_out.svg';
 
 import { useDeleteChallenge } from '@/hooks/queries/challenges/mutations1';
 import { useChallenges } from '@/hooks/queries/challenges/queries1';
 
 import { cn } from '@/utils/cn';
-import formatDate from '@/utils/formatDate';
 
-import ChipCategory from '@/components/ui/Chip/ChipCategory';
-import ChipField from '@/components/ui/Chip/ChipField';
+import Card from '@/components/ui/Card';
 import Filter from '@/components/ui/FilterBar/Filter.jsx';
 import SearchBar from '@/components/ui/FilterBar/SearchBar.jsx';
 import LoadingDisplay from '@/components/ui/LoadingDisplay';
@@ -94,11 +90,11 @@ function DeleteModal({ isOpen, onClose, onSubmit, isPending }) {
 }
 
 export default function AdminChallengeListPage() {
-  const router = useRouter();
+  // const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const [openDropdownId, setOpenDropdownId] = useState(null);
+  // const [openDropdownId, setOpenDropdownId] = useState(null);
   const dropdownRef = useRef(null);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -125,27 +121,27 @@ export default function AdminChallengeListPage() {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdownId(null);
+        // setOpenDropdownId(null);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const toggleDropdown = (id) => {
-    setOpenDropdownId((prev) => (prev === id ? null : id));
-  };
+  // const toggleDropdown = (id) => {
+  //   setOpenDropdownId((prev) => (prev === id ? null : id));
+  // };
 
-  const handleEdit = (id) => {
-    setOpenDropdownId(null);
-    router.push(`/admin/challenges/${id}/edit`);
-  };
+  // const handleEdit = (id) => {
+  //   setOpenDropdownId(null);
+  //   router.push(`/admin/challenges/${id}/edit`);
+  // };
 
-  const handleOpenDeleteModal = (id) => {
-    setSelectedChallengeId(id);
-    setIsDeleteModalOpen(true);
-    setOpenDropdownId(null);
-  };
+  // const handleOpenDeleteModal = (id) => {
+  //   setSelectedChallengeId(id);
+  //   setIsDeleteModalOpen(true);
+  //   setOpenDropdownId(null);
+  // };
 
   const handleCloseDeleteModal = () => {
     setIsDeleteModalOpen(false);
@@ -188,185 +184,97 @@ export default function AdminChallengeListPage() {
     );
 
   return (
-    <div className="min-h-screen bg-white pb-16 font-pretendard">
-      <main className="mx-auto mt-10 max-w-[996px] px-4 sm:px-0">
-        <div className="mb-6 flex flex-col">
-          <h1 className={cn('-mt-[24px] mb-6 text-20-semibold text-gray-800')}>
-            챌린지 목록
-          </h1>
+    <div className="">
+      <main
+        className={cn(
+          'min-h-[100vh] px-[16px] pt-[24px] pb-[32px] bg-gray-50',
+          'tablet:px-[24px]',
+        )}
+      >
+        <div className={cn('max-w-[996] m-auto')}>
+          <div className="mb-6 flex flex-col">
+            <h1 className={cn('mb-6 text-20-semibold text-gray-800')}>
+              챌린지 목록
+            </h1>
 
-          <div className="flex items-center gap-3">
-            <div>
-              <Filter appliedFilters={filters} onApply={handleApplyFilter} />
-            </div>
-            <div className="flex-1">
-              <SearchBar
-                onSearch={handleSearch}
-                placeholder="챌린지 이름을 검색해보세요"
-              />
+            <div className="flex items-center gap-3">
+              <div>
+                <Filter appliedFilters={filters} onApply={handleApplyFilter} />
+              </div>
+              <div className="flex-1">
+                <SearchBar
+                  onSearch={handleSearch}
+                  placeholder="챌린지 이름을 검색해보세요"
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {challenges.length === 0 ? (
-          <div className="flex h-[227px] w-full items-center justify-center rounded-[12px] border border-gray-200 bg-white py-20 text-center text-14-medium text-gray-500">
-            등록된 챌린지가 없습니다.
-          </div>
-        ) : (
-          <div className="flex flex-col gap-4">
-            {challenges.map((challenge) => {
-              const isFull =
-                challenge.currentParticipants >= challenge.maxParticipants;
-              const isClosed = challenge.status === 'CLOSED';
+          {challenges.length === 0 ? (
+            <div className="flex h-[227px] w-full items-center justify-center rounded-[12px] border border-gray-200 bg-white py-20 text-center text-14-medium text-gray-500">
+              등록된 챌린지가 없습니다.
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {challenges.map((challenge) => {
+                const submissionId =
+                  challenge.participations?.[0]?.submission?.id;
 
-              return (
-                <div
-                  key={challenge.id}
-                  className="relative w-full desktop:w-[996px] rounded-[12px] border border-gray-800 bg-white p-[24px] shadow-sm transition-shadow hover:shadow-md"
-                >
-                  {isClosed ? (
-                    <div className="mb-3 flex w-fit items-center gap-1.5 rounded-full bg-gray-800 px-3 py-1 text-12-medium text-white">
-                      <Image
-                        src={deadlineIcon}
-                        alt="마감일"
-                        width={24}
-                        height={24}
-                      />
-                      <span>챌린지가 마감되었어요</span>
-                    </div>
-                  ) : isFull ? (
-                    <div className="mb-3 flex w-fit items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1 text-12-medium text-gray-800 border border-gray-200">
-                      <Image
-                        src={personIcon}
-                        alt="마감배지_사람들"
-                        width={24}
-                        height={24}
-                      />
-                      <span>모집이 완료된 상태에요</span>
-                    </div>
-                  ) : null}
+                return (
+                  <Card
+                    key={challenge.id}
+                    challenge={challenge}
+                    detailHref={`/challenges/${challenge.id}`}
+                    showSubmissionButton={Boolean(submissionId)}
+                    submissionHref={
+                      submissionId ? `/submissions/${submissionId}` : ''
+                    }
+                  />
+                );
+              })}
+            </div>
+          )}
 
-                  <div
-                    className="absolute right-[24px] top-[24px] z-dropdown"
-                    ref={openDropdownId === challenge.id ? dropdownRef : null}
-                  >
-                    <button
-                      onClick={() => toggleDropdown(challenge.id)}
-                      className="rounded-full p-1 transition-colors hover:bg-gray-100"
-                    >
-                      <Image
-                        src={kebab}
-                        alt="케밥메뉴"
-                        width={24}
-                        height={24}
-                      />
-                    </button>
+          {totalPages > 0 && (
+            <div className="mt-12 flex items-center justify-center space-x-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-2 text-14-regular text-gray-400 hover:text-black disabled:opacity-30"
+              >
+                &lt;
+              </button>
 
-                    {openDropdownId === challenge.id && (
-                      <div className="absolute right-0 top-8 flex w-[120px] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-                        <button
-                          onClick={() => handleEdit(challenge.id)}
-                          className="w-full border-b border-gray-100 py-3 text-center text-14-medium text-gray-700 transition-colors hover:bg-gray-50"
-                        >
-                          수정하기
-                        </button>
-                        <button
-                          onClick={() => handleOpenDeleteModal(challenge.id)}
-                          className="w-full py-3 text-center text-14-medium text-gray-700 transition-colors hover:bg-gray-50"
-                        >
-                          삭제하기
-                        </button>
-                      </div>
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNum = i + 1;
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={cn(
+                      'flex h-8 w-8 items-center justify-center rounded text-14-medium transition-colors',
+                      currentPage === pageNum
+                        ? 'bg-brand-black text-white'
+                        : 'text-gray-500 hover:bg-gray-100',
                     )}
-                  </div>
-
-                  <h2
-                    className={cn('mb-3 pr-12 text-22-semibold text-gray-800')}
                   >
-                    {challenge.title}
-                  </h2>
+                    {pageNum}
+                  </button>
+                );
+              })}
 
-                  <div className="mb-4 flex items-center gap-2">
-                    <ChipField variant={challenge.field} />
-                    <ChipCategory variant={challenge.docType} />
-                  </div>
-
-                  <hr className="my-4 border-gray-200" />
-
-                  <div className="flex items-center gap-6 text-14-regular text-gray-600">
-                    <div className="flex items-center gap-1.5">
-                      <Image
-                        src={deadlineIcon}
-                        alt="마감기한"
-                        width={20}
-                        height={20}
-                      />
-                      <span>
-                        {challenge.deadline
-                          ? `${formatDate(challenge.deadline)} 마감`
-                          : '-'}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <Image
-                        src={personIcon}
-                        alt="참여인원"
-                        width={20}
-                        height={20}
-                      />
-                      <span className="text-14-medium text-gray-800">
-                        {challenge.currentParticipants}/
-                        {challenge.maxParticipants}{' '}
-                        {isFull ? '참여 완료' : '참여중'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {totalPages > 0 && (
-          <div className="mt-12 flex items-center justify-center space-x-2">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="p-2 text-14-regular text-gray-400 hover:text-black disabled:opacity-30"
-            >
-              &lt;
-            </button>
-
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const pageNum = i + 1;
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={cn(
-                    'flex h-8 w-8 items-center justify-center rounded text-14-medium transition-colors',
-                    currentPage === pageNum
-                      ? 'bg-brand-black text-white'
-                      : 'text-gray-500 hover:bg-gray-100',
-                  )}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
-
-            <button
-              onClick={() =>
-                setCurrentPage((p) => (p >= totalPages ? p : p + 1))
-              }
-              disabled={currentPage >= totalPages}
-              className="p-2 text-14-regular text-gray-400 hover:text-black disabled:opacity-30"
-            >
-              &gt;
-            </button>
-          </div>
-        )}
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => (p >= totalPages ? p : p + 1))
+                }
+                disabled={currentPage >= totalPages}
+                className="p-2 text-14-regular text-gray-400 hover:text-black disabled:opacity-30"
+              >
+                &gt;
+              </button>
+            </div>
+          )}
+        </div>
       </main>
 
       <DeleteModal

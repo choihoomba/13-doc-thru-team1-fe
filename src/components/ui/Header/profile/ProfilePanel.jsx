@@ -12,7 +12,7 @@ import getGradeLabel from '@/utils/getGradeLabel';
  * 나의 챌린지 경로도 서비스에서 고정된 값이므로 컴포넌트 내부에서 관리합니다.
  */
 export default function ProfilePanel({ id, user, onLogout, isLogoutPending }) {
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = user?.data.role === 'ADMIN';
 
   return (
     <section

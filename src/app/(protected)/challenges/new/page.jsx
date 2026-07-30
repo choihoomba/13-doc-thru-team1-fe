@@ -164,7 +164,7 @@ export default function ChallengeCreatePage() {
   const [touchedFields, setTouchedFields] = useState({});
   const [submitError, setSubmitError] = useState('');
 
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = user?.data.role === 'ADMIN';
   const maximumDeadline = getDeadlineDateValueAfterDays(MAXIMUM_DEADLINE_DAYS);
 
   function handleChange(event) {
