@@ -46,8 +46,11 @@ const INITIAL_FORM_VALUES = {
 };
 
 const MINIMUM_DEADLINE_DAYS = 7;
+const MAXIMUM_DEADLINE_DAYS = 21;
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 const MAX_PARTICIPANTS = 15;
+const TITLE_TEXT_PATTERN = /[\p{L}\p{N}]/u;
+const FORM_FIELD_NAMES = Object.keys(INITIAL_FORM_VALUES);
 
 // 선택한 날짜 전체를 마감일로 사용할 수 있도록 로컬 날짜의 마지막 시각으로 변환합니다.
 function toDeadlineISOString(dateValue) {
@@ -57,6 +60,18 @@ function toDeadlineISOString(dateValue) {
   const deadline = new Date(year, month - 1, day, 23, 59, 59, 999);
 
   return deadline.toISOString();
+}
+
+// 오늘을 기준으로 지정한 일수 뒤의 날짜를 native date input 형식으로 반환합니다.
+function getDeadlineDateValueAfterDays(days, baseDate = new Date()) {
+  const deadline = new Date(baseDate);
+  deadline.setDate(deadline.getDate() + days);
+
+  const year = deadline.getFullYear();
+  const month = String(deadline.getMonth() + 1).padStart(2, '0');
+  const day = String(deadline.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
 }
 
 // 커스텀 Form 컴포넌트가 같은 방식으로 오류를 표시하도록 페이지에서 값을 검증합니다.
@@ -69,6 +84,8 @@ function validateForm(values) {
 
   if (!trimmedTitle) {
     errors.title = '* 제목을 입력해주세요.';
+  } else if (!TITLE_TEXT_PATTERN.test(trimmedTitle)) {
+    errors.title = '* 제목은 문자 또는 숫자를 포함해주세요.';
   } else if (trimmedTitle.length > 100) {
     errors.title = '* 제목은 100자 이하로 입력해주세요.';
   }
@@ -102,9 +119,16 @@ function validateForm(values) {
     const minimumDeadline = new Date(
       Date.now() + MINIMUM_DEADLINE_DAYS * MILLISECONDS_PER_DAY,
     );
+    const maximumDeadline = new Date();
+    maximumDeadline.setDate(maximumDeadline.getDate() + MAXIMUM_DEADLINE_DAYS);
+    maximumDeadline.setHours(23, 59, 59, 999);
 
-    if (selectedDeadline.getTime() < minimumDeadline.getTime()) {
-      errors.deadline = '* 마감일은 신청일 기준 최소 7일 이후로 선택해주세요.';
+    if (
+      selectedDeadline.getTime() < minimumDeadline.getTime() ||
+      selectedDeadline.getTime() > maximumDeadline.getTime()
+    ) {
+      errors.deadline =
+        '* 마감일은 신청일 기준 7일 후부터 21일 이내로 선택해주세요.';
     }
   }
 
@@ -137,34 +161,36 @@ export default function ChallengeCreatePage() {
 
   const [values, setValues] = useState(INITIAL_FORM_VALUES);
   const [errors, setErrors] = useState({});
+  const [touchedFields, setTouchedFields] = useState({});
   const [submitError, setSubmitError] = useState('');
 
   const isAdmin = user?.role === 'ADMIN';
+  const maximumDeadline = getDeadlineDateValueAfterDays(MAXIMUM_DEADLINE_DAYS);
 
   function handleChange(event) {
     const { name, value } = event.target;
+    const nextValues = {
+      ...values,
+      [name]: value,
+    };
+    const nextFieldError = validateForm(nextValues)[name] ?? '';
+    const shouldValidateImmediately =
+      touchedFields[name] ||
+      (name === 'maxParticipants' && Boolean(nextFieldError));
 
-    // number input의 max 속성은 직접 입력을 막지 않으므로 15명을 넘는 값은 상태에 반영하지 않습니다.
-    if (
-      name === 'maxParticipants' &&
-      value !== '' &&
-      Number(value) > MAX_PARTICIPANTS
-    ) {
+    setValues(nextValues);
+
+    if (shouldValidateImmediately) {
+      setTouchedFields((currentTouchedFields) => ({
+        ...currentTouchedFields,
+        [name]: true,
+      }));
       setErrors((currentErrors) => ({
         ...currentErrors,
-        maxParticipants: '* 최대 인원은 15명까지 지정할 수 있습니다.',
+        [name]: nextFieldError,
       }));
-      return;
     }
 
-    setValues((currentValues) => ({
-      ...currentValues,
-      [name]: value,
-    }));
-    setErrors((currentErrors) => ({
-      ...currentErrors,
-      [name]: '',
-    }));
     setSubmitError('');
   }
 
@@ -201,6 +227,11 @@ export default function ChallengeCreatePage() {
     event.preventDefault();
 
     const nextErrors = validateForm(values);
+    setTouchedFields(
+      Object.fromEntries(
+        FORM_FIELD_NAMES.map((fieldName) => [fieldName, true]),
+      ),
+    );
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) return;
@@ -223,6 +254,11 @@ export default function ChallengeCreatePage() {
       />,
     );
   }
+
+  const hasTouchedError = Object.entries(errors).some(
+    ([fieldName, error]) => touchedFields[fieldName] && Boolean(error),
+  );
+  const isSubmitDisabled = isPending || hasTouchedError;
 
   return (
     <div
@@ -250,6 +286,7 @@ export default function ChallengeCreatePage() {
           <div className="mt-[12px] flex flex-col gap-[24px] tablet:mt-[24px]">
             <InputBase
               required
+              showRequired={Boolean(errors.title)}
               label="제목"
               name="title"
               value={values.title}
@@ -261,6 +298,7 @@ export default function ChallengeCreatePage() {
 
             <InputBase
               required
+              showRequired={Boolean(errors.originalUrl)}
               label="원문 링크"
               name="originalUrl"
               type="url"
@@ -273,6 +311,7 @@ export default function ChallengeCreatePage() {
 
             <Select
               required
+              showRequired={Boolean(errors.field)}
               label="분야"
               name="field"
               value={values.field}
@@ -284,6 +323,7 @@ export default function ChallengeCreatePage() {
 
             <Select
               required
+              showRequired={Boolean(errors.docType)}
               label="문서 타입"
               name="docType"
               value={values.docType}
@@ -295,15 +335,19 @@ export default function ChallengeCreatePage() {
 
             <InputCalendar
               required
+              showRequired={Boolean(errors.deadline)}
               label="마감일"
               name="deadline"
               value={values.deadline}
               error={errors.deadline}
+              helperText="마감일은 신청일 기준 7일 후부터 21일 이내로 선택할 수 있습니다."
+              max={maximumDeadline}
               onChange={handleChange}
             />
 
             <InputBase
               required
+              showRequired={Boolean(errors.maxParticipants)}
               className="tablet:mt-[8px]"
               inputClassName="h-[57px]"
               label="최대 인원"
@@ -321,6 +365,7 @@ export default function ChallengeCreatePage() {
 
             <Textarea
               required
+              showRequired={Boolean(errors.content)}
               className="tablet:mt-[8px]"
               textareaClassName="h-[228px]"
               label="내용"
@@ -342,7 +387,7 @@ export default function ChallengeCreatePage() {
               type="submit"
               size="xl"
               width="100%"
-              disabled={isPending}
+              disabled={isSubmitDisabled}
             >
               {isPending ? '신청 중...' : '신청하기'}
             </ButtonPrimary>

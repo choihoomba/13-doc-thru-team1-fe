@@ -8,15 +8,18 @@ import { usePathname, useRouter } from 'next/navigation';
 import IcBell from '@/app/assets/icons/ic_bell.svg';
 
 import { signoutAction } from '@/lib/actions/auth';
+import { getChallenge } from '@/lib/api/challenges';
 import { useAuth } from '@/lib/providers/AuthProvider';
 
 import { useOutsideClick } from '@/hooks/common/useOutsideClick';
+import { useModal } from '@/hooks/modal/useModal';
 import { useMarkNotificationAsRead } from '@/hooks/queries/notifications/mutations';
 import { useChallengeNotifications } from '@/hooks/queries/notifications/queries';
 
 import { cn } from '@/utils/cn';
 
 import ButtonSecondary from '@/components/ui/Button/ButtonSecondary';
+import ModalNotice from '@/components/ui/Modal/ModalNotice';
 
 import AdminNavigation, {
   getActiveAdminNav,
@@ -31,6 +34,14 @@ function getHeaderVariant(user) {
   if (user.role === 'ADMIN') return 'admin';
 
   return 'member';
+}
+
+function isDeletedChallengeNotification(notification) {
+  return (
+    notification.targetType === 'CHALLENGE' &&
+    notification.type === 'STATUS_CHANGED' &&
+    notification.message?.includes('챌린지가 삭제되었습니다')
+  );
 }
 
 /**
@@ -50,6 +61,7 @@ export default function Header({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { openModal } = useModal();
   const { user: authUser } = useAuth();
 
   /*
@@ -90,7 +102,12 @@ export default function Header({
 
   const challengeNotifications = (
     providedNotifications ?? requestedNotifications
-  ).filter((notification) => notification.targetType === 'CHALLENGE');
+  )
+    .filter((notification) => notification.targetType === 'CHALLENGE')
+    .sort(
+      (firstNotification, secondNotification) =>
+        Number(firstNotification.isRead) - Number(secondNotification.isRead),
+    );
   const hasUnreadNotifications = challengeNotifications.some(
     (notification) => !notification.isRead,
   );
@@ -145,6 +162,31 @@ export default function Header({
         }
       } else {
         onNotificationRead?.(notification.id);
+      }
+    }
+
+    // 삭제 알림은 읽음 처리만 하고 삭제된 챌린지 상세로 이동하지 않습니다.
+    if (isDeletedChallengeNotification(notification)) return;
+
+    // 실제 알림은 이동 전에 대상 챌린지가 남아 있는지 확인합니다.
+    // 삭제된 챌린지라면 상세 페이지로 이동하지 않고 현재 화면에서 안내합니다.
+    if (providedNotifications === undefined) {
+      try {
+        const challenge = await getChallenge(notification.targetId);
+
+        if (challenge?.status === 'DELETED' || challenge?.deletedAt) return;
+      } catch (error) {
+        closeNotificationPanel();
+        openModal(
+          <ModalNotice
+            message={
+              error.status === 404
+                ? '삭제되었거나 존재하지 않는 챌린지입니다.'
+                : '챌린지 정보를 확인할 수 없습니다. 잠시 후 다시 시도해주세요.'
+            }
+          />,
+        );
+        return;
       }
     }
 

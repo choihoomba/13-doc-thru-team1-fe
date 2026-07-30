@@ -68,6 +68,7 @@ export default function InputBase({
   label,
   error,
   required = false,
+  showRequired = required,
   disabled = false,
   type = 'text',
   borderRadius = 12,
@@ -148,7 +149,12 @@ export default function InputBase({
   return (
     <div className={cn(FORM_GROUP_STYLE, className)}>
       {label && (
-        <Label htmlFor={inputId} required={required} className={labelClassName}>
+        <Label
+          htmlFor={inputId}
+          // 입력 필수 여부는 유지하면서, 라벨의 별표는 오류 상태에 맞춰 별도로 제어할 수 있습니다.
+          required={showRequired}
+          className={labelClassName}
+        >
           {label}
         </Label>
       )}

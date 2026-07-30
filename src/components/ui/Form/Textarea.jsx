@@ -50,6 +50,7 @@ export default function Textarea({
   label,
   error,
   required = false,
+  showRequired = required,
   ...props
 }) {
   /*
@@ -64,7 +65,7 @@ export default function Textarea({
       {label && (
         <Label
           htmlFor={textareaId}
-          required={required}
+          required={showRequired}
           className={labelClassName}
         >
           {label}

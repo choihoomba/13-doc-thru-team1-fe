@@ -17,7 +17,6 @@ import {
   createChangedChallengeFields,
   createInitialValues,
   EMPTY_FORM_VALUES,
-  MAX_PARTICIPANTS,
   validateChallengeEditForm,
 } from './challengeEditFormUtils';
 
@@ -46,6 +45,7 @@ export default function AdminChallengeEditPage() {
   const [initialValues, setInitialValues] = useState(null);
   const [values, setValues] = useState(EMPTY_FORM_VALUES);
   const [errors, setErrors] = useState({});
+  const [touchedFields, setTouchedFields] = useState({});
   const [submitError, setSubmitError] = useState('');
 
   // 캐시가 다시 갱신돼도 작성 중인 입력값을 덮지 않도록 id별 한 번만 초기화합니다.
@@ -60,28 +60,32 @@ export default function AdminChallengeEditPage() {
 
   function handleChange(event) {
     const { name, value } = event.target;
+    const nextValues = {
+      ...values,
+      [name]: value,
+    };
+    const nextFieldError =
+      validateChallengeEditForm(
+        nextValues,
+        challenge?.currentParticipants ?? 0,
+      )[name] ?? '';
+    const shouldValidateImmediately =
+      touchedFields[name] ||
+      (name === 'maxParticipants' && Boolean(nextFieldError));
 
-    // input의 max 속성으로 막을 수 없는 키보드 직접 입력도 제한합니다.
-    if (
-      name === 'maxParticipants' &&
-      value !== '' &&
-      Number(value) > MAX_PARTICIPANTS
-    ) {
+    setValues(nextValues);
+
+    if (shouldValidateImmediately) {
+      setTouchedFields((currentTouchedFields) => ({
+        ...currentTouchedFields,
+        [name]: true,
+      }));
       setErrors((currentErrors) => ({
         ...currentErrors,
-        maxParticipants: '* 최대 인원은 15명까지 지정할 수 있습니다.',
+        [name]: nextFieldError,
       }));
-      return;
     }
 
-    setValues((currentValues) => ({
-      ...currentValues,
-      [name]: value,
-    }));
-    setErrors((currentErrors) => ({
-      ...currentErrors,
-      [name]: '',
-    }));
     setSubmitError('');
   }
 
@@ -110,6 +114,11 @@ export default function AdminChallengeEditPage() {
     const nextErrors = validateChallengeEditForm(
       values,
       challenge.currentParticipants ?? 0,
+    );
+    setTouchedFields(
+      Object.fromEntries(
+        Object.keys(EMPTY_FORM_VALUES).map((fieldName) => [fieldName, true]),
+      ),
     );
     setErrors(nextErrors);
 
@@ -151,6 +160,11 @@ export default function AdminChallengeEditPage() {
     );
   }
 
+  const hasTouchedError = Object.entries(errors).some(
+    ([fieldName, error]) => touchedFields[fieldName] && Boolean(error),
+  );
+  const isSubmitDisabled = isUpdating || hasTouchedError;
+
   return (
     <ChallengeEditForm
       values={values}
@@ -158,6 +172,7 @@ export default function AdminChallengeEditPage() {
       submitError={submitError}
       currentParticipants={challenge.currentParticipants ?? 0}
       isUpdating={isUpdating}
+      isSubmitDisabled={isSubmitDisabled}
       onChange={handleChange}
       onSubmit={handleSubmit}
     />
