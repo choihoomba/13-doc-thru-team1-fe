@@ -56,9 +56,9 @@ export default function TopLikedSubmissionItem({ submission }) {
       {/* 최다 추천 번역 상단 섹션 */}
       <div
         className={cn(
-          'relative p-[44px_16px_0_16px]',
-          'tablet:p-[42px_16px_0_16px]',
-          'desktop:p-[53px_24px_0_24px]',
+          'relative p-[44px_16px_0]',
+          'tablet:p-[42px_28px_0]',
+          'desktop:p-[53px_28px_0]',
         )}
       >
         <div>
